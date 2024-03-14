@@ -1,0 +1,4 @@
+## Use the R_HOME indirection to support installations of multiple R version
+PKG_LIBS = `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"`
+PKG_CPPFLAGS = -w -std=c++11 -I../inst/include/ -O3 -I/opt/homebrew/Cellar/boost/1.84.0_1/include/
+
