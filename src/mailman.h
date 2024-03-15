@@ -213,6 +213,7 @@ void fastmultiply_sse(
   for (int l = 0; l < k; l++)
     yint[l] = 0;
 }
+
 void fastmultiply_pre_sse(
     int m, int n, int k, int start, std::vector<int> &p,
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> &x,

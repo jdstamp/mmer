@@ -5,12 +5,13 @@ MatrixXdr compute_XXz(int num_snp, MatrixXdr Z_b, MatrixXdr means,
                       MatrixXdr stds, MatrixXdr mask, int Nz, int Nindv,
                       int sel_snp_local_index, double *&sum_op, genotype g,
                       double *&yint_m, double **&y_m, int p, double *&yint_e,
-                      double **&y_e) {
+                      double **&y_e, double *&partialsums) {
   MatrixXdr res;
   res.resize(num_snp, Nz);
-  bool use_mailman = true;
   bool exclude_sel_snp = false;
-  multiply_y_pre_fast(Z_b, Nz, res, false, sum_op, g, yint_m, y_m, p);
+
+  multiply_y_pre_fast(Z_b, Nz, res, true, sum_op, g, yint_m, y_m, p, partialsums);
+  std::cout << "COMP: HERE2" << std::endl;
 
   MatrixXdr zb_sum = Z_b.colwise().sum();
 
@@ -53,13 +54,13 @@ MatrixXdr compute_XXz(int num_snp, MatrixXdr Z_b, MatrixXdr means,
 MatrixXdr compute_XXUz(int num_snp, int Nz, int Nindv, MatrixXdr means,
                        MatrixXdr stds, MatrixXdr mask, double *&sum_op,
                        genotype g, double *&yint_m, double **&y_m, int p,
-                       double *&yint_e, double **&y_e) {
+                       double *&yint_e, double **&y_e, double *&partialsums) {
 
   MatrixXdr all_Uzb;
   MatrixXdr res; // Boyang: add declaration of res before resize;
   res.resize(num_snp, Nz);
 
-  multiply_y_pre_fast(all_Uzb, Nz, res, false, sum_op, g, yint_m, y_m, p);
+  multiply_y_pre_fast(all_Uzb, Nz, res, false, sum_op, g, yint_m, y_m, p, partialsums);
 
   MatrixXdr zb_sum = all_Uzb.colwise().sum();
 
@@ -121,16 +122,15 @@ MatrixXdr compute_Xz(int num_snp, int Nz, int Nindv, MatrixXdr means,
 
 void multiply_y_pre_fast(MatrixXdr &op, int Ncol_op, MatrixXdr &res,
                          bool subtract_means, double *&sum_op, genotype g,
-                         double *&yint_m, double **&y_m, int p) {
-  double *partialsums;
+                         double *&yint_m, double **&y_m, int p, double *&partialsums) {
   bool var_normalize = false;
 
   for (int k_iter = 0; k_iter < Ncol_op; k_iter++) {
-    // cout << "k_iter" << k_iter << "out of Ncol_op: "<< Ncol_op << endl;
+    std::cout << "k_iter" << k_iter << "out of Ncol_op: "<< Ncol_op << std::endl;
     sum_op[k_iter] = op.col(k_iter).sum();
   }
 
-  // cout << "Nops = " << Ncol_op << "\t" <<g.Nsegments_hori << endl;
+  std::cout << "Nops = " << Ncol_op << "\t" <<g.Nsegments_hori << std::endl;
 #if DEBUG == 1
   if (debug) {
     print_time();
@@ -143,6 +143,22 @@ void multiply_y_pre_fast(MatrixXdr &op, int Ncol_op, MatrixXdr &res,
 #endif
 
   // TODO: Memory Effecient SSE FastMultipy
+
+  std::cout << "COMP: HERE1" << std::endl;
+  if (sum_op != nullptr) {
+    std::cout << "sum_op"<< *sum_op << std::endl;
+  }
+  if (yint_m != nullptr) {
+    std::cout << "yint_m"<< *yint_m << std::endl;
+  }
+  if (y_m != nullptr) {
+    std::cout << "y_m"<< **y_m << std::endl;
+  }
+  if (partialsums != nullptr) {
+    std::cout << "psums"<< partialsums << std::endl;
+    std::cout << "psums"<< *partialsums << std::endl;
+  }
+
 
   for (int seg_iter = 0; seg_iter < g.Nsegments_hori - 1; seg_iter++) {
     mailman::fastmultiply(g.segment_size_hori, g.Nindv, Ncol_op, g.p[seg_iter],
@@ -175,8 +191,10 @@ void multiply_y_pre_fast(MatrixXdr &op, int Ncol_op, MatrixXdr &res,
     cout << "Ending mailman on premultiply" << endl;
   }
 #endif
+  std::cout << "FAST: HERE1 " << std::endl;
 
   if (!subtract_means)
+    std::cout << "FAST: HERE2 " << std::endl;
     return;
 
   for (int p_iter = 0; p_iter < p; p_iter++) {
@@ -264,12 +282,12 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
 double compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr Z_b,
                     MatrixXdr means, MatrixXdr stds, int Nz, double *&sum_op,
                     genotype g, double *&yint_m, double **&y_m, int p,
-                    int sel_snp_local_index) {
+                    int sel_snp_local_index, double *&partialsums) {
   MatrixXdr res;          // Boyang: add declarative res
   res.resize(num_snp, 1); // Boyang: change to resize
   // MatrixXdr res(num_snp, 1);
 
-  multiply_y_pre_fast(Z_b, Nz, res, false, sum_op, g, yint_m, y_m, p);
+  multiply_y_pre_fast(Z_b, Nz, res, false, sum_op, g, yint_m, y_m, p, partialsums);
 
   /// GxG
 
@@ -291,12 +309,12 @@ double compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr Z_b,
 
 double compute_yVXXVy(int num_snp, MatrixXdr new_pheno, MatrixXdr means,
                       MatrixXdr stds, int Nz, double *&sum_op, genotype g,
-                      double *&yint_m, double **&y_m, int p) {
+                      double *&yint_m, double **&y_m, int p, double *&partialsums) {
   MatrixXdr new_pheno_sum = new_pheno.colwise().sum();
   MatrixXdr res;
   res.resize(num_snp, 1); // Boyang: change to resize
 
-  multiply_y_pre_fast(new_pheno, 1, res, false, sum_op, g, yint_m, y_m, p);
+  multiply_y_pre_fast(new_pheno, 1, res, false, sum_op, g, yint_m, y_m, p, partialsums);
 
   res = res.cwiseProduct(stds);
   MatrixXdr resid(num_snp, 1);
@@ -311,10 +329,10 @@ double compute_yVXXVy(int num_snp, MatrixXdr new_pheno, MatrixXdr means,
 MatrixXdr compute_XXy(int num_snp, MatrixXdr y_vec, MatrixXdr means,
                       MatrixXdr stds, MatrixXdr mask, int sel_snp_local_index,
                       int Nindv, double *&sum_op, genotype g, double *&yint_m,
-                      double **&y_m, int p, double *&yint_e, double **&y_e) {
+                      double **&y_m, int p, double *&yint_e, double **&y_e, double *&partialsums) {
   MatrixXdr res;
   res.resize(num_snp, 1);
-  multiply_y_pre_fast(y_vec, 1, res, false, sum_op, g, yint_m, y_m, p);
+  multiply_y_pre_fast(y_vec, 1, res, false, sum_op, g, yint_m, y_m, p, partialsums);
 
   MatrixXdr zb_sum = y_vec.colwise().sum();
 
@@ -354,12 +372,12 @@ MatrixXdr compute_XXy(int num_snp, MatrixXdr y_vec, MatrixXdr means,
 
 double compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr means,
                     MatrixXdr stds, int sel_snp_local_index, double *&sum_op,
-                    genotype g, double *&yint_m, double **&y_m, int p) {
+                    genotype g, double *&yint_m, double **&y_m, int p, double *&partialsums) {
   MatrixXdr res;          // Boyang: add declarative res
   res.resize(num_snp, 1); // Boyang: change to resize
   // MatrixXdr res(num_snp, 1);
 
-  multiply_y_pre_fast(y_vec, 1, res, false, sum_op, g, yint_m, y_m, p);
+  multiply_y_pre_fast(y_vec, 1, res, false, sum_op, g, yint_m, y_m, p, partialsums);
 
   /// GxG
   bool exclude_sel_snp = false;
