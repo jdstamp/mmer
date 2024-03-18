@@ -1,10 +1,10 @@
 #include "read_genotypes.h"
 
 void read_genotypes(string filename, MatrixXdr &genotypes, bool allow_missing,
-                    int num_snp, int n_samples, int &global_snp_index) {
+                    int num_snp, int n_samples, int n_snps, int &global_snp_index) {
   ifstream ifs(filename.c_str(), ios::in | ios::binary);
   char magic[3];
-  metaData metadata = set_metadata(n_samples);
+  metaData metadata = set_metadata(n_samples, n_snps);
   unsigned char *gtype;
   gtype = new unsigned char[metadata.ncol];
 
@@ -75,17 +75,16 @@ float get_observed_pj(const unsigned char *line, metaData metadata) {
   int y[4];
   int observed_sum = 0;
   int observed_ct = 0;
-
   for (int k = 0; k < metadata.ncol; k++) {
     unsigned char c = line[k];
-    y[0] = (c)&metadata.mask;
+    y[0] = (c) & metadata.mask;
     y[1] = (c >> 2) & metadata.mask;
     y[2] = (c >> 4) & metadata.mask;
     y[3] = (c >> 6) & metadata.mask;
     int j0 = k * metadata.unitsperword;
     int lmax = 4;
     if (k == metadata.ncol - 1) {
-      lmax = metadata.nrow % 4;
+      lmax = metadata.n_samples % 4;
       lmax = (lmax == 0) ? 4 : lmax;
     }
     for (int l = 0; l < lmax; l++) {
@@ -120,20 +119,20 @@ int simulate2_geno_from_random(float p_j) {
 }
 
 void read_bed2(std::istream &ifs, bool allow_missing, int num_snp,
-               vector<genotype> &allgen_mail, int n_samples,
+               vector<genotype> &allgen_mail, int n_samples, int n_snps,
                int &global_snp_index, annotationStruct annotation,
                int selected_snp_index) {
   // ifstream ifs (filename.c_str(), ios::in|ios::binary);
-
   bool read_sel_snp = false;
   char magic[3];
-  metaData metadata = set_metadata(n_samples);
+  metaData metadata = set_metadata(n_samples, n_snps);
 
   unsigned char *gtype;
   gtype = new unsigned char[metadata.ncol];
 
-  // if (read_header)
-  binary_read(ifs, magic);
+  if (global_snp_index < 0) {
+    binary_read(ifs, magic);
+  }
 
   int sum = 0;
 
@@ -154,17 +153,18 @@ void read_bed2(std::istream &ifs, bool allow_missing, int num_snp,
     ifs.read(reinterpret_cast<char *>(gtype),
              metadata.ncol * sizeof(unsigned char));
     float p_j = get_observed_pj(gtype, metadata);
-
+    std::cout << "glob snps idx: " << global_snp_index << "float p_j: " << p_j << std::endl;
     pointer_bins.clear();
-    for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++)
+    for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++) {
       if (annotation.annot_bool[global_snp_index][bin_index] ==
           1) // Boyang: checking annotation !!!
         pointer_bins.push_back(bin_index);
+    }
 
     for (int k = 0; k < metadata.ncol; k++) {
       unsigned char c = gtype[k];
       // Extract PLINK genotypes
-      y[0] = (c)&metadata.mask;
+      y[0] = (c) & metadata.mask;
       y[1] = (c >> 2) & metadata.mask;
       y[2] = (c >> 4) & metadata.mask;
       y[3] = (c >> 6) & metadata.mask;
@@ -172,7 +172,7 @@ void read_bed2(std::istream &ifs, bool allow_missing, int num_snp,
       // Handle number of individuals not being a multiple of 4
       int lmax = 4;
       if (k == metadata.ncol - 1) {
-        lmax = n_samples % 4;
+        lmax = metadata.n_samples % 4;
         lmax = (lmax == 0) ? 4 : lmax;
       }
       for (int l = 0; l < lmax; l++) {
