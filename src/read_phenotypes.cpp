@@ -1,7 +1,7 @@
 #include "read_phenotypes.h"
 
-MatrixXdr read_phenotypes(int Nind, std::string filename, MatrixXdr &mask) {
-  MatrixXdr pheno;
+void read_phenotypes(int Nind, std::string filename, MatrixXdr &pheno,
+                     MatrixXdr &mask) {
 
   ifstream ifs(filename.c_str(), ios::in);
 
@@ -38,5 +38,4 @@ MatrixXdr read_phenotypes(int Nind, std::string filename, MatrixXdr &mask) {
     }
     i++;
   }
-  return (pheno);
 }

@@ -5,9 +5,9 @@
 #' @param annotation_file File path for plink *.pheno data.
 #' @param covariate_file File path for covariates data.
 #' @param gxg_bin Integer.
-#' @param num_evec Integer. Number of random vectors.
-#' @param snp_index Integer.
-#' @param jack_number Integer.
+#' @param n_randvecs Integer. Number of random vectors.
+#' @param focal_snp_index Integer block_size of the focal SNP.
+#' @param n_blocks Integer representing the number of blocks the SNPs will be read in.
 #'
 #' @return A list of P values and PVEs
 #' @name fame
@@ -15,7 +15,7 @@
 #' @import Rcpp
 #' @import RcppEigen
 #' @export
-fame <- function(plink_file, pheno_file, annotation_file, covariate_file, gxg_bin, num_evec, snp_index, jack_number) {
-  fame_cpp(plink_file, pheno_file, annotation_file, covariate_file, gxg_bin, num_evec, snp_index, jack_number)
-  return(1)
+fame <- function(plink_file, pheno_file, annotation_file, covariate_file, gxg_bin, n_randvecs, focal_snp_index, n_blocks) {
+  result <- fame_cpp(plink_file, pheno_file, annotation_file, covariate_file, gxg_bin, n_randvecs, focal_snp_index, n_blocks)
+  return(result)
 }

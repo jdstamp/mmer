@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // fame_cpp
-Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string annotation_file, std::string covariate_file, int gxgbin, int num_evec, int snp_index, int jack_number);
-RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP annotation_fileSEXP, SEXP covariate_fileSEXP, SEXP gxgbinSEXP, SEXP num_evecSEXP, SEXP snp_indexSEXP, SEXP jack_numberSEXP) {
+Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string annotation_file, std::string covariate_file, int gxgbin, int n_randvecs, int focal_snp_index, int n_blocks);
+RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP annotation_fileSEXP, SEXP covariate_fileSEXP, SEXP gxgbinSEXP, SEXP n_randvecsSEXP, SEXP focal_snp_indexSEXP, SEXP n_blocksSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,16 +22,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type annotation_file(annotation_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type covariate_file(covariate_fileSEXP);
     Rcpp::traits::input_parameter< int >::type gxgbin(gxgbinSEXP);
-    Rcpp::traits::input_parameter< int >::type num_evec(num_evecSEXP);
-    Rcpp::traits::input_parameter< int >::type snp_index(snp_indexSEXP);
-    Rcpp::traits::input_parameter< int >::type jack_number(jack_numberSEXP);
-    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, annotation_file, covariate_file, gxgbin, num_evec, snp_index, jack_number));
+    Rcpp::traits::input_parameter< int >::type n_randvecs(n_randvecsSEXP);
+    Rcpp::traits::input_parameter< int >::type focal_snp_index(focal_snp_indexSEXP);
+    Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
+    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, annotation_file, covariate_file, gxgbin, n_randvecs, focal_snp_index, n_blocks));
     return rcpp_result_gen;
 END_RCPP
 }
 
+RcppExport SEXP run_testthat_tests(SEXP);
+
 static const R_CallMethodDef CallEntries[] = {
     {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 8},
+    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };
 

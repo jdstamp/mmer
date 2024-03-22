@@ -5,4 +5,5 @@
 using namespace std;
 using namespace Eigen;
 
-MatrixXdr read_phenotypes(int Nind, std::string filename, MatrixXdr &mask);
+void read_phenotypes(int Nind, std::string filename, MatrixXdr &pheno,
+                     MatrixXdr &mask);

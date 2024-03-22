@@ -1,13 +1,14 @@
 #include "read_annotation_file.h"
 
-annotationStruct read_annotation_file(string filename, int Nsnp, int Njack) {
+annotationStruct read_annotation_file(string filename, int n_snps,
+                                      int n_blocks) {
   vector<bool> snp_annot;
   std::vector<std::vector<int>> jack_bin;
   vector<int> len;
   std::vector<std::vector<bool>> annot_bool;
   vector<int> selected_snps_vec;
   int step_size;
-  int Nbin = 160;
+  int n_bins = 160;
   int step_size_rem;
   ifstream inp(filename.c_str());
   if (!inp.is_open()) {
@@ -40,9 +41,9 @@ annotationStruct read_annotation_file(string filename, int Nsnp, int Njack) {
     }
     if (linenum == 0) {
       num_parti = tokens.size();
-      Nbin = num_parti;
-      snp_annot.resize(Nbin, 0);
-      jack_bin.resize(Njack, vector<int>(Nbin, 0));
+      n_bins = num_parti;
+      snp_annot.resize(n_bins, 0);
+      jack_bin.resize(n_blocks, vector<int>(n_bins, 0));
       len.resize(num_parti, 0);
     }
     int index_annot = 0;
@@ -57,36 +58,30 @@ annotationStruct read_annotation_file(string filename, int Nsnp, int Njack) {
     linenum++;
   }
 
-  if (Nsnp != linenum) {
+  if (n_snps != linenum) {
     cout << "Number of the rows in bim file and annotation file does not match"
          << endl;
   }
 
-  Nsnp = linenum;
+  n_snps = linenum;
   selected_snps_vec.resize(num_parti, 0);
   for (int i = 0; i < num_parti; i++) {
-    cout << len[i] << " SNPs in " << i << "-th bin" << endl;
-    selected_snps_vec[i] =
-        len[i]; // Boyang: change selected_snps to selected_snps_vec
-    cout << " Number of selected SNPs w.r.t  annot file : "
-         << selected_snps_vec[i] << endl;
+    selected_snps_vec[i] = len[i];
   }
-
-  step_size = Nsnp / Njack;
-  step_size_rem = Nsnp % Njack;
-  cout << "Number of SNPs per block : " << step_size << endl;
-  jack_bin.resize(Njack, vector<int>(Nbin, 0));
+  step_size = n_snps / n_blocks;
+  step_size_rem = n_snps % n_blocks;
+  jack_bin.resize(n_blocks, vector<int>(n_bins, 0));
   int temp;
-  for (int i = 0; i < Nsnp; i++)
-    for (int j = 0; j < Nbin; j++)
+  for (int i = 0; i < n_snps; i++)
+    for (int j = 0; j < n_bins; j++)
       if (annot_bool[i][j] == 1) {
         temp = i / step_size;
-        if (temp >= Njack)
-          temp = Njack - 1;
+        if (temp >= n_blocks)
+          temp = n_blocks - 1;
         jack_bin[temp][j]++;
       }
   annotationStruct annotation =
-      annotationStruct{step_size,         Nbin,          annot_bool, len,
+      annotationStruct{step_size,         n_bins,        annot_bool, len,
                        selected_snps_vec, step_size_rem, jack_bin};
   return (annotation);
 }

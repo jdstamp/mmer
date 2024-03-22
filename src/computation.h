@@ -1,11 +1,12 @@
 #pragma once
 #include "fame.h"
 
-MatrixXdr compute_XXz(int num_snp, MatrixXdr Z_b, MatrixXdr means,
-                      MatrixXdr stds, MatrixXdr mask, int Nz, int Nindv,
-                      int sel_snp_local_index, double *&sum_op, genotype g,
-                      double *&yint_m, double **&y_m, int p, double *&yint_e,
-                      double **&y_e, double *&partialsums);
+MatrixXdr
+compute_XXz(int num_snp, MatrixXdr Z_b, MatrixXdr means, MatrixXdr stds,
+            MatrixXdr mask, int Nz, int Nindv, int sel_snp_local_index,
+            double *&sum_op, genotype g, double *&yint_m, double **&y_m, int p,
+            double *&yint_e, double **&y_e, double *&partialsums,
+            bool exclude_sel_snp);
 
 MatrixXdr compute_XXUz(int num_snp, int Nz, int Nindv, MatrixXdr means,
                        MatrixXdr stds, MatrixXdr mask, double *&sum_op,
@@ -35,13 +36,14 @@ double compute_yVXXVy(int num_snp, MatrixXdr new_pheno, MatrixXdr means,
                       double *&yint_m, double **&y_m, int p,
                       double *&partialsums);
 
-MatrixXdr compute_XXy(int num_snp, MatrixXdr y_vec, MatrixXdr means,
-                      MatrixXdr stds, MatrixXdr mask, int sel_snp_local_index,
-                      int Nindv, double *&sum_op, genotype g, double *&yint_m,
-                      double **&y_m, int p, double *&yint_e, double **&y_e,
-                      double *&partialsums);
+MatrixXdr
+compute_XXy(int num_snp, MatrixXdr y_vec, MatrixXdr means, MatrixXdr stds,
+            MatrixXdr mask, int sel_snp_local_index, int Nindv, double *&sum_op,
+            genotype g, double *&yint_m, double **&y_m, int p, double *&yint_e,
+            double **&y_e, double *&partialsums, bool exclude_sel_snp);
 
-double compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr means,
-                    MatrixXdr stds, int sel_snp_local_index, double *&sum_op,
-                    genotype g, double *&yint_m, double **&y_m, int p,
-                    double *&partialsums);
+double
+compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr means, MatrixXdr stds,
+             int sel_snp_local_index, double *&sum_op, genotype g,
+             double *&yint_m, double **&y_m, int p, double *&partialsums,
+             bool exclude_sel_snp);

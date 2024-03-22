@@ -30,7 +30,7 @@ public:
   std::vector<double> columnmeans;
   std::vector<double> columnmeans2;
 
-  int index;
+  int block_size;
 
   bool read_header;
   unsigned char mask;

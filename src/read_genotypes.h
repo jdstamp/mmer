@@ -8,17 +8,22 @@
 
 using namespace std;
 
-void read_genotypes(string filename, MatrixXdr &genotypes, bool allow_missing,
-                    int num_snp, int n_samples, int n_snps, int &global_snp_index);
+void read_focal_snp(string filename, MatrixXdr &focal_genotype, int focal_snp_index,
+                    int n_samples, int n_snps, int &global_snp_index);
 
 template <typename T>
 static std::istream &binary_read(std::istream &stream, T &value);
 
-float get_observed_pj(const unsigned char *line, metaData metadata);
+float get_observed_allelefreq(const unsigned char *line, metaData metadata);
 
-int simulate2_geno_from_random(float p_j);
+int impute_genotype(float p_j);
 
-void read_bed2(std::istream &ifs, bool allow_missing, int num_snp,
-               vector<genotype> &allgen_mail, int n_samples, int n_snps,
-               int &global_snp_index, annotationStruct annotation,
-               int selected_snp_index);
+void read_genotype_block(std::istream &ifs, int num_snp, vector <genotype> &allgen_mail,
+                         int n_samples, int n_snps, int &global_snp_index,
+                         annotationStruct annotation);
+
+void extract_plink_genotypes(int *y, unsigned char c, unsigned char mask);
+
+int encoding_to_allelecount(int val);
+
+int get_sample_block_size(int n_samples, int k, int ncol);

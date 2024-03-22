@@ -9,8 +9,7 @@
 #include <RcppEigen.h>
 
 #include "computation.h"
-#include "count_samples.h"
-#include "count_snps_bim.h"
+#include "count_data.h"
 #include "error_handling.h"
 #include "fame.h"
 #include "genotype.h"
@@ -18,16 +17,16 @@
 #include "read_covariates.h"
 #include "read_genotypes.h"
 #include "read_phenotypes.h"
+#include "set_block_parameters.h"
 #include <iostream>
 
 // [[Rcpp::export]]
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                     std::string annotation_file, std::string covariate_file,
-                    int gxgbin, int num_evec, int snp_index, int jack_number) {
+                    int gxgbin, int n_randvecs, int focal_snp_index,
+                    int n_blocks) {
   // Initialize all variables like in FAME
-  int Nenv = 1;
-  MatrixXdr Enviro;
-  int blocksize;
+  MatrixXdr focal_snp_gtype;
   int hsegsize; // = log_3(n)
   double *partialsums;
   double *sum_op;
@@ -35,7 +34,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   double *yint_m;
   double **y_e;
   double **y_m;
-
 
   MatrixXdr mask;
   MatrixXdr pheno;
@@ -47,14 +45,15 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr new_pheno;
 
   genotype g;
-  MatrixXdr geno_matrix; //(p,n)
+  MatrixXdr geno_matrix;      //(p,n)
+  bool allow_missing = false; // bolean for reading genotype data
 
   double y_sum;
   double y_mean;
 
-  MatrixXdr c; //(p,k)
-  MatrixXdr x; //(k,n)
-  MatrixXdr v; //(p,k)
+  MatrixXdr c;     //(p,k)
+  MatrixXdr x;     //(k,n)
+  MatrixXdr v;     //(p,k)
   MatrixXdr means; //(p,1)
   MatrixXdr stds;  //(p,1)
   MatrixXdr sum2;
@@ -74,64 +73,49 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr vt;
   //
 
-  std::stringstream bim_file;
-  std::stringstream fam_file;
-  std::stringstream bed_file;
-  bim_file << plink_file << ".bim";
-  fam_file << plink_file << ".fam";
-  bed_file << plink_file << ".bed";
+  std::stringstream bim_stream;
+  std::stringstream fam_stream;
+  std::stringstream bed_stream;
+  bim_stream << plink_file << ".bim";
+  fam_stream << plink_file << ".fam";
+  bed_stream << plink_file << ".bed";
+  std::string bim_file = bim_stream.str();
+  std::string fam_file = fam_stream.str();
+  std::string bed_file = bed_stream.str();
 
-  int n_snps = count_snps_bim(bim_file.str());
-  annotationStruct annotation =
-      read_annotation_file(annotation_file, n_snps, jack_number);
-
+  int n_snps = count_snps_bim(bim_file);
   int n_samples = count_samples(pheno_file);
-  std::cout << "Number of samples: " << n_samples << std::endl;
-  int fam_lines = count_fam(fam_file.str());
+  int fam_lines = count_fam(fam_file);
+  annotationStruct annotation =
+      read_annotation_file(annotation_file, n_snps, n_blocks);
+
   if (fam_lines != n_samples) {
     exitWithError("# samples in fam file and pheno file does not match ");
   }
-  std::cout << "Number of fam lines: " << fam_lines << std::endl;
-  pheno = read_phenotypes(n_samples, pheno_file, mask);
 
-  y_sum = pheno.sum();
-  std::cout << "Phenotype sum: " << y_sum << std::endl;
-  Enviro.resize(n_samples, Nenv);
-  cout << "selected snp index: " << snp_index << endl;
-  int global_snp_index = -1;
-  bool missing = false;
-  read_genotypes(bed_file.str(), Enviro, missing, snp_index, n_samples, n_snps,
+  // read data into matrices pheno and mask
+  read_phenotypes(n_samples, pheno_file, pheno, mask);
+
+  focal_snp_gtype.resize(n_samples, 1);
+
+  int global_snp_index = -1; // keep track of how much was read for
+                             // block wise reading of genotypes
+  read_focal_snp(bed_file, focal_snp_gtype, focal_snp_index, n_samples, n_snps,
                  global_snp_index);
-  double mean_sel_snp = Enviro.array().sum() / n_samples;
+  double mean_sel_snp = focal_snp_gtype.array().sum() / n_samples;
   double sd_sel_snp = sqrt((mean_sel_snp * (1 - (0.5 * mean_sel_snp))));
-  cout << "mean selected snp " << mean_sel_snp << endl;
-  cout << "sd seletected snp " << sd_sel_snp << endl;
-  Enviro.array() = Enviro.array() - mean_sel_snp;
-  Enviro.array() = Enviro.array() / sd_sel_snp;
+  focal_snp_gtype.array() = focal_snp_gtype.array() - mean_sel_snp;
+  focal_snp_gtype.array() = focal_snp_gtype.array() / sd_sel_snp;
 
-  /////GxG : to remove selected snp from X
-  bool remove_self_inter = true;
-  int sel_snp_jack;
-  int sel_snp_local_index;
-  if (remove_self_inter == true) {
-    // step_size=Nsnp/jack_number;
-    sel_snp_jack =
-        (snp_index - 1) /
-        annotation.step_size; // Boyang: step_size is the number of snps per
-                              // block. step_size * block number = all snps
-    if (sel_snp_jack >= jack_number) {
-      std::cout << "sel_snp_jack out of bound: " << sel_snp_jack << std::endl;
-      sel_snp_jack = jack_number - 1;
-    }
-
-    sel_snp_local_index =
-        snp_index - (annotation.step_size *
-                     sel_snp_jack); // Boyang: get the local index !!!
-    std::cout << "selected snp is in " << sel_snp_jack << " jackknife block"
-              << std::endl;
-    std::cout << "selected snp is " << sel_snp_local_index << " th snp of block"
-              << std::endl;
+  // GxG : to remove selected snp from X
+  int focal_snp_block = (focal_snp_index - 1) / annotation.step_size;
+  // step_size is the number of snps per block. step_size * n_blocks = #snps
+  if (focal_snp_block >= n_blocks) {
+    // in case above math did not work - fix
+    focal_snp_block = n_blocks - 1;
   }
+  int sel_snp_local_index = // block_size of focal SNP inside it's block
+      focal_snp_index - (annotation.step_size * focal_snp_block) - 1;
 
   // Covariate handling - needs cleanup
   std::string covname = "";
@@ -143,11 +127,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     use_cov = true;
     cov_num = read_covariates(false, n_samples, covariate_file, covname,
                               covariate, snp_fix_ef);
-    std::cout << "Total number of fixed effects: " << cov_num << std::endl;
     if (snp_fix_ef == true)
-      covariate.col(cov_num - 1) = Enviro.col(0);
+      covariate.col(cov_num - 1) = focal_snp_gtype.col(0);
   } else if (covariate_file == "") {
-    std::cout << "No Covariate File Specified" << std::endl;
     both_side_cov = false;
   }
 
@@ -210,25 +192,27 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   // random vector stuff
   // define random vector z's
-  all_zb = MatrixXdr::Random(n_samples, num_evec);
+  all_zb = MatrixXdr::Random(n_samples, n_randvecs);
   all_zb = all_zb * sqrt(3);
 
   boost::mt19937 seedr;
   seedr.seed(std::time(0));
+  seedr.seed(123); // TODO: remove seed for actual algorithm
   boost::normal_distribution<> dist(0, 1);
   boost::variate_generator<boost::mt19937 &, boost::normal_distribution<>>
       z_vec(seedr, dist);
-  for (int i = 0; i < num_evec; i++)
+
+  for (int i = 0; i < n_randvecs; i++)
     for (int j = 0; j < n_samples; j++)
       all_zb(j, i) = z_vec();
 
-  for (int i = 0; i < num_evec; i++)
+  for (int i = 0; i < n_randvecs; i++)
     for (int j = 0; j < n_samples; j++)
       all_zb(j, i) = all_zb(j, i) * mask(j, 0);
 
   if (both_side_cov == true) {
-    all_Uzb.resize(n_samples, num_evec);
-    for (int j = 0; j < num_evec; j++) {
+    all_Uzb.resize(n_samples, n_randvecs);
+    for (int j = 0; j < n_randvecs; j++) {
       MatrixXdr w1 = covariate.transpose() * all_zb.col(j);
       MatrixXdr w2 = Q * w1;
       MatrixXdr w3 = covariate * w2;
@@ -240,25 +224,21 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr output;
   MatrixXdr output_env;
 
-  int nongen_Nbin =
-      annotation.n_bin; // Boyang change here -- to make each linear component
-                        // corresponding to a nonlinear component
-
   bool snp_in_annot = false;
   int selected_snp_bin;
 
   for (int j = 0; j < annotation.n_bin; j++) {
-    if (annotation.annot_bool[snp_index - 1][j] == 1) {
+    if (annotation.annot_bool[focal_snp_index - 1][j] == 1) {
       selected_snp_bin = j;
       snp_in_annot = true;
     }
   }
 
-  for (int i = 0; i < nongen_Nbin;
+  for (int i = 0; i < annotation.n_bin;
        i++) { // Boyang: here extend len to deal with gxg; change Nenv to
-              // nongen_Nbin
+              // annotation.n_bin
     if (i == gxgbin) {
-      if (remove_self_inter == true && snp_in_annot == true &&
+      if (snp_in_annot == true &&
           i == selected_snp_bin) // Boyang: double change here, only remove
                                  // length if selected snp in current set
         annotation.len.push_back(
@@ -272,33 +252,26 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   XXz = MatrixXdr::Zero(n_samples,
                         (annotation.n_bin + 1) *
-                            num_evec); // Boyang: v3 change nongen_Nbin to 1;
-                                       // we only want 1 gxg component
-  std::cout << "Matrix dimensions XXz: " << XXz.rows() << "x" << XXz.cols() << std::endl;
+                            n_randvecs); // Boyang: v3 change nongen_Nbin to 1;
+                                         // we only want 1 gxg component
   if (both_side_cov == true) {
     UXXz = MatrixXdr::Zero(n_samples,
                            (annotation.n_bin + 1) *
-                               num_evec); // Boyang: v3 change nongen_Nbin to
-                                          // 1;  we only want 1 gxg component
+                               n_randvecs); // Boyang: v3 change nongen_Nbin to
+                                            // 1;  we only want 1 gxg component
     XXUz = MatrixXdr::Zero(n_samples,
                            (annotation.n_bin + 1) *
-                               num_evec); // Boyang: v3 change nongen_Nbin to
-                                          // 1;  we only want 1 gxg component
+                               n_randvecs); // Boyang: v3 change nongen_Nbin to
+                                            // 1;  we only want 1 gxg component
   }
   yXXy = MatrixXdr::Zero(
       annotation.n_bin + 1,
       1); // Boyang: v3 change nongen_Nbin to 1;  we only want 1 gxg component
 
   allgen_mail.resize(annotation.n_bin);
-
-  int bin_index = 0;
-  ///// code for handeling overlapping annotations
-  string name = bed_file.str();
-  cout << name << endl;
-  ifstream ifs(name.c_str(), ios::in | ios::binary);
-  bool read_header = true;
+  ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   global_snp_index = -1;
-  //////////////////////////
+
   MatrixXdr vec1;
   MatrixXdr w1;
   MatrixXdr w2;
@@ -307,190 +280,127 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   int total_bin_num = annotation.n_bin + 1;
   wt = MatrixXdr::Zero(n_samples, total_bin_num + 1);
   vt = MatrixXdr::Zero(n_samples, (total_bin_num + 1) * (total_bin_num + 1));
-  /////
 
-  cout << "reading genotype matrix :" << endl;
-  for (int jack_index = 0; jack_index < jack_number;
-       jack_index++) { // Boyang: stream block
+  for (int block_index = 0; block_index < n_blocks;
+       block_index++) { // Boyang: stream block
 
-    cout << "reading " << jack_index << " block" << endl;
-
-    int read_Nsnp = (jack_index < (jack_number - 1))
+    int read_Nsnp = (block_index < (n_blocks - 1))
                         ? (annotation.step_size)
                         : (annotation.step_size + annotation.step_size_rem);
+    // could this be changed to have the remainder as the last block only?
 
-    for (int i = 0; i < annotation.n_bin; i++) {
+    set_block_parameters(allgen_mail, n_samples, annotation, block_index);
 
-      allgen_mail[i].segment_size_hori =
-          floor(log(n_samples) / log(3)) - 2; // object of the mailman
-      allgen_mail[i].Nsegments_hori =
-          ceil(annotation.jack_bin[jack_index][i] * 1.0 /
-               (allgen_mail[i].segment_size_hori * 1.0));
-      allgen_mail[i].p.resize(allgen_mail[i].Nsegments_hori,
-                              std::vector<int>(n_samples));
-      allgen_mail[i].not_O_i.resize(annotation.jack_bin[jack_index][i]);
-      allgen_mail[i].not_O_j.resize(n_samples);
-      allgen_mail[i].index = 0;
-      allgen_mail[i].Nsnp = annotation.jack_bin[jack_index][i];
-      allgen_mail[i].Nindv = n_samples;
-
-      allgen_mail[i].columnsum.resize(
-          annotation.jack_bin[jack_index][i],
-          1); // Boyang: calculate how many columns belongs to bin i
-      for (int index_temp = 0; index_temp < annotation.jack_bin[jack_index][i];
-           index_temp++) {
-        allgen_mail[i].columnsum[index_temp] = 0;
-      }
-    }
-
-    read_bed2(ifs, missing, read_Nsnp, allgen_mail, n_samples, n_snps, global_snp_index,
-              annotation, snp_index);
-    read_header = false;
-
+    read_genotype_block(bed_ifs, read_Nsnp, allgen_mail, n_samples, n_snps,
+                        global_snp_index, annotation);
 
     for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++) {
-      int num_snp;
-      num_snp = allgen_mail[bin_index].index;
+      int block_size = allgen_mail[bin_index].block_size;
 
-      cout << "bin_index: " << bin_index << " num_snps: " << num_snp << endl;
-
-      if (num_snp != 0) {
-        stds.resize(num_snp, 1);
-        means.resize(num_snp, 1);
-        for (int i = 0; i < num_snp; i++) {
+      if (block_size != 0) {
+        stds.resize(block_size, 1);
+        means.resize(block_size, 1);
+        for (int i = 0; i < block_size; i++) {
           means(i, 0) = (double)allgen_mail[bin_index].columnsum[i] / n_samples;
           if (means(i, 0) == 2 | means(i, 0) == 0)
             cout << "mean :" << means(i, 0) << endl;
         }
 
-        // cout << "start computing stds" << endl;
-        for (int i = 0; i < num_snp; i++) {
+        for (int i = 0; i < block_size; i++) {
           stds(i, 0) = 1 / sqrt((means(i, 0) * (1 - (0.5 * means(i, 0)))));
         }
 
-        // std::cout << "means Matrix shape: (" << means.rows() << ", "
-        //           << means.cols() << ")" << std::endl;
-        // std::cout << "means.row(0): " << means.col(0) << std::endl;
-        //
-        // std::cout << "stds Matrix shape: (" << stds.rows() << ", "
-        //           << stds.cols() << ")" << std::endl;
-        // std::cout << "stds.row(0): " << stds.col(0) << std::endl;
         g = allgen_mail[bin_index];
         g.segment_size_hori = floor(log(n_samples) / log(3)) - 2;
-        g.Nsegments_hori = ceil(annotation.jack_bin[jack_index][bin_index] *
+        g.Nsegments_hori = ceil(annotation.jack_bin[block_index][bin_index] *
                                 1.0 / (g.segment_size_hori * 1.0));
         g.p.resize(g.Nsegments_hori, std::vector<int>(n_samples));
-        g.not_O_i.resize(annotation.jack_bin[jack_index][bin_index]);
+        g.not_O_i.resize(annotation.jack_bin[block_index][bin_index]);
         g.not_O_j.resize(n_samples);
 
         int p = g.Nsnp;
         int n = g.Nindv;
-        int k = num_evec;
-        bool fast_mode = true;
-        bool memory_efficient = false;
-        bool var_normalize = false;
-        c.resize(p, k);
-        x.resize(k, n);
-        v.resize(p, k);
+        c.resize(p, n_randvecs);
+        x.resize(n_randvecs, n);
+        v.resize(p, n_randvecs);
         sum2.resize(p, 1);
         sum.resize(p, 1);
 
-        if (!fast_mode && !memory_efficient) {
-          geno_matrix.resize(p, n);
-          g.generate_eigen_geno(geno_matrix, var_normalize);
-        }
-
         // TODO: Initialization of c with gaussian distribution
-        c = MatrixXdr::Random(p, k);
+        c = MatrixXdr::Random(p, n_randvecs);
 
         // Initial intermediate data structures
-        blocksize = k;
         hsegsize = g.segment_size_hori; // = log_3(n)
         int hsize = pow(3, hsegsize);
         int vsegsize = g.segment_size_ver; // = log_3(p)
         int vsize = pow(3, vsegsize);
-        bool exclude_sel_snp;
 
-        partialsums = new double[blocksize];
-        sum_op = new double[blocksize];
-        yint_e = new double[hsize * blocksize];
-        yint_m = new double[hsize * blocksize];
-        memset(yint_m, 0, hsize * blocksize * sizeof(double));
-        memset(yint_e, 0, hsize * blocksize * sizeof(double));
+        partialsums = new double[n_randvecs];
+        sum_op = new double[n_randvecs];
+        yint_e = new double[hsize * n_randvecs];
+        yint_m = new double[hsize * n_randvecs];
+        memset(yint_m, 0, hsize * n_randvecs * sizeof(double));
+        memset(yint_e, 0, hsize * n_randvecs * sizeof(double));
 
         y_e = new double *[g.Nindv];
         for (int i = 0; i < g.Nindv; i++) {
-          y_e[i] = new double[blocksize];
-          memset(y_e[i], 0, blocksize * sizeof(double));
+          y_e[i] = new double[n_randvecs];
+          memset(y_e[i], 0, n_randvecs * sizeof(double));
         }
 
         y_m = new double *[hsegsize];
         for (int i = 0; i < hsegsize; i++)
-          y_m[i] = new double[blocksize];
+          y_m[i] = new double[n_randvecs];
 
-        output = compute_XXz(num_snp, all_zb, means, stds, mask, num_evec,
+        output = compute_XXz(block_size, all_zb, means, stds, mask, n_randvecs,
                              n_samples, sel_snp_local_index, sum_op, g, yint_m,
-                             y_m, p, yint_e, y_e, partialsums);
-
-        std::cout << "output.row(0)" << output.row(0) << std::endl;
-
-        if (remove_self_inter == true) {
-          if (sel_snp_jack == jack_index &&
-              annotation.annot_bool[snp_index - 1][bin_index] == 1) {
-            exclude_sel_snp = true;
-          }
-        }
+                             y_m, p, yint_e, y_e, partialsums, false);
 
         MatrixXdr scaled_pheno;
 
         int env_index = 0;
         if (bin_index == gxgbin) {
-          MatrixXdr env_all_zb =
-              all_zb.array().colwise() * Enviro.col(env_index).array();
-          output_env = compute_XXz(num_snp, env_all_zb, means, stds, mask,
-                                   num_evec, n_samples, sel_snp_local_index,
+          bool in_gxg_block = (focal_snp_block == block_index);
+            MatrixXdr env_all_zb =
+              all_zb.array().colwise() * focal_snp_gtype.col(env_index).array();
+          output_env = compute_XXz(block_size, env_all_zb, means, stds, mask,
+                                   n_randvecs, n_samples, sel_snp_local_index,
                                    sum_op, g, yint_m, y_m, p, yint_e, y_e,
-                                   partialsums); // z is the random vector
+                                   partialsums, in_gxg_block); // z
+                                   // is the random vector
 
-          output_env =
-              output_env.array().colwise() * Enviro.col(env_index).array();
-          for (int z_index = 0; z_index < num_evec; z_index++) {
-            XXz.col(((annotation.n_bin) * num_evec) + z_index) +=
-                output_env.col(z_index); // Boyang: change env_index to
-                                         // bin_index; v3: change bin_index to 1
+          output_env = output_env.array().colwise() *
+                       focal_snp_gtype.col(env_index).array();
+          for (int z_index = 0; z_index < n_randvecs; z_index++) {
+            XXz.col(((annotation.n_bin) * n_randvecs) + z_index) +=
+                output_env.col(z_index);
           }
-          // cout << "finish XXz compuation" << endl;
         }
 
         ///
-        if (bin_index == gxgbin) { // Boyang: v3: add condition check
-          //    cout << "start scale_pheno compuation" << endl;
-          scaled_pheno = pheno.array() * Enviro.col(env_index).array();
-          // cout << "finish sacled pheno computation" << endl;
-          MatrixXdr temp = compute_XXy(num_snp, scaled_pheno, means, stds, mask,
-                                       sel_snp_local_index, n_samples, sum_op,
-                                       g, yint_m, y_m, p, yint_e, y_e,
-                                       partialsums); // Here is the memory error
-          // cout << "finish computing XXy" << endl;
-          temp = temp.array() * Enviro.col(env_index).array();
-          wt.col(annotation.n_bin) +=
-              temp; // Boyang: v3 change env_index to bin_index; v3:
-                    // change bin_index to 0
+        if (bin_index == gxgbin) {
+            bool in_gxg_block = (focal_snp_block == block_index);
+          scaled_pheno = pheno.array() * focal_snp_gtype.col(env_index).array();
+          MatrixXdr temp = compute_XXy(block_size, scaled_pheno, means, stds,
+                                       mask, sel_snp_local_index, n_samples,
+                                       sum_op, g, yint_m, y_m, p, yint_e, y_e,
+                                       partialsums, in_gxg_block); // Here is the memory error
+          temp = temp.array() * focal_snp_gtype.col(env_index).array();
+          wt.col(annotation.n_bin) += temp;
           if (both_side_cov == false)
             yXXy(annotation.n_bin, 0) += compute_yXXy(
-                num_snp, scaled_pheno, means, stds, sel_snp_local_index, sum_op,
-                g, yint_m, y_m, p, partialsums);
+                    block_size, scaled_pheno, means, stds, sel_snp_local_index,
+                    sum_op, g, yint_m, y_m, p, partialsums, in_gxg_block);
         }
-        exclude_sel_snp = false; // v5: move exclude_sel_snp outside of the
-                                 // conditional block above
 
         ////// wt
         wt.col(bin_index) += compute_XXy(
-            num_snp, pheno, means, stds, mask, sel_snp_local_index, n_samples,
-            sum_op, g, yint_m, y_m, p, yint_e, y_e, partialsums);
+                block_size, pheno, means, stds, mask, sel_snp_local_index,
+                n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e, partialsums,
+                false);
 
-        for (int z_index = 0; z_index < num_evec; z_index++) {
-          XXz.col((bin_index * num_evec) + z_index) +=
+        for (int z_index = 0; z_index < n_randvecs; z_index++) {
+          XXz.col((bin_index * n_randvecs) + z_index) +=
               output.col(z_index); /// save whole sample
 
           if (both_side_cov == true) {
@@ -498,29 +408,30 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
             w1 = covariate.transpose() * vec1;
             w2 = Q * w1;
             w3 = covariate * w2;
-            UXXz.col((bin_index * num_evec) + z_index) += w3;
+            UXXz.col((bin_index * n_randvecs) + z_index) += w3;
           }
         }
 
         if (both_side_cov == true) {
           output =
-              compute_XXUz(num_snp, num_evec, n_samples, means, stds, mask,
+              compute_XXUz(block_size, n_randvecs, n_samples, means, stds, mask,
                            sum_op, g, yint_m, y_m, p, yint_e, y_e, partialsums);
 
-          for (int z_index = 0; z_index < num_evec; z_index++) {
-            XXUz.col((bin_index * num_evec) + z_index) +=
+          for (int z_index = 0; z_index < n_randvecs; z_index++) {
+            XXUz.col((bin_index * n_randvecs) + z_index) +=
                 output.col(z_index); /// save whole sample
           }
         }
 
         if (both_side_cov == false)
           yXXy(bin_index, 0) +=
-              compute_yXXy(num_snp, pheno, means, stds, sel_snp_local_index,
-                           sum_op, g, yint_m, y_m, p, partialsums);
+                  compute_yXXy(block_size, pheno, means, stds,
+                               sel_snp_local_index,
+                               sum_op, g, yint_m, y_m, p, partialsums, false);
         else
           yXXy(bin_index, 0) +=
-              compute_yVXXVy(num_snp, pheno, means, stds, num_evec, sum_op, g,
-                             yint_m, y_m, p, partialsums);
+              compute_yVXXVy(block_size, pheno, means, stds, n_randvecs, sum_op,
+                             g, yint_m, y_m, p, partialsums);
         delete[] sum_op;
         delete[] partialsums;
         delete[] yint_e;
@@ -528,7 +439,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         for (int i = 0; i < hsegsize; i++)
           delete[] y_m[i];
         delete[] y_m;
-
         for (int i = 0; i < g.Nindv; i++)
           delete[] y_e[i];
         delete[] y_e;
@@ -550,60 +460,33 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     }
   }
 
-  cout << " Reading and computing  of all blocks are finished" << endl;
-
   //
 
   /// analytic se
   for (int i = 0; i < total_bin_num; i++) {
     wt.col(i) = wt.col(i) / annotation.len[i];
-    cout << "bin " << i << " length: " << annotation.len[i] << endl;
     double dx = (wt.col(i).array() * pheno.array()).sum();
-    cout << "bin " << i << " " << dx << endl; // cout<<yXXy(i,0)<<endl;
   }
   wt.col(total_bin_num) = pheno;
 
-  ifstream ifs_2(name.c_str(), ios::in | ios::binary);
-  read_header = true;
+  ifstream ifs_2(bed_file.c_str(), ios::in | ios::binary);
   global_snp_index = -1;
 
-  for (int jack_index = 0; jack_index < jack_number; jack_index++) {
+  for (int block_index = 0; block_index < n_blocks; block_index++) {
 
-    int read_Nsnp = (jack_index < (jack_number - 1))
+    int read_Nsnp = (block_index < (n_blocks - 1))
                         ? (annotation.step_size)
                         : (annotation.step_size + annotation.step_size_rem);
 
-    for (int i = 0; i < annotation.n_bin; i++) {
-      allgen_mail[i].segment_size_hori = floor(log(n_samples) / log(3)) - 2;
-      allgen_mail[i].Nsegments_hori =
-          ceil(annotation.jack_bin[jack_index][i] * 1.0 /
-               (allgen_mail[i].segment_size_hori * 1.0));
-      allgen_mail[i].p.resize(allgen_mail[i].Nsegments_hori,
-                              std::vector<int>(n_samples));
-      allgen_mail[i].not_O_i.resize(annotation.jack_bin[jack_index][i]);
-      allgen_mail[i].not_O_j.resize(n_samples);
-      allgen_mail[i].index = 0;
-      allgen_mail[i].Nsnp = annotation.jack_bin[jack_index][i];
-      allgen_mail[i].Nindv = n_samples;
+    set_block_parameters(allgen_mail, n_samples, annotation, block_index);
 
-      allgen_mail[i].columnsum.resize(annotation.jack_bin[jack_index][i], 1);
-      for (int index_temp = 0; index_temp < annotation.jack_bin[jack_index][i];
-           index_temp++)
-        allgen_mail[i].columnsum[index_temp] = 0;
-    }
-
-    // bool use_1col_annot = false;
-    // if (use_1col_annot == true)
-    //   read_bed_1colannot(ifs_2, missing, read_Nsnp);
-    // else
-    read_bed2(ifs_2, missing, read_Nsnp, allgen_mail, n_samples, n_snps,
-              global_snp_index, annotation, snp_index);
-    read_header = false;
+    read_genotype_block(ifs_2, read_Nsnp, allgen_mail, n_samples, n_snps,
+                        global_snp_index, annotation);
     MatrixXdr means; //(p,1)
     MatrixXdr stds;  //(p,1)
     genotype g;
     for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++) {
-      int num_snp = allgen_mail[bin_index].index;
+      int num_snp = allgen_mail[bin_index].block_size;
 
       if (num_snp != 0) {
         stds.resize(num_snp, 1);
@@ -616,89 +499,76 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           stds(i, 0) = 1 / sqrt((means(i, 0) * (1 - (0.5 * means(i, 0)))));
         g = allgen_mail[bin_index];
         g.segment_size_hori = floor(log(n_samples) / log(3)) - 2;
-        g.Nsegments_hori = ceil(annotation.jack_bin[jack_index][bin_index] *
+        g.Nsegments_hori = ceil(annotation.jack_bin[block_index][bin_index] *
                                 1.0 / (g.segment_size_hori * 1.0));
         g.p.resize(g.Nsegments_hori, std::vector<int>(n_samples));
-        g.not_O_i.resize(annotation.jack_bin[jack_index][bin_index]);
+        g.not_O_i.resize(annotation.jack_bin[block_index][bin_index]);
         g.not_O_j.resize(n_samples);
 
         /// duplicate
         int p = g.Nsnp;
         int n = g.Nindv;
-        MatrixXdr c; //(p,k)
-        MatrixXdr x; //(k,n)
-        MatrixXdr v; //(p,k)
+        MatrixXdr c; //(p,n_randvecs)
+        MatrixXdr x; //(n_randvecs,n)
+        MatrixXdr v; //(p,n_randvecs)
         MatrixXdr sum2;
         MatrixXdr sum;
         MatrixXdr geno_matrix; //(p,n)
-        int k = num_evec;
-        bool fast_mode = true;
-        bool memory_efficient = false;
-        bool var_normalize = false;
-        c.resize(p, k);
-        x.resize(k, n);
-        v.resize(p, k);
+        c.resize(p, n_randvecs);
+        x.resize(n_randvecs, n);
+        v.resize(p, n_randvecs);
         sum2.resize(p, 1);
         sum.resize(p, 1);
 
-        if (!fast_mode && !memory_efficient) {
-          geno_matrix.resize(p, n);
-          g.generate_eigen_geno(geno_matrix, var_normalize);
-        }
-
         // TODO: Initialization of c with gaussian distribution
-        c = MatrixXdr::Random(p, k);
+        c = MatrixXdr::Random(p, n_randvecs);
 
         // Initial intermediate data structures
         int hsize = pow(3, hsegsize);
         int vsegsize = g.segment_size_ver; // = log_3(p)
         int vsize = pow(3, vsegsize);
-        bool exclude_sel_snp;
 
-        partialsums = new double[blocksize];
-        sum_op = new double[blocksize];
-        yint_e = new double[hsize * blocksize];
-        yint_m = new double[hsize * blocksize];
-        memset(yint_m, 0, hsize * blocksize * sizeof(double));
-        memset(yint_e, 0, hsize * blocksize * sizeof(double));
+        partialsums = new double[n_randvecs];
+        sum_op = new double[n_randvecs];
+        yint_e = new double[hsize * n_randvecs];
+        yint_m = new double[hsize * n_randvecs];
+        memset(yint_m, 0, hsize * n_randvecs * sizeof(double));
+        memset(yint_e, 0, hsize * n_randvecs * sizeof(double));
 
         y_e = new double *[g.Nindv];
         for (int i = 0; i < g.Nindv; i++) {
-          y_e[i] = new double[blocksize];
-          memset(y_e[i], 0, blocksize * sizeof(double));
+          y_e[i] = new double[n_randvecs];
+          memset(y_e[i], 0, n_randvecs * sizeof(double));
         }
 
         y_m = new double *[hsegsize];
         for (int i = 0; i < hsegsize; i++)
-          y_m[i] = new double[blocksize];
+          y_m[i] = new double[n_randvecs];
         //// end duplicate
 
         // total_bin_num=annotation.n_bin+nongen_Nbin;
         MatrixXdr val_temp;
         for (int i = 0; i < (total_bin_num + 1); i++) {
-          // cout<<"test "<<i<<endl;
           MatrixXdr val_temp = compute_XXy(
-              num_snp, wt.col(i), means, stds, mask, sel_snp_local_index,
-              n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e, partialsums);
+                  num_snp, wt.col(i), means, stds, mask, sel_snp_local_index,
+                  n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e,
+                  partialsums, false);
           vt.col((bin_index * (total_bin_num + 1)) + i) +=
               val_temp / annotation.len[bin_index]; // Boyang: what is vt??
         }
 
-        if (remove_self_inter == true) // self-interaction
-          if (sel_snp_jack == jack_index &&
-              annotation.annot_bool[snp_index - 1][bin_index] == 1)
-            exclude_sel_snp = true;
-
         MatrixXdr scaled_vec;
         if (bin_index == gxgbin) {
           for (int i = 0; i < (total_bin_num + 1); i++) {
-            scaled_vec = wt.col(i).array() *
-                         Enviro.col(0).array(); // change env_index to 0
+            scaled_vec =
+                wt.col(i).array() *
+                focal_snp_gtype.col(0).array(); // change env_index to 0
             MatrixXdr temp = compute_XXy(
-                num_snp, scaled_vec, means, stds, mask, sel_snp_local_index,
-                n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e, partialsums);
-            temp =
-                temp.array() * Enviro.col(0).array(); // change env_index to 0
+                    num_snp, scaled_vec, means, stds, mask, sel_snp_local_index,
+                    n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e,
+                    partialsums, false);
+            temp = temp.array() *
+                   focal_snp_gtype.col(0).array(); // change env_index to 0
 
             vt.col(((annotation.n_bin) * (total_bin_num + 1)) + i) +=
                 temp /
@@ -707,7 +577,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           }
         }
 
-        exclude_sel_snp = false;
         delete[] sum_op;
         delete[] partialsums;
         delete[] yint_e;
@@ -743,15 +612,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     vt.col((total_bin_num * (total_bin_num + 1)) + i) = wt.col(i);
   }
 
-  cout << "size of the bins :" << endl;
-  for (int i = 0; i < annotation.n_bin + 1;
-       i++) // Boyang: v3 change nongen_Nbin to 1
-    cout << "bin " << i << " : " << annotation.len[i] << endl;
-
-  annotation.n_bin = annotation.n_bin + 1; // Boyang: v3 change nongen_Nbin to 1
-  //////////////////////////////////////
-  ///////////////////////////////////// compute the elements of normal equation
-  ///:
+  annotation.n_bin = annotation.n_bin + 1;
+  // compute the elements of normal equation:
 
   /// normal equations LHS
   MatrixXdr A_trs(annotation.n_bin, annotation.n_bin);
@@ -760,8 +622,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   MatrixXdr X_l(annotation.n_bin + 1, annotation.n_bin + 1);
   MatrixXdr Y_r(annotation.n_bin + 1, 1);
-  // int bin_index=0;
-  int jack_index = jack_number;
+  int jack_index = n_blocks;
   MatrixXdr B1;
   MatrixXdr B2;
   MatrixXdr C1;
@@ -805,25 +666,24 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     if (i >= (annotation.n_bin - 1)) { // change nongen_Nbin to 1
 
-      // cout<<"iiiiiiiiii"<<i<<endl;
-      B1 = XXz.block(0, i * num_evec, n_samples, num_evec);
+      B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
       B1 = all_zb.array() * B1.array();
-      b_trk(i, 0) = B1.sum() / annotation.len[i] / num_evec;
+      b_trk(i, 0) = B1.sum() / annotation.len[i] / n_randvecs;
     }
 
     c_yky(i, 0) = yXXy(i, 0) / annotation.len[i];
 
     if (both_side_cov == true) {
-      B1 = XXz.block(0, i * num_evec, n_samples, num_evec);
+      B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
       C1 = B1.array() * all_Uzb.array();
       C2 = C1.colwise().sum();
       tk_res = C2.sum();
-      tk_res = tk_res / annotation.len[i] / num_evec;
+      tk_res = tk_res / annotation.len[i] / n_randvecs;
       b_trk(i, 0) = Nindv_mask - tk_res;
     }
     for (int j = i; j < annotation.n_bin; j++) {
-      B1 = XXz.block(0, i * num_evec, n_samples, num_evec);
-      B2 = XXz.block(0, j * num_evec, n_samples, num_evec);
+      B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
+      B2 = XXz.block(0, j * n_randvecs, n_samples, n_randvecs);
       C1 = B1.array() * B2.array();
       C2 = C1.colwise().sum();
       trkij = C2.sum();
@@ -837,8 +697,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         C2 = C1.colwise().sum();
         trkij_res1 = C2.sum();
 
-        B1 = XXUz.block(0, (i * num_evec), n_samples, num_evec);
-        B2 = UXXz.block(0, (j * num_evec), n_samples, num_evec);
+        B1 = XXUz.block(0, (i * n_randvecs), n_samples, n_randvecs);
+        B2 = UXXz.block(0, (j * n_randvecs), n_samples, n_randvecs);
         C1 = B1.array() * B2.array();
         C2 = C1.colwise().sum();
         trkij_res3 = C2.sum();
@@ -846,7 +706,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         trkij += trkij_res3 - trkij_res1 - trkij_res1;
       }
 
-      trkij = trkij / annotation.len[i] / annotation.len[j] / num_evec;
+      trkij = trkij / annotation.len[i] / annotation.len[j] / n_randvecs;
       A_trs(i, j) = trkij;
       A_trs(j, i) = trkij;
     }
@@ -859,14 +719,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   MatrixXdr herit = X_l.colPivHouseholderQr().solve(Y_r);
 
-  cout << "Xl" << X_l << endl;
-  cout << "Yl" << Y_r << endl;
-
   for (int i = 0; i < (annotation.n_bin + 1); i++)
     point_est(i, 0) = herit(i, 0);
-
-  cout << "sigms" << endl;
-  cout << point_est << endl;
 
   double temp_sum = point_est.sum();
   double temp_sig = 0;
@@ -875,9 +729,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     temp_sig += herit_est(j, 0);
   }
   herit_est(annotation.n_bin, 0) = temp_sig;
-
-  cout << "herit" << endl;
-  cout << herit_est << endl;
 
   /////compute SE analytic version
   MatrixXdr e;
@@ -890,8 +741,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     d += herit(i, 0) * c_yky(i, 0);
 
   d += herit(annotation.n_bin, 0) * yy;
-  cout << "d : " << d << endl;
-  /// vt.col(t*annotation.n_bin + i) = X_tX_tw_i
 
   MatrixXdr cov_q;
   cov_q.resize(annotation.n_bin + 1, annotation.n_bin + 1);
@@ -905,34 +754,17 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         double temp = (z1.array() * z2.array()).sum();
         sum1 += herit(t, 0) * temp;
       }
-      // double term2=(wt.col(k).array()*e.array()).sum();
-      // double term3=(wt.col(l).array()*e.array()).sum();
-      // double all=2*(sum1-term2-term3+d);
       double all = 2 * sum1;
       cov_q(k, l) = all;
     }
   }
 
-  cout << cov_q << endl;
-
   MatrixXdr inver_X = X_l.inverse();
 
-  // cout<<inver_X<<endl;
   MatrixXdr cov_sigma = inver_X * cov_q * inver_X;
-  cout << cov_sigma << endl;
 
-  cout << "se" << endl;
-  for (int i = 0; i < (annotation.n_bin + 1); i++)
-    cout << sqrt(cov_sigma(i, i)) << endl;
-  std::ofstream outfile;
-  string add_output = "OUTPUT_FILE_PATH";
-  outfile.open(add_output.c_str(), std::ios_base::out);
-  for (int j = 0; j <= annotation.n_bin; j++) {
-    outfile << "sigma^2_" << j << ": " << point_est(j, 0)
-            << " se: " << sqrt(cov_sigma(j, j)) << endl;
-    cout << "sigma^2_" << j << ": " << point_est(j, 0)
-         << " se: " << sqrt(cov_sigma(j, j)) << endl;
-  }
-
-  return (0);
+  return Rcpp::List::create(Rcpp::Named("Est") = point_est.col(0),
+                            Rcpp::Named("SE") =
+                                cov_sigma.diagonal().array().sqrt());
 }
+
