@@ -1,7 +1,7 @@
 #include "read_genotypes.h"
 
-void read_focal_snp(string filename, MatrixXdr &focal_genotype,
-                    int focal_snp_index, int n_samples, int n_snps,
+void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
+                    const int &focal_snp_index, const int &n_samples, const int &n_snps,
                     int &global_snp_index) {
   ifstream ifs(filename.c_str(), ios::in | ios::binary);
   char magic[3];
@@ -42,7 +42,7 @@ void read_focal_snp(string filename, MatrixXdr &focal_genotype,
   delete[] gtype;
 }
 
-int get_sample_block_size(int n_samples, int k, int ncol) {
+int get_sample_block_size(const int &n_samples, const int &k, const int &ncol) {
   // Handle number of individuals not being a multiple of 4
   int lmax = 4;
   if (k == ncol - 1) {
@@ -57,7 +57,7 @@ static std::istream &binary_read(std::istream &stream, T &value) {
   return stream.read(reinterpret_cast<char *>(&value), sizeof(T));
 }
 
-float get_observed_allelefreq(const unsigned char *line, metaData metadata) {
+float get_observed_allelefreq(const unsigned char *line, const metaData &metadata) {
   int y[4];
   int observed_sum = 0;
   int observed_ct = 0;
@@ -77,7 +77,7 @@ float get_observed_allelefreq(const unsigned char *line, metaData metadata) {
   return observed_sum * 0.5 / observed_ct;
 }
 
-void extract_plink_genotypes(int *y, unsigned char c, unsigned char mask) {
+void extract_plink_genotypes(int *y, const unsigned char &c, const unsigned char &mask) {
   // Extract PLINK genotypes
   y[0] = (c)&mask;
   y[1] = (c >> 2) & mask;
@@ -85,7 +85,7 @@ void extract_plink_genotypes(int *y, unsigned char c, unsigned char mask) {
   y[3] = (c >> 6) & mask;
 }
 
-int impute_genotype(float p_j) {
+int impute_genotype(const float &p_j) {
   float rval = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
   float dist_pj[3] = {(1 - p_j) * (1 - p_j), 2 * p_j * (1 - p_j), p_j * p_j};
   if (rval < dist_pj[0])
@@ -96,12 +96,12 @@ int impute_genotype(float p_j) {
     return 2;
 }
 
-void read_genotype_block(std::istream &ifs, int num_snp,
-                         vector<genotype> &allgen_mail, int n_samples,
-                         int n_snps, int &global_snp_index,
-                         annotationStruct annotation) {
+void read_genotype_block(std::istream &ifs, const int &num_snp,
+                         vector <genotype> &allgen_mail, const int &n_samples,
+                         const int &n_snps, int &global_snp_index,
+                         const annotationStruct &annotation,
+                         const metaData &metadata) {
   char magic[3];
-  metaData metadata = set_metadata(n_samples, n_snps);
 
   unsigned char *gtype;
   gtype = new unsigned char[metadata.ncol];
@@ -160,7 +160,7 @@ void read_genotype_block(std::istream &ifs, int num_snp,
   delete[] gtype;
 }
 
-int encoding_to_allelecount(int value) {
+int encoding_to_allelecount(const int &value) {
   // Extract  PLINK coded genotype and convert into 0/1/2
   // PLINK coding:
   // 00->0

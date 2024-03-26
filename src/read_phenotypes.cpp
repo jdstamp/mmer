@@ -1,6 +1,6 @@
 #include "read_phenotypes.h"
 
-void read_phenotypes(int Nind, std::string filename, MatrixXdr &pheno,
+void read_phenotypes(const int &n_samples, const std::string &filename, MatrixXdr &pheno,
                      MatrixXdr &mask) {
 
   ifstream ifs(filename.c_str(), ios::in);
@@ -16,8 +16,8 @@ void read_phenotypes(int Nind, std::string filename, MatrixXdr &pheno,
     if (b != "FID" && b != "IID")
       phenocount++;
   }
-  pheno.resize(Nind, phenocount);
-  mask.resize(Nind, phenocount);
+  pheno.resize(n_samples, phenocount);
+  mask.resize(n_samples, phenocount);
   int i = 0;
   while (std::getline(ifs, line)) {
     in.clear();

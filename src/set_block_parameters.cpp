@@ -7,8 +7,8 @@
 #include "fame.h"
 #include "set_block_parameters.h"
 
-void set_block_parameters(vector<genotype> &allgen_mail, int n_samples,
-                          const annotationStruct &annotation, int block_index) {
+void set_block_parameters(vector<genotype> &allgen_mail, const int &n_samples,
+                          const annotationStruct &annotation, const int &block_index) {
   for (int i = 0; i < annotation.n_bin; i++) {
     allgen_mail[i].segment_size_hori =
         floor(log(n_samples) / log(3)) - 2; // object of the mailman

@@ -611,7 +611,7 @@ double genotype::get_geno(int snpindex, int indvindex,
     return geno;
 }
 
-double genotype::get_col_mean(int snpindex) {
+double genotype::get_col_mean(int snpindex) const {
   double temp = columnmeans[snpindex];
   return temp;
 }
@@ -625,7 +625,7 @@ double genotype::get_col_sum2(int snpindex) {
   double temp = columnsum2[snpindex];
   return temp;
 }
-double genotype::get_col_std(int snpindex) {
+double genotype::get_col_std(int snpindex) const {
   /*	double p_i = get_col_mean(snpindex);
    //	double temp = sqrt(p_i*(1-(0.5*p_i))) ;
    double col_sum2 = get_col_sum2(snpindex);

@@ -2,9 +2,9 @@
 #include "mailman.h"
 
 MatrixXdr
-compute_XXz(int num_snp, MatrixXdr Z_b, MatrixXdr means, MatrixXdr stds,
-            MatrixXdr mask, int Nz, int Nindv, int sel_snp_local_index,
-            double *&sum_op, genotype g, double *&yint_m, double **&y_m, int p,
+compute_XXz(const int &num_snp, const MatrixXdr &Z_b, const MatrixXdr &means, const MatrixXdr &stds,
+            const MatrixXdr &mask, const int &Nz, const int &Nindv, const int &sel_snp_local_index,
+            double *&sum_op, const genotype &g, double *&yint_m, double **&y_m, int p,
             double *&yint_e, double **&y_e, double *&partialsums,
             bool exclude_sel_snp) {
   MatrixXdr res;
@@ -50,9 +50,9 @@ compute_XXz(int num_snp, MatrixXdr Z_b, MatrixXdr means, MatrixXdr stds,
   return temp.transpose();
 }
 
-MatrixXdr compute_XXUz(int num_snp, int Nz, int Nindv, MatrixXdr means,
-                       MatrixXdr stds, MatrixXdr mask, double *&sum_op,
-                       genotype g, double *&yint_m, double **&y_m, int p,
+MatrixXdr compute_XXUz(const int &num_snp, const int &Nz, const int &Nindv, const MatrixXdr &means,
+                       const MatrixXdr &stds, const MatrixXdr &mask, double *&sum_op,
+                       const genotype &g, double *&yint_m, double **&y_m, const int &p,
                        double *&yint_e, double **&y_e, double *&partialsums) {
 
   MatrixXdr all_Uzb;
@@ -120,9 +120,9 @@ MatrixXdr compute_Xz(int num_snp, int Nz, int Nindv, MatrixXdr means,
   return temp.transpose();
 }
 
-void multiply_y_pre_fast(MatrixXdr &op, int Ncol_op, MatrixXdr &res,
-                         bool subtract_means, double *&sum_op, genotype g,
-                         double *&yint_m, double **&y_m, int p,
+void multiply_y_pre_fast(const MatrixXdr &op, const int &Ncol_op, MatrixXdr &res,
+                         const bool &subtract_means, double *&sum_op, const genotype &g,
+                         double *&yint_m, double **&y_m, const int &p,
                          double *&partialsums) {
   bool var_normalize = false;
 
@@ -253,9 +253,9 @@ double compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr Z_b,
   return yXXy;
 }
 
-double compute_yVXXVy(int num_snp, MatrixXdr new_pheno, MatrixXdr means,
-                      MatrixXdr stds, int Nz, double *&sum_op, genotype g,
-                      double *&yint_m, double **&y_m, int p,
+double compute_yVXXVy(const int &num_snp, const MatrixXdr &new_pheno, const MatrixXdr &means,
+                      const MatrixXdr &stds, const int &Nz, double *&sum_op, const genotype &g,
+                      double *&yint_m, double **&y_m, const int &p,
                       double *&partialsums) {
   MatrixXdr new_pheno_sum = new_pheno.colwise().sum();
   MatrixXdr res;
@@ -275,10 +275,10 @@ double compute_yVXXVy(int num_snp, MatrixXdr new_pheno, MatrixXdr means,
 }
 
 MatrixXdr
-compute_XXy(int num_snp, MatrixXdr y_vec, MatrixXdr means, MatrixXdr stds,
-            MatrixXdr mask, int sel_snp_local_index, int Nindv, double *&sum_op,
-            genotype g, double *&yint_m, double **&y_m, int p, double *&yint_e,
-            double **&y_e, double *&partialsums, bool exclude_sel_snp) {
+compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means, const MatrixXdr &stds,
+            const MatrixXdr &mask, const int &sel_snp_local_index, const int &Nindv, double *&sum_op,
+            const genotype &g, double *&yint_m, double **&y_m, const int &p, double *&yint_e,
+            double **&y_e, double *&partialsums, const bool &exclude_sel_snp) {
   MatrixXdr res;
   res.resize(num_snp, 1);
   multiply_y_pre_fast(y_vec, 1, res, false, sum_op, g, yint_m, y_m, p,
@@ -320,10 +320,10 @@ compute_XXy(int num_snp, MatrixXdr y_vec, MatrixXdr means, MatrixXdr stds,
 }
 
 double
-compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr means, MatrixXdr stds,
-             int sel_snp_local_index, double *&sum_op, genotype g,
-             double *&yint_m, double **&y_m, int p, double *&partialsums,
-             bool exclude_sel_snp) {
+compute_yXXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means, const MatrixXdr &stds,
+             const int &sel_snp_local_index, double *&sum_op, const genotype &g,
+             double *&yint_m, double **&y_m, const int &p, double *&partialsums,
+             const bool &exclude_sel_snp) {
   MatrixXdr res;          // Boyang: add declarative res
   res.resize(num_snp, 1); // Boyang: change to resize
 

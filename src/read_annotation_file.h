@@ -16,4 +16,4 @@ struct annotationStruct {
   std::vector<std::vector<int>> jack_bin;
 };
 
-annotationStruct read_annotation_file(string filename, int n_snps, int n_blocks);
+annotationStruct read_annotation_file(const string &filename, int n_snps, const int &n_blocks);

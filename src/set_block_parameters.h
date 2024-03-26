@@ -7,7 +7,7 @@
 
 #include "read_annotation_file.h"
 
-void set_block_parameters(vector<genotype> &allgen_mail, int n_samples,
-                          const annotationStruct &annotation, int block_index);
+void set_block_parameters(vector<genotype> &allgen_mail, const int &n_samples,
+                          const annotationStruct &annotation, const int &block_index);
 
 #endif //FAMER_SET_BLOCK_PARAMETERS_H

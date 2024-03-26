@@ -1,7 +1,7 @@
 #include "read_annotation_file.h"
 
-annotationStruct read_annotation_file(string filename, int n_snps,
-                                      int n_blocks) {
+annotationStruct read_annotation_file(const string &filename, int n_snps,
+                                      const int &n_blocks) {
   vector<bool> snp_annot;
   std::vector<std::vector<int>> jack_bin;
   vector<int> len;

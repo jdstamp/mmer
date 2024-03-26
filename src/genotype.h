@@ -77,10 +77,10 @@ public:
   void set_metadata();
 
   double get_geno(int snpindex, int indvindex, bool var_normalize);
-  double get_col_mean(int snpindex);
+  double get_col_mean(int snpindex) const;
   double get_col_sum(int snpindex);
   double get_col_sum2(int snpindes);
-  double get_col_std(int snpindex);
+  double get_col_std(int snpindex) const;
   void update_col_mean(int snpindex, double value);
 
   void generate_eigen_geno(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,

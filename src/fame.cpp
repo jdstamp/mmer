@@ -19,12 +19,15 @@
 #include "read_phenotypes.h"
 #include "set_block_parameters.h"
 #include <iostream>
+#include <chrono>
 
 // [[Rcpp::export]]
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                     std::string annotation_file, std::string covariate_file,
-                    int gxgbin, int n_randvecs, int focal_snp_index,
-                    int n_blocks) {
+                    int n_randvecs, int focal_snp_index, int n_blocks) {
+
+  auto start = std::chrono::high_resolution_clock::now();
+  int gxgbin = 0;
   // Initialize all variables like in FAME
   MatrixXdr focal_snp_gtype;
   int hsegsize; // = log_3(n)
@@ -268,6 +271,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       annotation.n_bin + 1,
       1); // Boyang: v3 change nongen_Nbin to 1;  we only want 1 gxg component
 
+  metaData metadata = set_metadata(n_samples, n_snps);
   allgen_mail.resize(annotation.n_bin);
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   global_snp_index = -1;
@@ -291,8 +295,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     set_block_parameters(allgen_mail, n_samples, annotation, block_index);
 
-    read_genotype_block(bed_ifs, read_Nsnp, allgen_mail, n_samples, n_snps,
-                        global_snp_index, annotation);
+      read_genotype_block(bed_ifs, read_Nsnp, allgen_mail, n_samples, n_snps,
+                          global_snp_index, annotation, metadata);
 
     for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++) {
       int block_size = allgen_mail[bin_index].block_size;
@@ -460,8 +464,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     }
   }
 
-  //
-
   /// analytic se
   for (int i = 0; i < total_bin_num; i++) {
     wt.col(i) = wt.col(i) / annotation.len[i];
@@ -481,7 +483,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     set_block_parameters(allgen_mail, n_samples, annotation, block_index);
 
     read_genotype_block(ifs_2, read_Nsnp, allgen_mail, n_samples, n_snps,
-                        global_snp_index, annotation);
+                          global_snp_index, annotation, metadata);
     MatrixXdr means; //(p,1)
     MatrixXdr stds;  //(p,1)
     genotype g;
@@ -762,8 +764,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr inver_X = X_l.inverse();
 
   MatrixXdr cov_sigma = inver_X * cov_q * inver_X;
-
-  return Rcpp::List::create(Rcpp::Named("Est") = point_est.col(0),
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Execution time of main function: " << elapsed.count() << " seconds" << std::endl;
+    return Rcpp::List::create(Rcpp::Named("Est") = point_est.col(0),
                             Rcpp::Named("SE") =
                                 cov_sigma.diagonal().array().sqrt());
 }

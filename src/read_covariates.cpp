@@ -1,8 +1,8 @@
 #include "read_covariates.h"
 
-int read_covariates(bool std, int Nind, std::string filename,
-                    std::string covname, MatrixXdr &covariate, bool
-                    snp_fix_ef) {
+int read_covariates(const bool &std, const int &Nind, const std::string &filename,
+                    const std::string &covname, MatrixXdr &covariate, const bool
+                    &snp_fix_ef) {
   ifstream ifs(filename.c_str(), ios::in);
   std::string line;
   std::istringstream in;

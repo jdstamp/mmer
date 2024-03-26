@@ -4,7 +4,6 @@ test_that("fame end-to-end", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
   annotation_file <- system.file("testdata", "test_single_annot.txt", package="famer")
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
-  gxg_bin = 0
   n_randvecs = 10
   n_blocks = 10
 
@@ -30,7 +29,6 @@ test_that("fame end-to-end", {
                    pheno_file,
                    annotation_file,
                    covariate_file,
-                   gxg_bin,
                    n_randvecs,
                    i,
                    n_blocks)
@@ -47,7 +45,6 @@ test_that("fame end-to-end with covariate file", {
   annotation_file <- system.file("testdata", "test_single_annot.txt", package="famer")
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file <- system.file("testdata", "test.cov", package="famer")
-  gxg_bin = 0
   n_randvecs = 10
   snp_index = 19
   n_blocks = 10
@@ -74,7 +71,6 @@ test_that("fame end-to-end with covariate file", {
                    pheno_file,
                    annotation_file,
                    covariate_file,
-                   gxg_bin,
                    n_randvecs,
                    i,
                    n_blocks)
