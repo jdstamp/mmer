@@ -1,9 +1,8 @@
 test_that("fame end-to-end", {
   # given
-  covariate_file = ""
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
-  annotation_file <- system.file("testdata", "test_single_annot.txt", package="famer")
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
+  covariate_file = ""
   n_randvecs = 10
   n_blocks = 10
 
@@ -27,7 +26,6 @@ test_that("fame end-to-end", {
   for (i in snp_indices) {
     result <- fame(plink_file,
                    pheno_file,
-                   annotation_file,
                    covariate_file,
                    n_randvecs,
                    i,
@@ -42,7 +40,6 @@ test_that("fame end-to-end", {
 test_that("fame end-to-end with covariate file", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
-  annotation_file <- system.file("testdata", "test_single_annot.txt", package="famer")
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file <- system.file("testdata", "test.cov", package="famer")
   n_randvecs = 10
@@ -68,7 +65,6 @@ test_that("fame end-to-end with covariate file", {
   for (i in snp_indices) {
     result <- fame(plink_file,
                    pheno_file,
-                   annotation_file,
                    covariate_file,
                    n_randvecs,
                    i,
@@ -84,7 +80,6 @@ test_that("fame end-to-end with covariate file", {
 # test_that("fame end-to-end with hapnest file", {
 #   # given
 #   plink_file <- "/Users/jds/Downloads/test100k/test100k"
-#   annotation_file <- "/Users/jds/Downloads/test100k/happnest.anno.txt"
 #   pheno_file <- "/Users/jds/Downloads/test100k/h2_0.5.large.pheno"
 #   covariate_file <- ""
 #   n_randvecs = 100
@@ -110,7 +105,6 @@ test_that("fame end-to-end with covariate file", {
 #   for (i in snp_indices) {
 #     result <- fame(plink_file,
 #                    pheno_file,
-#                    annotation_file,
 #                    covariate_file,
 #                    n_randvecs,
 #                    i,

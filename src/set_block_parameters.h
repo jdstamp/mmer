@@ -5,9 +5,12 @@
 #ifndef FAMER_SET_BLOCK_PARAMETERS_H
 #define FAMER_SET_BLOCK_PARAMETERS_H
 
-#include "read_annotation_file.h"
+#include <vector>
+#include "genotype.h"
+#include "fame.h"
 
-void set_block_parameters(vector<genotype> &allgen_mail, const int &n_samples,
-                          const annotationStruct &annotation, const int &block_index);
+void set_block_parameters(std::vector <genotype> &allgen_mail, const int
+&n_samples,
+                          const int &block_size);
 
 #endif //FAMER_SET_BLOCK_PARAMETERS_H

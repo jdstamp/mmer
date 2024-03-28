@@ -13,7 +13,6 @@
 #include "error_handling.h"
 #include "fame.h"
 #include "genotype.h"
-#include "read_annotation_file.h"
 #include "read_covariates.h"
 #include "read_genotypes.h"
 #include "read_phenotypes.h"
@@ -23,8 +22,8 @@
 
 // [[Rcpp::export]]
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
-                    std::string annotation_file, std::string covariate_file,
-                    int n_randvecs, int focal_snp_index, int n_blocks) {
+                    std::string covariate_file, int n_randvecs,
+                    int focal_snp_index, int n_blocks) {
 
   auto start = std::chrono::high_resolution_clock::now();
   int gxgbin = 0;
@@ -89,8 +88,13 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   int n_snps = count_snps_bim(bim_file);
   int n_samples = count_samples(pheno_file);
   int fam_lines = count_fam(fam_file);
-  annotationStruct annotation =
-      read_annotation_file(annotation_file, n_snps, n_blocks);
+
+  int step_size = n_snps / n_blocks;
+  int step_size_rem = n_snps % n_blocks;
+  std::vector<int> block_sizes(n_blocks, step_size);
+  block_sizes.back() += step_size_rem; // add remainder to last block
+
+  vector<int> n_snps_variance_component = {n_snps, n_snps - 1};
 
   if (fam_lines != n_samples) {
     exitWithError("# samples in fam file and pheno file does not match ");
@@ -111,14 +115,14 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   focal_snp_gtype.array() = focal_snp_gtype.array() / sd_sel_snp;
 
   // GxG : to remove selected snp from X
-  int focal_snp_block = (focal_snp_index - 1) / annotation.step_size;
+  int focal_snp_block = (focal_snp_index - 1) / step_size;
   // step_size is the number of snps per block. step_size * n_blocks = #snps
   if (focal_snp_block >= n_blocks) {
     // in case above math did not work - fix
     focal_snp_block = n_blocks - 1;
   }
   int sel_snp_local_index = // block_size of focal SNP inside it's block
-      focal_snp_index - (annotation.step_size * focal_snp_block) - 1;
+      focal_snp_index - (step_size * focal_snp_block) - 1;
 
   // Covariate handling - needs cleanup
   std::string covname = "";
@@ -227,52 +231,16 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr output;
   MatrixXdr output_env;
 
-  bool snp_in_annot = false;
-  int selected_snp_bin;
 
-  for (int j = 0; j < annotation.n_bin; j++) {
-    if (annotation.annot_bool[focal_snp_index - 1][j] == 1) {
-      selected_snp_bin = j;
-      snp_in_annot = true;
-    }
-  }
-
-  for (int i = 0; i < annotation.n_bin;
-       i++) { // Boyang: here extend len to deal with gxg; change Nenv to
-              // annotation.n_bin
-    if (i == gxgbin) {
-      if (snp_in_annot == true &&
-          i == selected_snp_bin) // Boyang: double change here, only remove
-                                 // length if selected snp in current set
-        annotation.len.push_back(
-            annotation.selected_snps_vec[i] -
-            1); /// GxG ; remove selected snp; Boyang: replace
-                /// selected_snps with selected_snps_vec
-      else
-        annotation.len.push_back(annotation.selected_snps_vec[i]);
-    }
-  }
-
-  XXz = MatrixXdr::Zero(n_samples,
-                        (annotation.n_bin + 1) *
-                            n_randvecs); // Boyang: v3 change nongen_Nbin to 1;
-                                         // we only want 1 gxg component
+  XXz = MatrixXdr::Zero(n_samples, 2 * n_randvecs);
   if (both_side_cov == true) {
-    UXXz = MatrixXdr::Zero(n_samples,
-                           (annotation.n_bin + 1) *
-                               n_randvecs); // Boyang: v3 change nongen_Nbin to
-                                            // 1;  we only want 1 gxg component
-    XXUz = MatrixXdr::Zero(n_samples,
-                           (annotation.n_bin + 1) *
-                               n_randvecs); // Boyang: v3 change nongen_Nbin to
-                                            // 1;  we only want 1 gxg component
+    UXXz = MatrixXdr::Zero(n_samples, 2 * n_randvecs);
+    XXUz = MatrixXdr::Zero(n_samples, 2 * n_randvecs);
   }
-  yXXy = MatrixXdr::Zero(
-      annotation.n_bin + 1,
-      1); // Boyang: v3 change nongen_Nbin to 1;  we only want 1 gxg component
+  yXXy = MatrixXdr::Zero(2, 1);
 
   metaData metadata = set_metadata(n_samples, n_snps);
-  allgen_mail.resize(annotation.n_bin);
+  allgen_mail.resize(1);
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   global_snp_index = -1;
 
@@ -281,25 +249,24 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr w2;
   MatrixXdr w3;
   //////////// analytic se
-  int total_bin_num = annotation.n_bin + 1;
+  int total_bin_num = 2;
   wt = MatrixXdr::Zero(n_samples, total_bin_num + 1);
   vt = MatrixXdr::Zero(n_samples, (total_bin_num + 1) * (total_bin_num + 1));
 
   for (int block_index = 0; block_index < n_blocks;
-       block_index++) { // Boyang: stream block
-
+       block_index++) {
     int read_Nsnp = (block_index < (n_blocks - 1))
-                        ? (annotation.step_size)
-                        : (annotation.step_size + annotation.step_size_rem);
+                        ? (step_size)
+                        : (step_size + step_size_rem);
     // could this be changed to have the remainder as the last block only?
 
-    set_block_parameters(allgen_mail, n_samples, annotation, block_index);
+      set_block_parameters(allgen_mail, n_samples, block_sizes[block_index]);
 
       read_genotype_block(bed_ifs, read_Nsnp, allgen_mail, n_samples, n_snps,
-                          global_snp_index, annotation, metadata);
+                          global_snp_index, metadata);
 
-    for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++) {
-      int block_size = allgen_mail[bin_index].block_size;
+    int bin_index = 0;
+      int block_size = block_sizes[block_index];
 
       if (block_size != 0) {
         stds.resize(block_size, 1);
@@ -316,10 +283,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
         g = allgen_mail[bin_index];
         g.segment_size_hori = floor(log(n_samples) / log(3)) - 2;
-        g.Nsegments_hori = ceil(annotation.jack_bin[block_index][bin_index] *
+        g.Nsegments_hori = ceil(block_sizes[block_index] *
                                 1.0 / (g.segment_size_hori * 1.0));
         g.p.resize(g.Nsegments_hori, std::vector<int>(n_samples));
-        g.not_O_i.resize(annotation.jack_bin[block_index][bin_index]);
+        g.not_O_i.resize(block_sizes[block_index]);
         g.not_O_j.resize(n_samples);
 
         int p = g.Nsnp;
@@ -376,7 +343,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           output_env = output_env.array().colwise() *
                        focal_snp_gtype.col(env_index).array();
           for (int z_index = 0; z_index < n_randvecs; z_index++) {
-            XXz.col(((annotation.n_bin) * n_randvecs) + z_index) +=
+            XXz.col((n_randvecs) + z_index) +=
                 output_env.col(z_index);
           }
         }
@@ -390,9 +357,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                                        sum_op, g, yint_m, y_m, p, yint_e, y_e,
                                        partialsums, in_gxg_block); // Here is the memory error
           temp = temp.array() * focal_snp_gtype.col(env_index).array();
-          wt.col(annotation.n_bin) += temp;
+          wt.col(1) += temp;
           if (both_side_cov == false)
-            yXXy(annotation.n_bin, 0) += compute_yXXy(
+            yXXy(1, 0) += compute_yXXy(
                     block_size, scaled_pheno, means, stds, sel_snp_local_index,
                     sum_op, g, yint_m, y_m, p, partialsums, in_gxg_block);
         }
@@ -461,12 +428,11 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         allgen_mail[bin_index].columnmeans.clear();
         allgen_mail[bin_index].columnmeans2.clear();
       }
-    }
   }
 
   /// analytic se
   for (int i = 0; i < total_bin_num; i++) {
-    wt.col(i) = wt.col(i) / annotation.len[i];
+    wt.col(i) = wt.col(i) / n_snps_variance_component[i];
     double dx = (wt.col(i).array() * pheno.array()).sum();
   }
   wt.col(total_bin_num) = pheno;
@@ -477,17 +443,17 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   for (int block_index = 0; block_index < n_blocks; block_index++) {
 
     int read_Nsnp = (block_index < (n_blocks - 1))
-                        ? (annotation.step_size)
-                        : (annotation.step_size + annotation.step_size_rem);
+                        ? (step_size)
+                        : (step_size + step_size_rem);
 
-    set_block_parameters(allgen_mail, n_samples, annotation, block_index);
+      set_block_parameters(allgen_mail, n_samples, block_sizes[block_index]);
 
-    read_genotype_block(ifs_2, read_Nsnp, allgen_mail, n_samples, n_snps,
-                          global_snp_index, annotation, metadata);
+      read_genotype_block(ifs_2, read_Nsnp, allgen_mail, n_samples, n_snps,
+                          global_snp_index, metadata);
     MatrixXdr means; //(p,1)
     MatrixXdr stds;  //(p,1)
     genotype g;
-    for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++) {
+    int bin_index = 0;
       int num_snp = allgen_mail[bin_index].block_size;
 
       if (num_snp != 0) {
@@ -501,10 +467,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           stds(i, 0) = 1 / sqrt((means(i, 0) * (1 - (0.5 * means(i, 0)))));
         g = allgen_mail[bin_index];
         g.segment_size_hori = floor(log(n_samples) / log(3)) - 2;
-        g.Nsegments_hori = ceil(annotation.jack_bin[block_index][bin_index] *
+        g.Nsegments_hori = ceil(block_sizes[block_index] *
                                 1.0 / (g.segment_size_hori * 1.0));
         g.p.resize(g.Nsegments_hori, std::vector<int>(n_samples));
-        g.not_O_i.resize(annotation.jack_bin[block_index][bin_index]);
+        g.not_O_i.resize(block_sizes[block_index]);
         g.not_O_j.resize(n_samples);
 
         /// duplicate
@@ -548,7 +514,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           y_m[i] = new double[n_randvecs];
         //// end duplicate
 
-        // total_bin_num=annotation.n_bin+nongen_Nbin;
         MatrixXdr val_temp;
         for (int i = 0; i < (total_bin_num + 1); i++) {
           MatrixXdr val_temp = compute_XXy(
@@ -556,7 +521,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                   n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e,
                   partialsums, false);
           vt.col((bin_index * (total_bin_num + 1)) + i) +=
-              val_temp / annotation.len[bin_index]; // Boyang: what is vt??
+              val_temp / n_snps_variance_component[bin_index]; // Boyang: what is vt??
         }
 
         MatrixXdr scaled_vec;
@@ -572,9 +537,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
             temp = temp.array() *
                    focal_snp_gtype.col(0).array(); // change env_index to 0
 
-            vt.col(((annotation.n_bin) * (total_bin_num + 1)) + i) +=
-                temp /
-                annotation.len[annotation.n_bin]; // Boyang: could be right; v3:
+            vt.col(((total_bin_num + 1)) + i) +=
+                temp / n_snps_variance_component[1]; //
+                // Boyang: could be right; v3:
                                                   // change env_index to 0
           }
         }
@@ -607,23 +572,23 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         allgen_mail[bin_index].columnmeans.clear();
         allgen_mail[bin_index].columnmeans2.clear();
       }
-    }
+
   }
 
   for (int i = 0; i < (total_bin_num + 1); i++) {
     vt.col((total_bin_num * (total_bin_num + 1)) + i) = wt.col(i);
   }
 
-  annotation.n_bin = annotation.n_bin + 1;
+  int n_variance_components = 2;
   // compute the elements of normal equation:
 
   /// normal equations LHS
-  MatrixXdr A_trs(annotation.n_bin, annotation.n_bin);
-  MatrixXdr b_trk(annotation.n_bin, 1);
-  MatrixXdr c_yky(annotation.n_bin, 1);
+  MatrixXdr A_trs(n_variance_components, n_variance_components);
+  MatrixXdr b_trk(n_variance_components, 1);
+  MatrixXdr c_yky(n_variance_components, 1);
 
-  MatrixXdr X_l(annotation.n_bin + 1, annotation.n_bin + 1);
-  MatrixXdr Y_r(annotation.n_bin + 1, 1);
+  MatrixXdr X_l(n_variance_components + 1, n_variance_components + 1);
+  MatrixXdr Y_r(n_variance_components + 1, 1);
   int jack_index = n_blocks;
   MatrixXdr B1;
   MatrixXdr B2;
@@ -649,8 +614,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr point_est;
   MatrixXdr herit_est;
 
-  point_est.resize(annotation.n_bin + 1, 1);
-  herit_est.resize(annotation.n_bin + 1, 1);
+  point_est.resize(n_variance_components + 1, 1);
+  herit_est.resize(n_variance_components + 1, 1);
 
   MatrixXdr h1;
   MatrixXdr h2;
@@ -661,29 +626,29 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   double trkij_res3;
   double tk_res;
 
-  for (int i = 0; i < annotation.n_bin; i++) {
+  for (int i = 0; i < n_variance_components; i++) {
 
     if (both_side_cov == false)
       b_trk(i, 0) = Nindv_mask;
 
-    if (i >= (annotation.n_bin - 1)) { // change nongen_Nbin to 1
+    if (i >= (n_variance_components - 1)) { // change nongen_Nbin to 1
 
       B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
       B1 = all_zb.array() * B1.array();
-      b_trk(i, 0) = B1.sum() / annotation.len[i] / n_randvecs;
+      b_trk(i, 0) = B1.sum() / n_snps_variance_component[i] / n_randvecs;
     }
 
-    c_yky(i, 0) = yXXy(i, 0) / annotation.len[i];
+    c_yky(i, 0) = yXXy(i, 0) / n_snps_variance_component[i];
 
     if (both_side_cov == true) {
       B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
       C1 = B1.array() * all_Uzb.array();
       C2 = C1.colwise().sum();
       tk_res = C2.sum();
-      tk_res = tk_res / annotation.len[i] / n_randvecs;
+      tk_res = tk_res / n_snps_variance_component[i] / n_randvecs;
       b_trk(i, 0) = Nindv_mask - tk_res;
     }
-    for (int j = i; j < annotation.n_bin; j++) {
+    for (int j = i; j < n_variance_components; j++) {
       B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
       B2 = XXz.block(0, j * n_randvecs, n_samples, n_randvecs);
       C1 = B1.array() * B2.array();
@@ -708,7 +673,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         trkij += trkij_res3 - trkij_res1 - trkij_res1;
       }
 
-      trkij = trkij / annotation.len[i] / annotation.len[j] / n_randvecs;
+      trkij = trkij / n_snps_variance_component[i] / n_snps_variance_component[j] / n_randvecs;
       A_trs(i, j) = trkij;
       A_trs(j, i) = trkij;
     }
@@ -721,37 +686,37 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   MatrixXdr herit = X_l.colPivHouseholderQr().solve(Y_r);
 
-  for (int i = 0; i < (annotation.n_bin + 1); i++)
+  for (int i = 0; i < (n_variance_components + 1); i++)
     point_est(i, 0) = herit(i, 0);
 
   double temp_sum = point_est.sum();
   double temp_sig = 0;
-  for (int j = 0; j < annotation.n_bin; j++) {
+  for (int j = 0; j < n_variance_components; j++) {
     herit_est(j, 0) = point_est(j, 0) / temp_sum;
     temp_sig += herit_est(j, 0);
   }
-  herit_est(annotation.n_bin, 0) = temp_sig;
+  herit_est(n_variance_components, 0) = temp_sig;
 
   /////compute SE analytic version
   MatrixXdr e;
   e = MatrixXdr::Zero(n_samples, 1);
-  for (int i = 0; i < (annotation.n_bin + 1); i++)
+  for (int i = 0; i < (n_variance_components + 1); i++)
     e += herit(i, 0) * wt.col(i);
 
   double d = 0;
-  for (int i = 0; i < annotation.n_bin; i++)
+  for (int i = 0; i < n_variance_components; i++)
     d += herit(i, 0) * c_yky(i, 0);
 
-  d += herit(annotation.n_bin, 0) * yy;
+  d += herit(n_variance_components, 0) * yy;
 
   MatrixXdr cov_q;
-  cov_q.resize(annotation.n_bin + 1, annotation.n_bin + 1);
-  for (int k = 0; k < (annotation.n_bin + 1); k++) {
-    for (int l = 0; l < (annotation.n_bin + 1); l++) {
+  cov_q.resize(n_variance_components + 1, n_variance_components + 1);
+  for (int k = 0; k < (n_variance_components + 1); k++) {
+    for (int l = 0; l < (n_variance_components + 1); l++) {
       double sum1 = 0;
-      for (int t = 0; t < (annotation.n_bin + 1); t++) {
+      for (int t = 0; t < (n_variance_components + 1); t++) {
 
-        MatrixXdr z1 = vt.col((t * (annotation.n_bin + 1)) + l);
+        MatrixXdr z1 = vt.col((t * (n_variance_components + 1)) + l);
         MatrixXdr z2 = wt.col(k);
         double temp = (z1.array() * z2.array()).sum();
         sum1 += herit(t, 0) * temp;

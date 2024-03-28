@@ -99,7 +99,6 @@ int impute_genotype(const float &p_j) {
 void read_genotype_block(std::istream &ifs, const int &num_snp,
                          vector <genotype> &allgen_mail, const int &n_samples,
                          const int &n_snps, int &global_snp_index,
-                         const annotationStruct &annotation,
                          const metaData &metadata) {
   char magic[3];
 
@@ -119,11 +118,9 @@ void read_genotype_block(std::istream &ifs, const int &num_snp,
              metadata.ncol * sizeof(unsigned char));
     float p_j = get_observed_allelefreq(gtype, metadata);
     pointer_bins.clear();
-    for (int bin_index = 0; bin_index < annotation.n_bin; bin_index++) {
-      if (annotation.annot_bool[global_snp_index][bin_index] ==
-          1) // Boyang: checking annotation !!!
-        pointer_bins.push_back(bin_index);
-    }
+    int bin_index = 0;
+    pointer_bins.push_back(bin_index);
+
 
     for (int k = 0; k < metadata.ncol; k++) {
       unsigned char c = gtype[k];
@@ -137,25 +134,20 @@ void read_genotype_block(std::istream &ifs, const int &num_snp,
         int val = encoding_to_allelecount(y[l]);
         // impute missing genotype
         val = (val == -1) ? impute_genotype(p_j) : val;
-        for (int bin_index = 0; bin_index < pointer_bins.size();
-             bin_index++) { // !!!
-          bin_pointer = pointer_bins[bin_index];
+        int bin_index = 0; // !!!
+          bin_index = bin_index;
           int snp_index;
-          snp_index = allgen_mail[bin_pointer].block_size;
+          snp_index = allgen_mail[bin_index].block_size;
           int horiz_seg_no =
-              snp_index / allgen_mail[bin_pointer].segment_size_hori;
-          allgen_mail[bin_pointer].p[horiz_seg_no][j] =
-              3 * allgen_mail[bin_pointer].p[horiz_seg_no][j] + val;
+              snp_index / allgen_mail[bin_index].segment_size_hori;
+          allgen_mail[bin_index].p[horiz_seg_no][j] =
+              3 * allgen_mail[bin_index].p[horiz_seg_no][j] + val;
           // computing sum for every snp to compute mean
-          allgen_mail[bin_pointer].columnsum[snp_index] += val;
-        }
+          allgen_mail[bin_index].columnsum[snp_index] += val;
       }
     }
 
-    for (int bin_index = 0; bin_index < pointer_bins.size(); bin_index++) {
-      bin_pointer = pointer_bins[bin_index];
-      allgen_mail[bin_pointer].block_size++;
-    }
+      allgen_mail[bin_index].block_size++;
   }
   delete[] gtype;
 }
