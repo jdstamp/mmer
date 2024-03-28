@@ -9,7 +9,7 @@
 #include "genotype.h"
 #include "fame.h"
 
-void set_block_parameters(std::vector <genotype> &allgen_mail, const int
+void set_block_parameters(genotype &genotype_block, const int
 &n_samples,
                           const int &block_size);
 

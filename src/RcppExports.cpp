@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // fame_cpp
-Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int focal_snp_index, int n_blocks);
-RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP focal_snp_indexSEXP, SEXP n_blocksSEXP) {
+Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int focal_snp_index, int n_blocks, int rand_seed);
+RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP focal_snp_indexSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,7 +23,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_randvecs(n_randvecsSEXP);
     Rcpp::traits::input_parameter< int >::type focal_snp_index(focal_snp_indexSEXP);
     Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
-    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, focal_snp_index, n_blocks));
+    Rcpp::traits::input_parameter< int >::type rand_seed(rand_seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, focal_snp_index, n_blocks, rand_seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -31,7 +32,7 @@ END_RCPP
 RcppExport SEXP run_testthat_tests(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 6},
+    {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 7},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };

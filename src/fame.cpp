@@ -23,7 +23,7 @@
 // [[Rcpp::export]]
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                     std::string covariate_file, int n_randvecs,
-                    int focal_snp_index, int n_blocks) {
+                    int focal_snp_index, int n_blocks, int rand_seed) {
 
   auto start = std::chrono::high_resolution_clock::now();
   int gxgbin = 0;
@@ -46,7 +46,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr Q;
   MatrixXdr new_pheno;
 
-  genotype g;
+  genotype genotype_block;
   MatrixXdr geno_matrix;      //(p,n)
   bool allow_missing = false; // bolean for reading genotype data
 
@@ -69,7 +69,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr UXXz;
   MatrixXdr XXUz;
   MatrixXdr yXXy;
-  vector<genotype> allgen_mail;
 
   MatrixXdr wt;
   MatrixXdr vt;
@@ -203,8 +202,11 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   all_zb = all_zb * sqrt(3);
 
   boost::mt19937 seedr;
-  seedr.seed(std::time(0));
-  seedr.seed(123); // TODO: remove seed for actual algorithm
+  if (rand_seed < 0) {
+      seedr.seed(std::time(0));
+  } else {
+      seedr.seed(rand_seed); // TODO: remove seed for actual algorithm
+  }
   boost::normal_distribution<> dist(0, 1);
   boost::variate_generator<boost::mt19937 &, boost::normal_distribution<>>
       z_vec(seedr, dist);
@@ -240,7 +242,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   yXXy = MatrixXdr::Zero(2, 1);
 
   metaData metadata = set_metadata(n_samples, n_snps);
-  allgen_mail.resize(1);
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   global_snp_index = -1;
 
@@ -260,9 +261,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                         : (step_size + step_size_rem);
     // could this be changed to have the remainder as the last block only?
 
-      set_block_parameters(allgen_mail, n_samples, block_sizes[block_index]);
+      set_block_parameters(genotype_block, n_samples, block_sizes[block_index]);
 
-      read_genotype_block(bed_ifs, read_Nsnp, allgen_mail, n_samples, n_snps,
+      read_genotype_block(bed_ifs, read_Nsnp, genotype_block, n_samples, n_snps,
                           global_snp_index, metadata);
 
     int bin_index = 0;
@@ -272,7 +273,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         stds.resize(block_size, 1);
         means.resize(block_size, 1);
         for (int i = 0; i < block_size; i++) {
-          means(i, 0) = (double)allgen_mail[bin_index].columnsum[i] / n_samples;
+          means(i, 0) = (double)genotype_block.columnsum[i] / n_samples;
           if (means(i, 0) == 2 | means(i, 0) == 0)
             cout << "mean :" << means(i, 0) << endl;
         }
@@ -281,16 +282,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           stds(i, 0) = 1 / sqrt((means(i, 0) * (1 - (0.5 * means(i, 0)))));
         }
 
-        g = allgen_mail[bin_index];
-        g.segment_size_hori = floor(log(n_samples) / log(3)) - 2;
-        g.Nsegments_hori = ceil(block_sizes[block_index] *
-                                1.0 / (g.segment_size_hori * 1.0));
-        g.p.resize(g.Nsegments_hori, std::vector<int>(n_samples));
-        g.not_O_i.resize(block_sizes[block_index]);
-        g.not_O_j.resize(n_samples);
-
-        int p = g.Nsnp;
-        int n = g.Nindv;
+        int p = genotype_block.Nsnp;
+        int n = genotype_block.Nindv;
         c.resize(p, n_randvecs);
         x.resize(n_randvecs, n);
         v.resize(p, n_randvecs);
@@ -301,9 +294,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         c = MatrixXdr::Random(p, n_randvecs);
 
         // Initial intermediate data structures
-        hsegsize = g.segment_size_hori; // = log_3(n)
+        hsegsize = genotype_block.segment_size_hori; // = log_3(n)
         int hsize = pow(3, hsegsize);
-        int vsegsize = g.segment_size_ver; // = log_3(p)
+        int vsegsize = genotype_block.segment_size_ver; // = log_3(p)
         int vsize = pow(3, vsegsize);
 
         partialsums = new double[n_randvecs];
@@ -313,8 +306,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         memset(yint_m, 0, hsize * n_randvecs * sizeof(double));
         memset(yint_e, 0, hsize * n_randvecs * sizeof(double));
 
-        y_e = new double *[g.Nindv];
-        for (int i = 0; i < g.Nindv; i++) {
+        y_e = new double *[genotype_block.Nindv];
+        for (int i = 0; i < genotype_block.Nindv; i++) {
           y_e[i] = new double[n_randvecs];
           memset(y_e[i], 0, n_randvecs * sizeof(double));
         }
@@ -324,7 +317,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           y_m[i] = new double[n_randvecs];
 
         output = compute_XXz(block_size, all_zb, means, stds, mask, n_randvecs,
-                             n_samples, sel_snp_local_index, sum_op, g, yint_m,
+                             n_samples, sel_snp_local_index, sum_op, genotype_block, yint_m,
                              y_m, p, yint_e, y_e, partialsums, false);
 
         MatrixXdr scaled_pheno;
@@ -336,7 +329,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
               all_zb.array().colwise() * focal_snp_gtype.col(env_index).array();
           output_env = compute_XXz(block_size, env_all_zb, means, stds, mask,
                                    n_randvecs, n_samples, sel_snp_local_index,
-                                   sum_op, g, yint_m, y_m, p, yint_e, y_e,
+                                   sum_op, genotype_block, yint_m, y_m, p, yint_e, y_e,
                                    partialsums, in_gxg_block); // z
                                    // is the random vector
 
@@ -354,20 +347,20 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           scaled_pheno = pheno.array() * focal_snp_gtype.col(env_index).array();
           MatrixXdr temp = compute_XXy(block_size, scaled_pheno, means, stds,
                                        mask, sel_snp_local_index, n_samples,
-                                       sum_op, g, yint_m, y_m, p, yint_e, y_e,
+                                       sum_op, genotype_block, yint_m, y_m, p, yint_e, y_e,
                                        partialsums, in_gxg_block); // Here is the memory error
           temp = temp.array() * focal_snp_gtype.col(env_index).array();
           wt.col(1) += temp;
           if (both_side_cov == false)
             yXXy(1, 0) += compute_yXXy(
                     block_size, scaled_pheno, means, stds, sel_snp_local_index,
-                    sum_op, g, yint_m, y_m, p, partialsums, in_gxg_block);
+                    sum_op, genotype_block, yint_m, y_m, p, partialsums, in_gxg_block);
         }
 
         ////// wt
         wt.col(bin_index) += compute_XXy(
                 block_size, pheno, means, stds, mask, sel_snp_local_index,
-                n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e, partialsums,
+                n_samples, sum_op, genotype_block, yint_m, y_m, p, yint_e, y_e, partialsums,
                 false);
 
         for (int z_index = 0; z_index < n_randvecs; z_index++) {
@@ -386,7 +379,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         if (both_side_cov == true) {
           output =
               compute_XXUz(block_size, n_randvecs, n_samples, means, stds, mask,
-                           sum_op, g, yint_m, y_m, p, yint_e, y_e, partialsums);
+                           sum_op, genotype_block, yint_m, y_m, p, yint_e, y_e, partialsums);
 
           for (int z_index = 0; z_index < n_randvecs; z_index++) {
             XXUz.col((bin_index * n_randvecs) + z_index) +=
@@ -398,11 +391,11 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           yXXy(bin_index, 0) +=
                   compute_yXXy(block_size, pheno, means, stds,
                                sel_snp_local_index,
-                               sum_op, g, yint_m, y_m, p, partialsums, false);
+                               sum_op, genotype_block, yint_m, y_m, p, partialsums, false);
         else
           yXXy(bin_index, 0) +=
               compute_yVXXVy(block_size, pheno, means, stds, n_randvecs, sum_op,
-                             g, yint_m, y_m, p, partialsums);
+                             genotype_block, yint_m, y_m, p, partialsums);
         delete[] sum_op;
         delete[] partialsums;
         delete[] yint_e;
@@ -410,23 +403,16 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         for (int i = 0; i < hsegsize; i++)
           delete[] y_m[i];
         delete[] y_m;
-        for (int i = 0; i < g.Nindv; i++)
+        for (int i = 0; i < genotype_block.Nindv; i++)
           delete[] y_e[i];
         delete[] y_e;
-        std::vector<std::vector<int>>().swap(g.p);
-        std::vector<std::vector<int>>().swap(g.not_O_j);
-        std::vector<std::vector<int>>().swap(g.not_O_i);
-        std::vector<std::vector<int>>().swap(allgen_mail[bin_index].p);
-        std::vector<std::vector<int>>().swap(allgen_mail[bin_index].not_O_j);
-        std::vector<std::vector<int>>().swap(allgen_mail[bin_index].not_O_i);
-        g.columnsum.clear();
-        g.columnsum2.clear();
-        g.columnmeans.clear();
-        g.columnmeans2.clear();
-        allgen_mail[bin_index].columnsum.clear();
-        allgen_mail[bin_index].columnsum2.clear();
-        allgen_mail[bin_index].columnmeans.clear();
-        allgen_mail[bin_index].columnmeans2.clear();
+        std::vector<std::vector<int>>().swap(genotype_block.p);
+        std::vector<std::vector<int>>().swap(genotype_block.not_O_j);
+        std::vector<std::vector<int>>().swap(genotype_block.not_O_i);
+        genotype_block.columnsum.clear();
+        genotype_block.columnsum2.clear();
+        genotype_block.columnmeans.clear();
+        genotype_block.columnmeans2.clear();
       }
   }
 
@@ -446,36 +432,28 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                         ? (step_size)
                         : (step_size + step_size_rem);
 
-      set_block_parameters(allgen_mail, n_samples, block_sizes[block_index]);
+      set_block_parameters(genotype_block, n_samples, block_sizes[block_index]);
 
-      read_genotype_block(ifs_2, read_Nsnp, allgen_mail, n_samples, n_snps,
+      read_genotype_block(ifs_2, read_Nsnp, genotype_block, n_samples, n_snps,
                           global_snp_index, metadata);
     MatrixXdr means; //(p,1)
     MatrixXdr stds;  //(p,1)
-    genotype g;
     int bin_index = 0;
-      int num_snp = allgen_mail[bin_index].block_size;
+      int num_snp = genotype_block.block_size;
 
       if (num_snp != 0) {
         stds.resize(num_snp, 1);
         means.resize(num_snp, 1);
 
         for (int i = 0; i < num_snp; i++)
-          means(i, 0) = (double)allgen_mail[bin_index].columnsum[i] / n_samples;
+          means(i, 0) = (double)genotype_block.columnsum[i] / n_samples;
 
         for (int i = 0; i < num_snp; i++)
           stds(i, 0) = 1 / sqrt((means(i, 0) * (1 - (0.5 * means(i, 0)))));
-        g = allgen_mail[bin_index];
-        g.segment_size_hori = floor(log(n_samples) / log(3)) - 2;
-        g.Nsegments_hori = ceil(block_sizes[block_index] *
-                                1.0 / (g.segment_size_hori * 1.0));
-        g.p.resize(g.Nsegments_hori, std::vector<int>(n_samples));
-        g.not_O_i.resize(block_sizes[block_index]);
-        g.not_O_j.resize(n_samples);
 
         /// duplicate
-        int p = g.Nsnp;
-        int n = g.Nindv;
+        int p = genotype_block.Nsnp;
+        int n = genotype_block.Nindv;
         MatrixXdr c; //(p,n_randvecs)
         MatrixXdr x; //(n_randvecs,n)
         MatrixXdr v; //(p,n_randvecs)
@@ -493,7 +471,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
         // Initial intermediate data structures
         int hsize = pow(3, hsegsize);
-        int vsegsize = g.segment_size_ver; // = log_3(p)
+        int vsegsize = genotype_block.segment_size_ver; // = log_3(p)
         int vsize = pow(3, vsegsize);
 
         partialsums = new double[n_randvecs];
@@ -503,8 +481,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         memset(yint_m, 0, hsize * n_randvecs * sizeof(double));
         memset(yint_e, 0, hsize * n_randvecs * sizeof(double));
 
-        y_e = new double *[g.Nindv];
-        for (int i = 0; i < g.Nindv; i++) {
+        y_e = new double *[genotype_block.Nindv];
+        for (int i = 0; i < genotype_block.Nindv; i++) {
           y_e[i] = new double[n_randvecs];
           memset(y_e[i], 0, n_randvecs * sizeof(double));
         }
@@ -518,7 +496,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         for (int i = 0; i < (total_bin_num + 1); i++) {
           MatrixXdr val_temp = compute_XXy(
                   num_snp, wt.col(i), means, stds, mask, sel_snp_local_index,
-                  n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e,
+                  n_samples, sum_op, genotype_block, yint_m, y_m, p, yint_e, y_e,
                   partialsums, false);
           vt.col((bin_index * (total_bin_num + 1)) + i) +=
               val_temp / n_snps_variance_component[bin_index]; // Boyang: what is vt??
@@ -532,7 +510,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                 focal_snp_gtype.col(0).array(); // change env_index to 0
             MatrixXdr temp = compute_XXy(
                     num_snp, scaled_vec, means, stds, mask, sel_snp_local_index,
-                    n_samples, sum_op, g, yint_m, y_m, p, yint_e, y_e,
+                    n_samples, sum_op, genotype_block, yint_m, y_m, p, yint_e, y_e,
                     partialsums, false);
             temp = temp.array() *
                    focal_snp_gtype.col(0).array(); // change env_index to 0
@@ -552,25 +530,18 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           delete[] y_m[i];
         delete[] y_m;
 
-        for (int i = 0; i < g.Nindv; i++)
+        for (int i = 0; i < genotype_block.Nindv; i++)
           delete[] y_e[i];
         delete[] y_e;
 
-        std::vector<std::vector<int>>().swap(g.p);
-        std::vector<std::vector<int>>().swap(g.not_O_j);
-        std::vector<std::vector<int>>().swap(g.not_O_i);
-        std::vector<std::vector<int>>().swap(allgen_mail[bin_index].p);
-        std::vector<std::vector<int>>().swap(allgen_mail[bin_index].not_O_j);
-        std::vector<std::vector<int>>().swap(allgen_mail[bin_index].not_O_i);
+        std::vector<std::vector<int>>().swap(genotype_block.p);
+        std::vector<std::vector<int>>().swap(genotype_block.not_O_j);
+        std::vector<std::vector<int>>().swap(genotype_block.not_O_i);
 
-        g.columnsum.clear();
-        g.columnsum2.clear();
-        g.columnmeans.clear();
-        g.columnmeans2.clear();
-        allgen_mail[bin_index].columnsum.clear();
-        allgen_mail[bin_index].columnsum2.clear();
-        allgen_mail[bin_index].columnmeans.clear();
-        allgen_mail[bin_index].columnmeans2.clear();
+        genotype_block.columnsum.clear();
+        genotype_block.columnsum2.clear();
+        genotype_block.columnmeans.clear();
+        genotype_block.columnmeans2.clear();
       }
 
   }

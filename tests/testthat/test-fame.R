@@ -5,6 +5,7 @@ test_that("fame end-to-end", {
   covariate_file = ""
   n_randvecs = 10
   n_blocks = 10
+  rand_seed = 123
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
   expected <- matrix(
@@ -29,7 +30,8 @@ test_that("fame end-to-end", {
                    covariate_file,
                    n_randvecs,
                    i,
-                   n_blocks)
+                   n_blocks,
+                   rand_seed)
     observed <- rbind(observed, result$Est)
   }
 
@@ -44,6 +46,7 @@ test_that("fame end-to-end with covariate file", {
   covariate_file <- system.file("testdata", "test.cov", package="famer")
   n_randvecs = 10
   n_blocks = 10
+  rand_seed = 123
 
   snp_indices <- c(13, 18, 29, 34, 37, 74, 82, 88, 94, 96)
   expected <- matrix(
@@ -68,7 +71,8 @@ test_that("fame end-to-end with covariate file", {
                    covariate_file,
                    n_randvecs,
                    i,
-                   n_blocks)
+                   n_blocks,
+                   rand_seed)
     observed <- rbind(observed, result$Est)
   }
 

@@ -1,15 +1,9 @@
 #ifndef MAILMAN_H
 #define MAILMAN_H
 
-// #include <Eigen/Dense>
-// #include <Eigen/Core>
-// #include <Eigen/LU>
-// #include <Eigen/SVD>
-#include "storage.h"
 #include <RcppEigen.h>
 #include <assert.h>
 #include <bits/stdc++.h>
-// #include <emmintrin.h>
 
 namespace mailman {
 
@@ -72,7 +66,6 @@ void fastmultiply_pre_normal(
   for (int i = 0; i < n; i++) {
     for (int l = 0; l < k; l++) {
       y[i][l] += yint[l + p[i] * k];
-      // yint[l+ p[i]*k] = 0 ;
     }
   }
 }

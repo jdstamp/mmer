@@ -97,15 +97,13 @@ int impute_genotype(const float &p_j) {
 }
 
 void read_genotype_block(std::istream &ifs, const int &num_snp,
-                         vector <genotype> &allgen_mail, const int &n_samples,
+                         genotype &genotype_block, const int &n_samples,
                          const int &n_snps, int &global_snp_index,
                          const metaData &metadata) {
   char magic[3];
 
   unsigned char *gtype;
   gtype = new unsigned char[metadata.ncol];
-  int bin_pointer;
-  vector<int> pointer_bins;
 
   if (global_snp_index < 0) {
     binary_read(ifs, magic);
@@ -117,10 +115,6 @@ void read_genotype_block(std::istream &ifs, const int &num_snp,
     ifs.read(reinterpret_cast<char *>(gtype),
              metadata.ncol * sizeof(unsigned char));
     float p_j = get_observed_allelefreq(gtype, metadata);
-    pointer_bins.clear();
-    int bin_index = 0;
-    pointer_bins.push_back(bin_index);
-
 
     for (int k = 0; k < metadata.ncol; k++) {
       unsigned char c = gtype[k];
@@ -134,20 +128,18 @@ void read_genotype_block(std::istream &ifs, const int &num_snp,
         int val = encoding_to_allelecount(y[l]);
         // impute missing genotype
         val = (val == -1) ? impute_genotype(p_j) : val;
-        int bin_index = 0; // !!!
-          bin_index = bin_index;
           int snp_index;
-          snp_index = allgen_mail[bin_index].block_size;
+          snp_index = genotype_block.block_size;
           int horiz_seg_no =
-              snp_index / allgen_mail[bin_index].segment_size_hori;
-          allgen_mail[bin_index].p[horiz_seg_no][j] =
-              3 * allgen_mail[bin_index].p[horiz_seg_no][j] + val;
+                  snp_index / genotype_block.segment_size_hori;
+          genotype_block.p[horiz_seg_no][j] =
+                  3 * genotype_block.p[horiz_seg_no][j] + val;
           // computing sum for every snp to compute mean
-          allgen_mail[bin_index].columnsum[snp_index] += val;
+          genotype_block.columnsum[snp_index] += val;
       }
     }
 
-      allgen_mail[bin_index].block_size++;
+      genotype_block.block_size++;
   }
   delete[] gtype;
 }
