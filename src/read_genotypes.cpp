@@ -103,7 +103,7 @@ int impute_genotype(const float &p_j) {
     return 2;
 }
 
-void read_genotype_block(std::istream &ifs, const int &num_snp,
+void read_genotype_block(std::istream &ifs, const int &block_size,
                          genotype &genotype_block, const int &n_samples,
                          const int &n_snps, int &global_snp_index,
                          const metaData &metadata) {
@@ -117,7 +117,7 @@ void read_genotype_block(std::istream &ifs, const int &num_snp,
   }
   int y[4];
 
-  for (int i = 0; i < num_snp; i++) {
+  for (int i = 0; i < block_size; i++) {
     global_snp_index++;
     ifs.read(reinterpret_cast<char *>(gtype),
              metadata.ncol * sizeof(unsigned char));

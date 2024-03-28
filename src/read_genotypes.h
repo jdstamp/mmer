@@ -19,7 +19,7 @@ float get_observed_allelefreq(const unsigned char *line,
 
 int impute_genotype(const float &p_j);
 
-void read_genotype_block(std::istream &ifs, const int &num_snp,
+void read_genotype_block(std::istream &ifs, const int &block_size,
                          genotype &genotype_block, const int &n_samples,
                          const int &n_snps, int &global_snp_index,
                          const metaData &metadata);

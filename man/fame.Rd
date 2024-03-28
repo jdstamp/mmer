@@ -7,11 +7,11 @@
 fame(
   plink_file,
   pheno_file,
-  annotation_file,
   covariate_file,
   n_randvecs,
   focal_snp_index,
-  n_blocks
+  n_blocks,
+  rand_seed = -1
 )
 }
 \arguments{
@@ -19,15 +19,15 @@ fame(
 
 \item{pheno_file}{File path for plink *.pheno data.}
 
-\item{annotation_file}{File path for plink *.pheno data.}
-
 \item{covariate_file}{File path for covariates data.}
 
 \item{n_randvecs}{Integer. Number of random vectors.}
 
-\item{focal_snp_index}{Integer block_size of the focal SNP.}
+\item{focal_snp_index}{Integer  of the focal SNP.}
 
 \item{n_blocks}{Integer representing the number of blocks the SNPs will be read in.}
+
+\item{rand_seed}{Integer to seed generation of random vectors. Only positive values are considered.}
 }
 \value{
 A list of P values and PVEs

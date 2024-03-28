@@ -147,16 +147,13 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                                       (n_variance_components + 1));
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
-    int read_Nsnp = (block_index < (n_blocks - 1))
-                        ? (step_size)
-                        : (step_size + step_size_rem);
 
-    set_block_parameters(genotype_block, n_samples, block_sizes[block_index]);
+      int block_size = block_sizes[block_index];
 
-    read_genotype_block(bed_ifs, read_Nsnp, genotype_block, n_samples, n_snps,
+      set_block_parameters(genotype_block, n_samples, block_size);
+
+      read_genotype_block(bed_ifs, block_size, genotype_block, n_samples, n_snps,
                         global_snp_index, metadata);
-
-    int block_size = block_sizes[block_index];
 
     if (block_size != 0) {
       allelecount_stds.resize(block_size, 1);
