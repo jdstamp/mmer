@@ -263,7 +263,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     read_genotype_block(bed_ifs, read_Nsnp, genotype_block, n_samples, n_snps,
                         global_snp_index, metadata);
 
-    int bin_index = 0;
     int block_size = block_sizes[block_index];
 
     if (block_size != 0) {
@@ -350,13 +349,13 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                                    yint_m, y_m, p, partialsums, in_gxg_block);
 
       ////// wt
-      wt.col(bin_index) +=
+      wt.col(0) +=
           compute_XXy(block_size, pheno, means, stds, mask, sel_snp_local_index,
                       n_samples, sum_op, genotype_block, yint_m, y_m, p, yint_e,
                       y_e, partialsums, false);
 
       for (int z_index = 0; z_index < n_randvecs; z_index++) {
-        XXz.col((bin_index * n_randvecs) + z_index) +=
+        XXz.col(z_index) +=
             output.col(z_index); /// save whole sample
 
         if (both_side_cov == true) {
@@ -364,7 +363,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           w1 = covariate.transpose() * vec1;
           w2 = Q * w1;
           w3 = covariate * w2;
-          UXXz.col((bin_index * n_randvecs) + z_index) += w3;
+          UXXz.col(z_index) += w3;
         }
       }
 
@@ -374,17 +373,17 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                               yint_e, y_e, partialsums);
 
         for (int z_index = 0; z_index < n_randvecs; z_index++) {
-          XXUz.col((bin_index * n_randvecs) + z_index) +=
+          XXUz.col(z_index) +=
               output.col(z_index); /// save whole sample
         }
       }
 
       if (both_side_cov == false)
-        yXXy(bin_index, 0) += compute_yXXy(
+        yXXy(0, 0) += compute_yXXy(
             block_size, pheno, means, stds, sel_snp_local_index, sum_op,
             genotype_block, yint_m, y_m, p, partialsums, false);
       else
-        yXXy(bin_index, 0) +=
+        yXXy(0, 0) +=
             compute_yVXXVy(block_size, pheno, means, stds, n_randvecs, sum_op,
                            genotype_block, yint_m, y_m, p, partialsums);
       delete[] sum_op;
@@ -429,7 +428,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                         global_snp_index, metadata);
     MatrixXdr means; //(p,1)
     MatrixXdr stds;  //(p,1)
-    int bin_index = 0;
     int num_snp = genotype_block.block_size;
 
     if (num_snp != 0) {
@@ -489,9 +487,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
             compute_XXy(num_snp, wt.col(i), means, stds, mask,
                         sel_snp_local_index, n_samples, sum_op, genotype_block,
                         yint_m, y_m, p, yint_e, y_e, partialsums, false);
-        vt.col((bin_index * (total_bin_num + 1)) + i) +=
+        vt.col(i) +=
             val_temp /
-            n_snps_variance_component[bin_index]; // Boyang: what is vt??
+            n_snps_variance_component[0]; // Boyang: what is vt??
       }
 
       MatrixXdr scaled_vec;
