@@ -28,7 +28,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   auto start = std::chrono::high_resolution_clock::now();
   // Initialize all variables like in FAME
   MatrixXdr focal_snp_gtype;
-  int hsegsize; // = log_3(n)
+  int hsegsize;
   double *partialsums;
   double *sum_op;
   double *yint_e;
@@ -39,11 +39,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr mask;
   MatrixXdr pheno;
   MatrixXdr covariate;
-  MatrixXdr v1; // W^ty
-  MatrixXdr v2; // QW^ty
-  MatrixXdr v3; // WQW^ty
-  MatrixXdr Q;
-  MatrixXdr new_pheno;
 
   genotype genotype_block;
   MatrixXdr geno_matrix;      //(p,n)
@@ -57,8 +52,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr v;     //(p,k)
   MatrixXdr means; //(p,1)
   MatrixXdr stds;  //(p,1)
-  MatrixXdr sum2;
-  MatrixXdr sum;
 
   MatrixXdr all_zb;
   MatrixXdr all_Uzb;
@@ -125,7 +118,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   // Covariate handling - needs cleanup
   std::string covname = "";
   bool use_cov = false;
-  bool both_side_cov = false;
   bool snp_fix_ef = false;
   int cov_num;
   if (covariate_file != "") {
@@ -134,12 +126,16 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                               covariate, snp_fix_ef);
     if (snp_fix_ef == true)
       covariate.col(cov_num - 1) = focal_snp_gtype.col(0);
-  } else if (covariate_file == "") {
-    both_side_cov = false;
   }
 
   /// regress out cov from phenotypes - needs cleanup
   if (use_cov == true) {
+
+    MatrixXdr v1; // W^ty
+    MatrixXdr v2; // QW^ty
+    MatrixXdr v3; // WQW^ty
+    MatrixXdr Q;
+    MatrixXdr new_pheno;
     MatrixXdr mat_mask = mask.replicate(1, cov_num);
     covariate = covariate.cwiseProduct(mat_mask);
 
@@ -147,43 +143,22 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     Q = WtW.inverse(); // Q=(W^tW)^-1
 
     double phen_sd = 0;
-    if (both_side_cov == false) {
-      MatrixXdr v1 = covariate.transpose() * pheno; // W^ty
-      MatrixXdr v2 = Q * v1;                        // QW^ty
-      MatrixXdr v3 = covariate * v2;                // WQW^ty
-      new_pheno = pheno - v3;
-      pheno = new_pheno.cwiseProduct(mask);
+    v1 = covariate.transpose() * pheno; // W^ty
+    v2 = Q * v1;                        // QW^ty
+    v3 = covariate * v2;                // WQW^ty
+    new_pheno = pheno - v3;
+    pheno = new_pheno.cwiseProduct(mask);
 
-      y_sum = pheno.sum();
-      y_mean = y_sum / mask.sum();
-      for (int i = 0; i < n_samples; i++) {
-        phen_sd += (pheno(i, 0) - y_mean) * (pheno(i, 0) - y_mean);
-        if (pheno(i, 0) != 0)
-          pheno(i, 0) = pheno(i, 0) - y_mean; // center phenotype
-      }
-      phen_sd = sqrt(phen_sd / (mask.sum() - 1));
-      pheno = pheno / phen_sd;
-      y_sum = pheno.sum();
+    y_sum = pheno.sum();
+    y_mean = y_sum / mask.sum();
+    for (int i = 0; i < n_samples; i++) {
+      phen_sd += (pheno(i, 0) - y_mean) * (pheno(i, 0) - y_mean);
+      if (pheno(i, 0) != 0)
+        pheno(i, 0) = pheno(i, 0) - y_mean; // center phenotype
     }
-
-    if (both_side_cov == true) {
-      y_sum = pheno.sum();
-      y_mean = y_sum / mask.sum();
-      for (int i = 0; i < n_samples; i++) {
-        phen_sd += (pheno(i, 0) - y_mean) * (pheno(i, 0) - y_mean);
-        if (pheno(i, 0) != 0)
-          pheno(i, 0) = pheno(i, 0) - y_mean; // center phenotype
-      }
-      phen_sd = sqrt(phen_sd / (mask.sum() - 1));
-      pheno = pheno / phen_sd;
-      y_sum = pheno.sum();
-
-      v1 = covariate.transpose() * pheno; // W^ty
-      v2 = Q * v1;                        // QW^ty
-      v3 = covariate * v2;                // WQW^ty
-      new_pheno = pheno - v3;
-      new_pheno = new_pheno.cwiseProduct(mask);
-    }
+    phen_sd = sqrt(phen_sd / (mask.sum() - 1));
+    pheno = pheno / phen_sd;
+    y_sum = pheno.sum();
   }
   if (use_cov == false) {
     y_sum = pheno.sum();
@@ -218,25 +193,11 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     for (int j = 0; j < n_samples; j++)
       all_zb(j, i) = all_zb(j, i) * mask(j, 0);
 
-  if (both_side_cov == true) {
-    all_Uzb.resize(n_samples, n_randvecs);
-    for (int j = 0; j < n_randvecs; j++) {
-      MatrixXdr w1 = covariate.transpose() * all_zb.col(j);
-      MatrixXdr w2 = Q * w1;
-      MatrixXdr w3 = covariate * w2;
-      all_Uzb.col(j) = w3;
-    }
-  }
-
   // Computation?
   MatrixXdr output;
   MatrixXdr output_env;
 
   XXz = MatrixXdr::Zero(n_samples, 2 * n_randvecs);
-  if (both_side_cov == true) {
-    UXXz = MatrixXdr::Zero(n_samples, 2 * n_randvecs);
-    XXUz = MatrixXdr::Zero(n_samples, 2 * n_randvecs);
-  }
   yXXy = MatrixXdr::Zero(2, 1);
 
   metaData metadata = set_metadata(n_samples, n_snps);
@@ -283,8 +244,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       c.resize(p, n_randvecs);
       x.resize(n_randvecs, n);
       v.resize(p, n_randvecs);
-      sum2.resize(p, 1);
-      sum.resize(p, 1);
 
       // TODO: Initialization of c with gaussian distribution
       c = MatrixXdr::Random(p, n_randvecs);
@@ -343,10 +302,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
           partialsums, in_gxg_block); // Here is the memory error
       temp = temp.array() * focal_snp_gtype.col(env_index).array();
       wt.col(1) += temp;
-      if (both_side_cov == false)
-        yXXy(1, 0) += compute_yXXy(block_size, scaled_pheno, means, stds,
-                                   sel_snp_local_index, sum_op, genotype_block,
-                                   yint_m, y_m, p, partialsums, in_gxg_block);
+      yXXy(1, 0) += compute_yXXy(block_size, scaled_pheno, means, stds,
+                                 sel_snp_local_index, sum_op, genotype_block,
+                                 yint_m, y_m, p, partialsums, in_gxg_block);
 
       ////// wt
       wt.col(0) +=
@@ -355,37 +313,13 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                       y_e, partialsums, false);
 
       for (int z_index = 0; z_index < n_randvecs; z_index++) {
-        XXz.col(z_index) +=
-            output.col(z_index); /// save whole sample
-
-        if (both_side_cov == true) {
-          vec1 = output.col(z_index);
-          w1 = covariate.transpose() * vec1;
-          w2 = Q * w1;
-          w3 = covariate * w2;
-          UXXz.col(z_index) += w3;
-        }
+        XXz.col(z_index) += output.col(z_index); /// save whole sample
       }
 
-      if (both_side_cov == true) {
-        output = compute_XXUz(block_size, n_randvecs, n_samples, means, stds,
-                              mask, sum_op, genotype_block, yint_m, y_m, p,
-                              yint_e, y_e, partialsums);
+      yXXy(0, 0) += compute_yXXy(block_size, pheno, means, stds,
+                                 sel_snp_local_index, sum_op, genotype_block,
+                                 yint_m, y_m, p, partialsums, false);
 
-        for (int z_index = 0; z_index < n_randvecs; z_index++) {
-          XXUz.col(z_index) +=
-              output.col(z_index); /// save whole sample
-        }
-      }
-
-      if (both_side_cov == false)
-        yXXy(0, 0) += compute_yXXy(
-            block_size, pheno, means, stds, sel_snp_local_index, sum_op,
-            genotype_block, yint_m, y_m, p, partialsums, false);
-      else
-        yXXy(0, 0) +=
-            compute_yVXXVy(block_size, pheno, means, stds, n_randvecs, sum_op,
-                           genotype_block, yint_m, y_m, p, partialsums);
       delete[] sum_op;
       delete[] partialsums;
       delete[] yint_e;
@@ -443,17 +377,13 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       /// duplicate
       int p = genotype_block.Nsnp;
       int n = genotype_block.Nindv;
-      MatrixXdr c; //(p,n_randvecs)
-      MatrixXdr x; //(n_randvecs,n)
-      MatrixXdr v; //(p,n_randvecs)
-      MatrixXdr sum2;
-      MatrixXdr sum;
+      MatrixXdr c;           //(p,n_randvecs)
+      MatrixXdr x;           //(n_randvecs,n)
+      MatrixXdr v;           //(p,n_randvecs)
       MatrixXdr geno_matrix; //(p,n)
       c.resize(p, n_randvecs);
       x.resize(n_randvecs, n);
       v.resize(p, n_randvecs);
-      sum2.resize(p, 1);
-      sum.resize(p, 1);
 
       // TODO: Initialization of c with gaussian distribution
       c = MatrixXdr::Random(p, n_randvecs);
@@ -487,26 +417,20 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
             compute_XXy(num_snp, wt.col(i), means, stds, mask,
                         sel_snp_local_index, n_samples, sum_op, genotype_block,
                         yint_m, y_m, p, yint_e, y_e, partialsums, false);
-        vt.col(i) +=
-            val_temp /
-            n_snps_variance_component[0]; // Boyang: what is vt??
+        vt.col(i) += val_temp / n_snps_variance_component[0];
       }
 
       MatrixXdr scaled_vec;
       for (int i = 0; i < (total_bin_num + 1); i++) {
-        scaled_vec = wt.col(i).array() *
-                     focal_snp_gtype.col(0).array(); // change env_index to 0
+        scaled_vec = wt.col(i).array() * focal_snp_gtype.col(0).array();
         MatrixXdr temp =
             compute_XXy(num_snp, scaled_vec, means, stds, mask,
                         sel_snp_local_index, n_samples, sum_op, genotype_block,
                         yint_m, y_m, p, yint_e, y_e, partialsums, false);
-        temp = temp.array() *
-               focal_snp_gtype.col(0).array(); // change env_index to 0
+        temp = temp.array() * focal_snp_gtype.col(0).array();
 
         vt.col(((total_bin_num + 1)) + i) +=
-            temp / n_snps_variance_component[1]; //
-                                                 // Boyang: could be right; v3:
-                                                 // change env_index to 0
+            temp / n_snps_variance_component[1];
       }
 
       delete[] sum_op;
@@ -554,19 +478,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   double trkij;
   double yy = (pheno.array() * pheno.array()).sum();
 
-  if (both_side_cov == true) {
-    MatrixXdr Wty = covariate.transpose() * pheno; // W^ty
-    MatrixXdr QWty = Q * Wty;
-    double temp = (Wty.array() * QWty.array()).sum();
-    yy = yy - temp;
-  }
-
   int Nindv_mask = mask.sum();
-  int NC;
-  if (both_side_cov == true)
-    NC = Nindv_mask - cov_num;
-  else
-    NC = Nindv_mask;
+  int NC = Nindv_mask;
 
   MatrixXdr point_est;
   MatrixXdr herit_est;
@@ -585,8 +498,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   for (int i = 0; i < n_variance_components; i++) {
 
-    if (both_side_cov == false)
-      b_trk(i, 0) = Nindv_mask;
+    b_trk(i, 0) = Nindv_mask;
 
     if (i >= (n_variance_components - 1)) { // change nongen_Nbin to 1
 
@@ -597,38 +509,12 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     c_yky(i, 0) = yXXy(i, 0) / n_snps_variance_component[i];
 
-    if (both_side_cov == true) {
-      B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
-      C1 = B1.array() * all_Uzb.array();
-      C2 = C1.colwise().sum();
-      tk_res = C2.sum();
-      tk_res = tk_res / n_snps_variance_component[i] / n_randvecs;
-      b_trk(i, 0) = Nindv_mask - tk_res;
-    }
     for (int j = i; j < n_variance_components; j++) {
       B1 = XXz.block(0, i * n_randvecs, n_samples, n_randvecs);
       B2 = XXz.block(0, j * n_randvecs, n_samples, n_randvecs);
       C1 = B1.array() * B2.array();
       C2 = C1.colwise().sum();
       trkij = C2.sum();
-
-      if (both_side_cov == true) {
-
-        h1 = covariate.transpose() * B1;
-        h2 = Q * h1;
-        h3 = covariate * h2;
-        C1 = h3.array() * B2.array();
-        C2 = C1.colwise().sum();
-        trkij_res1 = C2.sum();
-
-        B1 = XXUz.block(0, (i * n_randvecs), n_samples, n_randvecs);
-        B2 = UXXz.block(0, (j * n_randvecs), n_samples, n_randvecs);
-        C1 = B1.array() * B2.array();
-        C2 = C1.colwise().sum();
-        trkij_res3 = C2.sum();
-
-        trkij += trkij_res3 - trkij_res1 - trkij_res1;
-      }
 
       trkij = trkij / n_snps_variance_component[i] /
               n_snps_variance_component[j] / n_randvecs;
