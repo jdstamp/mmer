@@ -8,10 +8,10 @@ fame(
   plink_file,
   pheno_file,
   annotation_file,
-  gxg_bin,
-  num_evec,
-  snp_index,
-  jack_number
+  covariate_file,
+  n_randvecs,
+  focal_snp_index,
+  n_blocks
 )
 }
 \arguments{
@@ -21,13 +21,13 @@ fame(
 
 \item{annotation_file}{File path for plink *.pheno data.}
 
-\item{gxg_bin}{Integer.}
+\item{covariate_file}{File path for covariates data.}
 
-\item{num_evec}{Integer.}
+\item{n_randvecs}{Integer. Number of random vectors.}
 
-\item{snp_index}{Integer.}
+\item{focal_snp_index}{Integer block_size of the focal SNP.}
 
-\item{jack_number}{Integer.}
+\item{n_blocks}{Integer representing the number of blocks the SNPs will be read in.}
 }
 \value{
 A list of P values and PVEs
