@@ -140,14 +140,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   global_snp_index = -1;
 
-  MatrixXdr vec1;
-  MatrixXdr w1;
-  MatrixXdr w2;
-  MatrixXdr w3;
   //////////// analytic se
-  int total_bin_num = 2;
-  wt = MatrixXdr::Zero(n_samples, total_bin_num + 1);
-  vt = MatrixXdr::Zero(n_samples, (total_bin_num + 1) * (total_bin_num + 1));
+  int n_variance_components = 2;
+  wt = MatrixXdr::Zero(n_samples, n_variance_components + 1);
+  vt = MatrixXdr::Zero(n_samples, (n_variance_components + 1) * (n_variance_components + 1));
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
     int read_Nsnp = (block_index < (n_blocks - 1))
@@ -234,7 +230,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                        y_m, p, partialsums, false);
 
         MatrixXdr val_temp;
-        for (int i = 0; i < (total_bin_num + 1); i++) {
+        for (int i = 0; i < (n_variance_components + 1); i++) {
             MatrixXdr val_temp = compute_XXy(
                     block_size, wt.col(i), allelecount_means, allelecount_stds, pheno_mask, focal_snp_local_index,
                     n_samples, sum_op, genotype_block, yint_m, y_m, p, yint_e, y_e,
@@ -243,7 +239,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         }
 
         MatrixXdr scaled_vec;
-        for (int i = 0; i < (total_bin_num + 1); i++) {
+        for (int i = 0; i < (n_variance_components + 1); i++) {
             scaled_vec = wt.col(i).array() * focal_snp_gtype.col(0).array();
             MatrixXdr temp = compute_XXy(block_size, scaled_vec, allelecount_means, allelecount_stds,
                                          pheno_mask, focal_snp_local_index,
@@ -251,7 +247,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                                          y_m, p, yint_e, y_e, partialsums, false);
             temp = temp.array() * focal_snp_gtype.col(0).array();
 
-            vt.col(((total_bin_num + 1)) + i) +=
+            vt.col(((n_variance_components + 1)) + i) +=
                     temp / n_snps_variance_component[1];
         }
 
@@ -261,17 +257,15 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   }
 
   /// analytic se
-  for (int i = 0; i < total_bin_num; i++) {
+  for (int i = 0; i < n_variance_components; i++) {
     wt.col(i) = wt.col(i) / n_snps_variance_component[i];
-    double dx = (wt.col(i).array() * pheno.array()).sum();
   }
-  wt.col(total_bin_num) = pheno;
+  wt.col(n_variance_components) = pheno;
 
-  for (int i = 0; i < (total_bin_num + 1); i++) {
-    vt.col((total_bin_num * (total_bin_num + 1)) + i) = wt.col(i);
+  for (int i = 0; i < (n_variance_components + 1); i++) {
+    vt.col((n_variance_components * (n_variance_components + 1)) + i) = wt.col(i);
   }
 
-  int n_variance_components = 2;
   // compute the elements of normal equation:
 
   /// normal equations LHS
@@ -281,7 +275,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   MatrixXdr X_l(n_variance_components + 1, n_variance_components + 1);
   MatrixXdr Y_r(n_variance_components + 1, 1);
-  int jack_index = n_blocks;
   MatrixXdr B1;
   MatrixXdr B2;
   MatrixXdr C1;
@@ -289,8 +282,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   double trkij;
   double yy = (pheno.array() * pheno.array()).sum();
 
-  int Nindv_mask = pheno_mask.sum();
-  int NC = Nindv_mask;
+  int n_samples_mask = pheno_mask.sum();
 
   MatrixXdr point_est;
   MatrixXdr herit_est;
@@ -298,14 +290,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   point_est.resize(n_variance_components + 1, 1);
   herit_est.resize(n_variance_components + 1, 1);
 
-  double trkij_res1;
-  double trkij_res2;
-  double trkij_res3;
-  double tk_res;
-
   for (int i = 0; i < n_variance_components; i++) {
 
-    b_trk(i, 0) = Nindv_mask;
+    b_trk(i, 0) = n_samples_mask;
 
     if (i >= (n_variance_components - 1)) { // change nongen_Nbin to 1
 
@@ -332,7 +319,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   ////solve normal equation as :
 
-  X_l << A_trs, b_trk, b_trk.transpose(), NC;
+  X_l << A_trs, b_trk, b_trk.transpose(), n_samples_mask;
   Y_r << c_yky, yy;
 
   MatrixXdr herit = X_l.colPivHouseholderQr().solve(Y_r);
@@ -380,6 +367,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr inver_X = X_l.inverse();
 
   MatrixXdr cov_sigma = inver_X * cov_q * inver_X;
+  
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = end - start;
   std::cout << "Execution time of main function: " << elapsed.count()
