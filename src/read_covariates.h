@@ -6,5 +6,6 @@
 
 using namespace std;
 
-int read_covariates(const bool &std, const int &Nind, const std::string &filename,
-                    const std::string &covname, MatrixXdr &covariate, const bool &snp_fix_ef);
+int read_covariates(const bool &std, const int &Nind,
+                    const std::string &filename, const std::string &covname,
+                    MatrixXdr &covariate, const bool &snp_fix_ef);

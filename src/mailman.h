@@ -8,10 +8,10 @@
 namespace mailman {
 
 void fastmultiply_normal(
-        const int &m, const int &n, const int &k, const std::vector<int> &p,
-        const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-            &x,
-        double *yint, double *c, double **y) {
+    const int &m, const int &n, const int &k, const std::vector<int> &p,
+    const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        &x,
+    double *yint, double *c, double **y) {
   for (int i = 0; i < n; i++) {
     int l = p[i];
     for (int j = 0; j < k; j++)
@@ -43,7 +43,7 @@ void fastmultiply_normal(
 void fastmultiply_pre_normal(
     int m, int n, int k, int start, std::vector<int> &p,
     const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-            &x,
+        &x,
     double *yint, double *c, double **y) {
   int size1 = pow(3., m);
   memset(yint, 0, size1 * sizeof(double));

@@ -1,8 +1,8 @@
 #include "read_genotypes.h"
 
 void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
-                    const int &focal_snp_index, const int &n_samples, const int &n_snps,
-                    int &global_snp_index) {
+                    const int &focal_snp_index, const int &n_samples,
+                    const int &n_snps, int &global_snp_index) {
   ifstream ifs(filename.c_str(), ios::in | ios::binary);
   char magic[3];
   metaData metadata = set_metadata(n_samples, n_snps);
@@ -57,7 +57,8 @@ static std::istream &binary_read(std::istream &stream, T &value) {
   return stream.read(reinterpret_cast<char *>(&value), sizeof(T));
 }
 
-float get_observed_allelefreq(const unsigned char *line, const metaData &metadata) {
+float get_observed_allelefreq(const unsigned char *line,
+                              const metaData &metadata) {
   int y[4];
   int observed_sum = 0;
   int observed_ct = 0;
@@ -77,7 +78,8 @@ float get_observed_allelefreq(const unsigned char *line, const metaData &metadat
   return observed_sum * 0.5 / observed_ct;
 }
 
-void extract_plink_genotypes(int *y, const unsigned char &c, const unsigned char &mask) {
+void extract_plink_genotypes(int *y, const unsigned char &c,
+                             const unsigned char &mask) {
   // Extract PLINK genotypes
   y[0] = (c)&mask;
   y[1] = (c >> 2) & mask;
@@ -128,18 +130,17 @@ void read_genotype_block(std::istream &ifs, const int &num_snp,
         int val = encoding_to_allelecount(y[l]);
         // impute missing genotype
         val = (val == -1) ? impute_genotype(p_j) : val;
-          int snp_index;
-          snp_index = genotype_block.block_size;
-          int horiz_seg_no =
-                  snp_index / genotype_block.segment_size_hori;
-          genotype_block.p[horiz_seg_no][j] =
-                  3 * genotype_block.p[horiz_seg_no][j] + val;
-          // computing sum for every snp to compute mean
-          genotype_block.columnsum[snp_index] += val;
+        int snp_index;
+        snp_index = genotype_block.block_size;
+        int horiz_seg_no = snp_index / genotype_block.segment_size_hori;
+        genotype_block.p[horiz_seg_no][j] =
+            3 * genotype_block.p[horiz_seg_no][j] + val;
+        // computing sum for every snp to compute mean
+        genotype_block.columnsum[snp_index] += val;
       }
     }
 
-      genotype_block.block_size++;
+    genotype_block.block_size++;
   }
   delete[] gtype;
 }

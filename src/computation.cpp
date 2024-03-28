@@ -1,12 +1,13 @@
 #include "computation.h"
 #include "mailman.h"
 
-MatrixXdr
-compute_XXz(const int &num_snp, const MatrixXdr &Z_b, const MatrixXdr &means, const MatrixXdr &stds,
-            const MatrixXdr &mask, const int &Nz, const int &Nindv, const int &sel_snp_local_index,
-            double *&sum_op, const genotype &g, double *&yint_m, double **&y_m, int p,
-            double *&yint_e, double **&y_e, double *&partialsums,
-            bool exclude_sel_snp) {
+MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
+                      const MatrixXdr &means, const MatrixXdr &stds,
+                      const MatrixXdr &mask, const int &Nz, const int &Nindv,
+                      const int &sel_snp_local_index, double *&sum_op,
+                      const genotype &g, double *&yint_m, double **&y_m, int p,
+                      double *&yint_e, double **&y_e, double *&partialsums,
+                      bool exclude_sel_snp) {
   MatrixXdr res;
   res.resize(num_snp, Nz);
   multiply_y_pre_fast(Z_b, Nz, res, false, sum_op, g, yint_m, y_m, p,
@@ -19,9 +20,9 @@ compute_XXz(const int &num_snp, const MatrixXdr &Z_b, const MatrixXdr &means, co
       res(j, k) = res(j, k) * stds(j, 0);
 
   ////GxG
- if (exclude_sel_snp == true)
-   for (int k = 0; k < Nz; k++)
-     res(sel_snp_local_index, k) = 0;
+  if (exclude_sel_snp == true)
+    for (int k = 0; k < Nz; k++)
+      res(sel_snp_local_index, k) = 0;
 
   MatrixXdr resid(num_snp, Nz);
   MatrixXdr inter = means.cwiseProduct(stds);
@@ -50,10 +51,12 @@ compute_XXz(const int &num_snp, const MatrixXdr &Z_b, const MatrixXdr &means, co
   return temp.transpose();
 }
 
-MatrixXdr compute_XXUz(const int &num_snp, const int &Nz, const int &Nindv, const MatrixXdr &means,
-                       const MatrixXdr &stds, const MatrixXdr &mask, double *&sum_op,
-                       const genotype &g, double *&yint_m, double **&y_m, const int &p,
-                       double *&yint_e, double **&y_e, double *&partialsums) {
+MatrixXdr compute_XXUz(const int &num_snp, const int &Nz, const int &Nindv,
+                       const MatrixXdr &means, const MatrixXdr &stds,
+                       const MatrixXdr &mask, double *&sum_op,
+                       const genotype &g, double *&yint_m, double **&y_m,
+                       const int &p, double *&yint_e, double **&y_e,
+                       double *&partialsums) {
 
   MatrixXdr all_Uzb;
   MatrixXdr res; // Boyang: add declaration of res before resize;
@@ -120,10 +123,10 @@ MatrixXdr compute_Xz(int num_snp, int Nz, int Nindv, MatrixXdr means,
   return temp.transpose();
 }
 
-void multiply_y_pre_fast(const MatrixXdr &op, const int &Ncol_op, MatrixXdr &res,
-                         const bool &subtract_means, double *&sum_op, const genotype &g,
-                         double *&yint_m, double **&y_m, const int &p,
-                         double *&partialsums) {
+void multiply_y_pre_fast(const MatrixXdr &op, const int &Ncol_op,
+                         MatrixXdr &res, const bool &subtract_means,
+                         double *&sum_op, const genotype &g, double *&yint_m,
+                         double **&y_m, const int &p, double *&partialsums) {
   bool var_normalize = false;
 
   for (int k_iter = 0; k_iter < Ncol_op; k_iter++) {
@@ -253,8 +256,9 @@ double compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr Z_b,
   return yXXy;
 }
 
-double compute_yVXXVy(const int &num_snp, const MatrixXdr &new_pheno, const MatrixXdr &means,
-                      const MatrixXdr &stds, const int &Nz, double *&sum_op, const genotype &g,
+double compute_yVXXVy(const int &num_snp, const MatrixXdr &new_pheno,
+                      const MatrixXdr &means, const MatrixXdr &stds,
+                      const int &Nz, double *&sum_op, const genotype &g,
                       double *&yint_m, double **&y_m, const int &p,
                       double *&partialsums) {
   MatrixXdr new_pheno_sum = new_pheno.colwise().sum();
@@ -274,11 +278,13 @@ double compute_yVXXVy(const int &num_snp, const MatrixXdr &new_pheno, const Matr
   return ytVXXVy;
 }
 
-MatrixXdr
-compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means, const MatrixXdr &stds,
-            const MatrixXdr &mask, const int &sel_snp_local_index, const int &Nindv, double *&sum_op,
-            const genotype &g, double *&yint_m, double **&y_m, const int &p, double *&yint_e,
-            double **&y_e, double *&partialsums, const bool &exclude_sel_snp) {
+MatrixXdr compute_XXy(const int &num_snp, const MatrixXdr &y_vec,
+                      const MatrixXdr &means, const MatrixXdr &stds,
+                      const MatrixXdr &mask, const int &sel_snp_local_index,
+                      const int &Nindv, double *&sum_op, const genotype &g,
+                      double *&yint_m, double **&y_m, const int &p,
+                      double *&yint_e, double **&y_e, double *&partialsums,
+                      const bool &exclude_sel_snp) {
   MatrixXdr res;
   res.resize(num_snp, 1);
   multiply_y_pre_fast(y_vec, 1, res, false, sum_op, g, yint_m, y_m, p,
@@ -319,11 +325,12 @@ compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means, 
   return temp.transpose();
 }
 
-double
-compute_yXXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means, const MatrixXdr &stds,
-             const int &sel_snp_local_index, double *&sum_op, const genotype &g,
-             double *&yint_m, double **&y_m, const int &p, double *&partialsums,
-             const bool &exclude_sel_snp) {
+double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
+                    const MatrixXdr &means, const MatrixXdr &stds,
+                    const int &sel_snp_local_index, double *&sum_op,
+                    const genotype &g, double *&yint_m, double **&y_m,
+                    const int &p, double *&partialsums,
+                    const bool &exclude_sel_snp) {
   MatrixXdr res;          // Boyang: add declarative res
   res.resize(num_snp, 1); // Boyang: change to resize
 
@@ -331,7 +338,7 @@ compute_yXXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
                       partialsums);
 
   /// GxG
-//  bool exclude_sel_snp = false;
+  //  bool exclude_sel_snp = false;
   if (exclude_sel_snp == true)
     res(sel_snp_local_index, 0) = 0;
 
