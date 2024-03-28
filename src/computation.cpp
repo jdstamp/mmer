@@ -133,27 +133,28 @@ void multiply_y_pre_fast(const MatrixXdr &op, const int &Ncol_op,
     sum_op[k_iter] = op.col(k_iter).sum();
   }
 
-  for (int seg_iter = 0; seg_iter < g.Nsegments_hori - 1; seg_iter++) {
-    mailman::fastmultiply(g.segment_size_hori, g.Nindv, Ncol_op, g.p[seg_iter],
-                          op, yint_m, partialsums, y_m);
+  for (int seg_iter = 0; seg_iter < g.n_segments_hori - 1; seg_iter++) {
+    mailman::fastmultiply(g.segment_size_hori, g.n_samples, Ncol_op,
+                          g.p[seg_iter], op, yint_m, partialsums, y_m);
     int p_base = seg_iter * g.segment_size_hori;
     for (int p_iter = p_base;
-         (p_iter < p_base + g.segment_size_hori) && (p_iter < g.Nsnp);
+         (p_iter < p_base + g.segment_size_hori) && (p_iter < g.n_snps);
          p_iter++) {
       for (int k_iter = 0; k_iter < Ncol_op; k_iter++)
         res(p_iter, k_iter) = y_m[p_iter - p_base][k_iter];
     }
   }
 
-  int last_seg_size = (g.Nsnp % g.segment_size_hori != 0)
-                          ? g.Nsnp % g.segment_size_hori
+  int last_seg_size = (g.n_snps % g.segment_size_hori != 0)
+                          ? g.n_snps % g.segment_size_hori
                           : g.segment_size_hori;
-  mailman::fastmultiply(last_seg_size, g.Nindv, Ncol_op,
-                        g.p[g.Nsegments_hori - 1], op, yint_m, partialsums,
+  mailman::fastmultiply(last_seg_size, g.n_samples, Ncol_op,
+                        g.p[g.n_segments_hori - 1], op, yint_m, partialsums,
                         y_m);
-  int p_base = (g.Nsegments_hori - 1) * g.segment_size_hori;
+  int p_base = (g.n_segments_hori - 1) * g.segment_size_hori;
   for (int p_iter = p_base;
-       (p_iter < p_base + g.segment_size_hori) && (p_iter < g.Nsnp); p_iter++) {
+       (p_iter < p_base + g.segment_size_hori) && (p_iter < g.n_snps);
+       p_iter++) {
     for (int k_iter = 0; k_iter < Ncol_op; k_iter++)
       res(p_iter, k_iter) = y_m[p_iter - p_base][k_iter];
   }
@@ -191,15 +192,15 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
   int Ncol_op = Nrows_op;
 
   int seg_iter;
-  for (seg_iter = 0; seg_iter < g.Nsegments_hori - 1; seg_iter++) {
-    mailman::fastmultiply_pre(g.segment_size_hori, g.Nindv, Ncol_op,
+  for (seg_iter = 0; seg_iter < g.n_segments_hori - 1; seg_iter++) {
+    mailman::fastmultiply_pre(g.segment_size_hori, g.n_samples, Ncol_op,
                               seg_iter * g.segment_size_hori, g.p[seg_iter], op,
                               yint_e, partialsums, y_e);
   }
-  int last_seg_size = (g.Nsnp % g.segment_size_hori != 0)
-                          ? g.Nsnp % g.segment_size_hori
+  int last_seg_size = (g.n_snps % g.segment_size_hori != 0)
+                          ? g.n_snps % g.segment_size_hori
                           : g.segment_size_hori;
-  mailman::fastmultiply_pre(last_seg_size, g.Nindv, Ncol_op,
+  mailman::fastmultiply_pre(last_seg_size, g.n_samples, Ncol_op,
                             seg_iter * g.segment_size_hori, g.p[seg_iter], op,
                             yint_e, partialsums, y_e);
 
