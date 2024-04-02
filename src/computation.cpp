@@ -1,3 +1,31 @@
+/*
+ * Substantial parts of this file were published under MIT license by other
+ * authors. Find the original license notice below.
+ */
+
+/* MIT License
+ *
+ * Copyright (c) 2024 sriramlab
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include "computation.h"
 #include "mailman.h"
 
@@ -33,78 +61,6 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
     for (int j = 0; j < num_snp; j++)
       inter_zb(j, k) = inter_zb(j, k) * stds(j, 0);
   MatrixXdr new_zb = inter_zb.transpose();
-  MatrixXdr new_res(Nz, Nindv);
-
-  multiply_y_post_fast(new_zb, Nz, new_res, false, p, g, yint_e, y_e, Nindv);
-
-  MatrixXdr new_resid(Nz, num_snp);
-  MatrixXdr zb_scale_sum = new_zb * means;
-  new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
-
-  /// new zb
-  MatrixXdr temp = new_res - new_resid;
-
-  for (int i = 0; i < Nz; i++)
-    for (int j = 0; j < Nindv; j++)
-      temp(i, j) = temp(i, j) * mask(j, 0);
-
-  return temp.transpose();
-}
-
-MatrixXdr compute_XXUz(const int &num_snp, const int &Nz, const int &Nindv,
-                       const MatrixXdr &means, const MatrixXdr &stds,
-                       const MatrixXdr &mask, double *&sum_op,
-                       const genotype &g, double *&yint_m, double **&y_m,
-                       const int &p, double *&yint_e, double **&y_e,
-                       double *&partialsums) {
-
-  MatrixXdr all_Uzb;
-  MatrixXdr res; // Boyang: add declaration of res before resize;
-  res.resize(num_snp, Nz);
-
-  multiply_y_pre_fast(all_Uzb, Nz, res, false, sum_op, g, yint_m, y_m, p,
-                      partialsums);
-
-  MatrixXdr zb_sum = all_Uzb.colwise().sum();
-
-  for (int j = 0; j < num_snp; j++)
-    for (int k = 0; k < Nz; k++)
-      res(j, k) = res(j, k) * stds(j, 0);
-
-  MatrixXdr resid(num_snp, Nz);
-  MatrixXdr inter = means.cwiseProduct(stds);
-  resid = inter * zb_sum;
-  MatrixXdr inter_zb = res - resid;
-
-  for (int k = 0; k < Nz; k++)
-    for (int j = 0; j < num_snp; j++)
-      inter_zb(j, k) = inter_zb(j, k) * stds(j, 0);
-  MatrixXdr new_zb = inter_zb.transpose();
-  MatrixXdr new_res(Nz, Nindv);
-
-  multiply_y_post_fast(new_zb, Nz, new_res, false, p, g, yint_e, y_e, Nindv);
-
-  MatrixXdr new_resid(Nz, num_snp);
-  MatrixXdr zb_scale_sum = new_zb * means;
-  new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
-
-  /// new zb
-  MatrixXdr temp = new_res - new_resid;
-
-  for (int i = 0; i < Nz; i++)
-    for (int j = 0; j < Nindv; j++)
-      temp(i, j) = temp(i, j) * mask(j, 0);
-
-  return temp.transpose();
-}
-
-MatrixXdr compute_Xz(int num_snp, int Nz, int Nindv, MatrixXdr means,
-                     MatrixXdr mask, int p, genotype g, double *&yint_e,
-                     double **&y_e) {
-
-  MatrixXdr new_zb = MatrixXdr::Random(Nz, num_snp);
-  new_zb = new_zb * sqrt(3);
-
   MatrixXdr new_res(Nz, Nindv);
 
   multiply_y_post_fast(new_zb, Nz, new_res, false, p, g, yint_e, y_e, Nindv);
@@ -229,56 +185,6 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
   }
 }
 
-double compute_yXXy(int num_snp, MatrixXdr y_vec, MatrixXdr Z_b,
-                    MatrixXdr means, MatrixXdr stds, int Nz, double *&sum_op,
-                    genotype g, double *&yint_m, double **&y_m, int p,
-                    int sel_snp_local_index, double *&partialsums) {
-  MatrixXdr res;          // Boyang: add declarative res
-  res.resize(num_snp, 1); // Boyang: change to resize
-
-  multiply_y_pre_fast(Z_b, Nz, res, false, sum_op, g, yint_m, y_m, p,
-                      partialsums);
-
-  /// GxG
-
-  bool exclude_sel_snp = false;
-  if (exclude_sel_snp == true)
-    res(sel_snp_local_index, 0) = 0;
-
-  res = res.cwiseProduct(stds);
-  MatrixXdr resid(num_snp, 1);
-  resid = means.cwiseProduct(stds);
-  resid = resid * y_vec.sum();
-  MatrixXdr Xy(num_snp, 1);
-  Xy = res - resid;
-
-  double yXXy = (Xy.array() * Xy.array()).sum();
-
-  return yXXy;
-}
-
-double compute_yVXXVy(const int &num_snp, const MatrixXdr &new_pheno,
-                      const MatrixXdr &means, const MatrixXdr &stds,
-                      const int &Nz, double *&sum_op, const genotype &g,
-                      double *&yint_m, double **&y_m, const int &p,
-                      double *&partialsums) {
-  MatrixXdr new_pheno_sum = new_pheno.colwise().sum();
-  MatrixXdr res;
-  res.resize(num_snp, 1); // Boyang: change to resize
-
-  multiply_y_pre_fast(new_pheno, 1, res, false, sum_op, g, yint_m, y_m, p,
-                      partialsums);
-
-  res = res.cwiseProduct(stds);
-  MatrixXdr resid(num_snp, 1);
-  resid = means.cwiseProduct(stds);
-  resid = resid * new_pheno_sum;
-  MatrixXdr Xy(num_snp, 1);
-  Xy = res - resid;
-  double ytVXXVy = (Xy.array() * Xy.array()).sum();
-  return ytVXXVy;
-}
-
 MatrixXdr compute_XXy(const int &num_snp, const MatrixXdr &y_vec,
                       const MatrixXdr &means, const MatrixXdr &stds,
                       const MatrixXdr &mask, const int &sel_snp_local_index,
@@ -296,19 +202,19 @@ MatrixXdr compute_XXy(const int &num_snp, const MatrixXdr &y_vec,
   for (int j = 0; j < num_snp; j++)
     res(j, 0) = res(j, 0) * stds(j, 0);
 
-  /// GxG
+  // GxG
   if (exclude_sel_snp == true) {
     res(sel_snp_local_index, 0) = 0;
-  } // Boyang set selected snp to 0
+  }
 
   MatrixXdr resid(num_snp, 1);
   MatrixXdr inter = means.cwiseProduct(stds);
   resid = inter * zb_sum;
   MatrixXdr inter_zb = res - resid;
 
-  for (int k = 0; k < 1; k++)
-    for (int j = 0; j < num_snp; j++)
-      inter_zb(j, k) = inter_zb(j, k) * stds(j, 0);
+  for (int j = 0; j < num_snp; j++)
+    inter_zb(j, 0) = inter_zb(j, 0) * stds(j, 0);
+
   MatrixXdr new_zb = inter_zb.transpose();
   MatrixXdr new_res(1, Nindv);
   multiply_y_post_fast(new_zb, 1, new_res, false, p, g, yint_e, y_e, Nindv);
@@ -316,12 +222,10 @@ MatrixXdr compute_XXy(const int &num_snp, const MatrixXdr &y_vec,
   MatrixXdr zb_scale_sum = new_zb * means;
   new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
 
-  /// new zb
   MatrixXdr temp = new_res - new_resid;
 
-  for (int i = 0; i < 1; i++)
-    for (int j = 0; j < Nindv; j++)
-      temp(i, j) = temp(i, j) * mask(j, 0);
+  for (int j = 0; j < Nindv; j++)
+    temp(0, j) = temp(0, j) * mask(j, 0);
 
   return temp.transpose();
 }

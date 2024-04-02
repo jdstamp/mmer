@@ -1,3 +1,31 @@
+/*
+ * Substantial parts of this file were published under MIT license by other
+ * authors. Find the original license notice below.
+ */
+
+/* MIT License
+ *
+ * Copyright (c) 2024 sriramlab
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include "count_data.h"
 
 int count_samples(std::string filename) {
@@ -26,8 +54,7 @@ int count_fam(std::string filename) {
 int count_snps_bim(std::string filename) {
   std::ifstream bim_file(filename.c_str(), ios::in);
   if (!bim_file.is_open()) {
-    std::cerr << "Error reading file " << filename << std::endl;
-    exit(1);
+    throw std::runtime_error("Error reading .bim file.");
   }
   std::string line;
   int n_snps = 0;
