@@ -16,11 +16,15 @@
 #include "read_genotypes.h"
 #include "read_phenotypes.h"
 #include "set_block_parameters.h"
+#include "skip_variant.h"
 
 // [[Rcpp::export]]
-Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
-                    std::string covariate_file, int n_randvecs,
-                    int focal_snp_index, int n_blocks, int rand_seed) {
+Rcpp::List
+fame_cpp(std::string plink_file, std::string pheno_file,
+         std::string covariate_file, int n_randvecs, int n_blocks,
+         int rand_seed,
+         Rcpp::Nullable<Rcpp::NumericVector> variantIndices = R_NilValue) {
+
   // Mailman algo variables.
   // TODO: Give meaningful names or move into mailman algo file
   double *partialsums;
@@ -32,6 +36,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   auto start_grm = std::chrono::high_resolution_clock::now();
   int n_variance_components = 2; // For now limited to GRM and GXG
+  // initialize object to collect point_est and cov_sigma
+  MatrixXdr PVE;
+  MatrixXdr SE;
 
   std::stringstream bim_stream;
   std::stringstream fam_stream;
@@ -66,9 +73,45 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     throw std::runtime_error(
         "Number of samples in fam file and pheno file do not match.");
   }
+  std::vector<int> ind;
+  if (!variantIndices.isNull()) {
+    Rcpp::NumericVector numeric_vec(variantIndices);
+    ind = std::vector<int>(numeric_vec.begin(), numeric_vec.end());
+    PVE.resize(ind.size(), n_variance_components + 1);
+    SE.resize(ind.size(), n_variance_components + 1);
+  } else {
+    PVE.resize(n_snps, n_variance_components + 1);
+    SE.resize(n_snps, n_variance_components + 1);
+  }
 
   // read data into matrices pheno and pheno_mask
   read_phenotypes(n_samples, pheno_file, pheno, pheno_mask);
+
+  // Covariate handling - needs cleanup
+  double y_sum;
+  double y_mean;
+  if (covariate_file != "") {
+    bool snp_fix_ef = false;
+    MatrixXdr covariate;
+    int cov_num;
+    cov_num = read_covariates(false, n_samples, covariate_file, covariate,
+                              snp_fix_ef);
+    //        if (snp_fix_ef == true) {
+    //            covariate.col(cov_num - 1) = focal_snp_gtype.col(0);
+    //        }
+
+    pheno = fit_covariates(pheno_mask, pheno, n_samples, y_sum, y_mean,
+                           covariate, cov_num);
+
+  } else {
+    y_sum = pheno.sum();
+    y_mean = y_sum / pheno_mask.sum();
+    for (int i = 0; i < n_samples; i++) {
+      if (pheno(i, 0) != 0) {
+        pheno(i, 0) = pheno(i, 0) - y_mean;
+      } // center phenotype
+    }
+  }
 
   MatrixXdr temp_grm;
   MatrixXdr random_vectors;
@@ -110,205 +153,190 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                         genotype_block);
     }
   }
+  auto end_grm = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed_grm = end_grm - start_grm;
+  std::cout << "Execution time of grm: " << elapsed_grm.count() << " seconds."
+            << std::endl;
+  auto start_gxg = std::chrono::high_resolution_clock::now();
 
   // TODO: parallel loop starts here?
-  auto start_gxg = std::chrono::high_resolution_clock::now();
-  MatrixXdr focal_snp_gtype;
-
-  MatrixXdr gxg_random_vectors;
-  MatrixXdr GxGz;
-  MatrixXdr yXXy;
-
-  MatrixXdr collect_XXy;
-  MatrixXdr collect_XXUy;
-
-  focal_snp_gtype.resize(n_samples, 1);
-
-  global_snp_index = -1;
-  read_focal_snp(bed_file, focal_snp_gtype, focal_snp_index, n_samples, n_snps,
-                 global_snp_index);
-
-  int focal_snp_block =
-      std::min((focal_snp_index - 1) / step_size, n_blocks - 1);
-
-  int focal_snp_local_index =
-      focal_snp_index - (step_size * focal_snp_block) - 1;
-
-  // Covariate handling - needs cleanup
-  double y_sum;
-  double y_mean;
-  if (covariate_file != "") {
-    bool snp_fix_ef = false;
-    MatrixXdr covariate;
-    int cov_num;
-    cov_num = read_covariates(false, n_samples, covariate_file, covariate,
-                              snp_fix_ef);
-    if (snp_fix_ef == true)
-      covariate.col(cov_num - 1) = focal_snp_gtype.col(0);
-
-    pheno = fit_covariates(pheno_mask, pheno, n_samples, y_sum, y_mean,
-                           covariate, cov_num);
-
-  } else {
-    y_sum = pheno.sum();
-    y_mean = y_sum / pheno_mask.sum();
-    for (int i = 0; i < n_samples; i++) {
-      if (pheno(i, 0) != 0)
-        pheno(i, 0) = pheno(i, 0) - y_mean; // center phenotype
+  int process_count = -1;
+  for (int gxg_i = 0; gxg_i < n_snps; gxg_i++) {
+    if (skip_variant(ind, gxg_i)) {
+      continue;
     }
-  }
-  random_vectors = initialize_random_vectors(n_randvecs, rand_seed, pheno_mask,
-                                             random_vectors, n_samples);
+    process_count++;
+    MatrixXdr focal_snp_gtype;
 
-  gxg_random_vectors =
-      random_vectors.array().colwise() * focal_snp_gtype.col(0).array();
-  MatrixXdr temp_gxg;
-  GxGz = MatrixXdr::Zero(n_samples, n_randvecs);
-  yXXy = MatrixXdr::Zero(n_variance_components, 1);
+    MatrixXdr gxg_random_vectors;
+    MatrixXdr GxGz;
+    MatrixXdr yXXy;
 
-  collect_XXy = MatrixXdr::Zero(n_samples, n_variance_components + 1);
-  collect_XXUy = MatrixXdr::Zero(n_samples, (n_variance_components + 1) *
-                                                (n_variance_components + 1));
+    MatrixXdr collect_XXy;
+    MatrixXdr collect_XXUy;
 
-  bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
-  global_snp_index = -1;
+    focal_snp_gtype.resize(n_samples, 1);
 
-  for (int block_index = 0; block_index < n_blocks; block_index++) {
+    global_snp_index = -1;
+    read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps,
+                   global_snp_index);
 
-    int block_size = block_sizes[block_index];
+    int focal_snp_block = std::min(gxg_i / step_size, n_blocks - 1);
 
-    set_block_parameters(genotype_block, n_samples, block_size);
+    int focal_snp_local_index = gxg_i - (step_size * focal_snp_block);
 
-    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples, n_snps,
-                        global_snp_index, metadata);
+    random_vectors = initialize_random_vectors(
+        n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples);
 
-    if (block_size != 0) {
-      compute_block_stats(genotype_block, allelecount_means, allelecount_stds,
-                          n_samples, block_size);
+    gxg_random_vectors =
+        random_vectors.array().colwise() * focal_snp_gtype.col(0).array();
+    MatrixXdr temp_gxg;
+    GxGz = MatrixXdr::Zero(n_samples, n_randvecs);
+    yXXy = MatrixXdr::Zero(n_variance_components, 1);
 
-      allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
-                      yint_m, y_e, y_m);
+    collect_XXy = MatrixXdr::Zero(n_samples, n_variance_components + 1);
+    collect_XXUy = MatrixXdr::Zero(n_samples, (n_variance_components + 1) *
+                                                  (n_variance_components + 1));
 
-      bool in_gxg_block = (focal_snp_block == block_index);
-      temp_gxg =
-          compute_XXz(block_size, gxg_random_vectors, allelecount_means,
-                      allelecount_stds, pheno_mask, n_randvecs, n_samples,
-                      focal_snp_local_index, sum_op, genotype_block, yint_m,
-                      y_m, block_size, yint_e, y_e, partialsums, in_gxg_block);
-      temp_gxg = temp_gxg.array().colwise() * focal_snp_gtype.col(0).array();
+    bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+    global_snp_index = -1;
 
-      for (int z_index = 0; z_index < n_randvecs; z_index++) {
-        GxGz.col(z_index) += temp_gxg.col(z_index);
-      }
-      collect_XXy.col(0) += compute_XXy(
-          block_size, pheno, allelecount_means, allelecount_stds, pheno_mask,
-          focal_snp_local_index, n_samples, sum_op, genotype_block, yint_m, y_m,
-          block_size, yint_e, y_e, partialsums, false);
+    for (int block_index = 0; block_index < n_blocks; block_index++) {
 
-      MatrixXdr scaled_pheno;
-      scaled_pheno = pheno.array() * focal_snp_gtype.col(0).array();
-      MatrixXdr temp_Gy = compute_XXy(
-          block_size, scaled_pheno, allelecount_means, allelecount_stds,
-          pheno_mask, focal_snp_local_index, n_samples, sum_op, genotype_block,
-          yint_m, y_m, block_size, yint_e, y_e, partialsums, in_gxg_block);
-      temp_Gy = temp_Gy.array() * focal_snp_gtype.col(0).array();
-      collect_XXy.col(1) += temp_Gy;
+      int block_size = block_sizes[block_index];
 
-      yXXy(0, 0) +=
-          compute_yXXy(block_size, pheno, allelecount_means, allelecount_stds,
-                       focal_snp_local_index, sum_op, genotype_block, yint_m,
-                       y_m, block_size, partialsums, false);
+      set_block_parameters(genotype_block, n_samples, block_size);
 
-      yXXy(1, 0) += compute_yXXy(block_size, scaled_pheno, allelecount_means,
-                                 allelecount_stds, focal_snp_local_index,
-                                 sum_op, genotype_block, yint_m, y_m,
-                                 block_size, partialsums, in_gxg_block);
-      deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
-                        genotype_block);
-    }
-  }
+      read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
+                          n_snps, global_snp_index, metadata);
 
-  for (int i = 0; i < n_variance_components; i++) {
-    collect_XXy.col(i) = collect_XXy.col(i) / n_snps_variance_component[i];
-  }
-  collect_XXy.col(n_variance_components) = pheno;
+      if (block_size != 0) {
+        compute_block_stats(genotype_block, allelecount_means, allelecount_stds,
+                            n_samples, block_size);
 
-  bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
-  global_snp_index = -1;
+        allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
+                        yint_m, y_e, y_m);
 
-  for (int block_index = 0; block_index < n_blocks; block_index++) {
+        bool in_gxg_block = (focal_snp_block == block_index);
+        temp_gxg = compute_XXz(block_size, gxg_random_vectors,
+                               allelecount_means, allelecount_stds, pheno_mask,
+                               n_randvecs, n_samples, focal_snp_local_index,
+                               sum_op, genotype_block, yint_m, y_m, block_size,
+                               yint_e, y_e, partialsums, in_gxg_block);
+        temp_gxg = temp_gxg.array().colwise() * focal_snp_gtype.col(0).array();
 
-    int block_size = block_sizes[block_index];
+        for (int z_index = 0; z_index < n_randvecs; z_index++) {
+          GxGz.col(z_index) += temp_gxg.col(z_index);
+        }
+        collect_XXy.col(0) += compute_XXy(
+            block_size, pheno, allelecount_means, allelecount_stds, pheno_mask,
+            focal_snp_local_index, n_samples, sum_op, genotype_block, yint_m,
+            y_m, block_size, yint_e, y_e, partialsums, false);
 
-    set_block_parameters(genotype_block, n_samples, block_size);
-
-    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples, n_snps,
-                        global_snp_index, metadata);
-
-    if (block_size != 0) {
-      compute_block_stats(genotype_block, allelecount_means, allelecount_stds,
-                          n_samples, block_size);
-
-      allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
-                      yint_m, y_e, y_m);
-
-      MatrixXdr scaled_vec;
-      for (int i = 0; i < (n_variance_components + 1); i++) {
-        MatrixXdr temp_XXUy =
-            compute_XXy(block_size, collect_XXy.col(i), allelecount_means,
+        MatrixXdr scaled_pheno;
+        scaled_pheno = pheno.array() * focal_snp_gtype.col(0).array();
+        MatrixXdr temp_Gy =
+            compute_XXy(block_size, scaled_pheno, allelecount_means,
                         allelecount_stds, pheno_mask, focal_snp_local_index,
                         n_samples, sum_op, genotype_block, yint_m, y_m,
-                        block_size, yint_e, y_e, partialsums, false);
+                        block_size, yint_e, y_e, partialsums, in_gxg_block);
+        temp_Gy = temp_Gy.array() * focal_snp_gtype.col(0).array();
+        collect_XXy.col(1) += temp_Gy;
 
-        scaled_vec =
-            collect_XXy.col(i).array() * focal_snp_gtype.col(0).array();
-        MatrixXdr temp_GUy =
-            compute_XXy(block_size, scaled_vec, allelecount_means,
-                        allelecount_stds, pheno_mask, focal_snp_local_index,
-                        n_samples, sum_op, genotype_block, yint_m, y_m,
-                        block_size, yint_e, y_e, partialsums, false);
-        temp_GUy = temp_GUy.array() * focal_snp_gtype.col(0).array();
+        yXXy(0, 0) +=
+            compute_yXXy(block_size, pheno, allelecount_means, allelecount_stds,
+                         focal_snp_local_index, sum_op, genotype_block, yint_m,
+                         y_m, block_size, partialsums, false);
 
-        collect_XXUy.col(i) += temp_XXUy / n_snps_variance_component[0];
-        collect_XXUy.col(((n_variance_components + 1)) + i) +=
-            temp_GUy / n_snps_variance_component[1];
+        yXXy(1, 0) += compute_yXXy(block_size, scaled_pheno, allelecount_means,
+                                   allelecount_stds, focal_snp_local_index,
+                                   sum_op, genotype_block, yint_m, y_m,
+                                   block_size, partialsums, in_gxg_block);
+        deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
+                          genotype_block);
       }
-
-      deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
-                        genotype_block);
     }
+
+    for (int i = 0; i < n_variance_components; i++) {
+      collect_XXy.col(i) = collect_XXy.col(i) / n_snps_variance_component[i];
+    }
+    collect_XXy.col(n_variance_components) = pheno;
+
+    bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+    global_snp_index = -1;
+
+    for (int block_index = 0; block_index < n_blocks; block_index++) {
+
+      int block_size = block_sizes[block_index];
+
+      set_block_parameters(genotype_block, n_samples, block_size);
+
+      read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
+                          n_snps, global_snp_index, metadata);
+
+      if (block_size != 0) {
+        compute_block_stats(genotype_block, allelecount_means, allelecount_stds,
+                            n_samples, block_size);
+
+        allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
+                        yint_m, y_e, y_m);
+
+        MatrixXdr scaled_vec;
+        for (int i = 0; i < (n_variance_components + 1); i++) {
+          MatrixXdr temp_XXUy =
+              compute_XXy(block_size, collect_XXy.col(i), allelecount_means,
+                          allelecount_stds, pheno_mask, focal_snp_local_index,
+                          n_samples, sum_op, genotype_block, yint_m, y_m,
+                          block_size, yint_e, y_e, partialsums, false);
+
+          scaled_vec =
+              collect_XXy.col(i).array() * focal_snp_gtype.col(0).array();
+          MatrixXdr temp_GUy =
+              compute_XXy(block_size, scaled_vec, allelecount_means,
+                          allelecount_stds, pheno_mask, focal_snp_local_index,
+                          n_samples, sum_op, genotype_block, yint_m, y_m,
+                          block_size, yint_e, y_e, partialsums, false);
+          temp_GUy = temp_GUy.array() * focal_snp_gtype.col(0).array();
+
+          collect_XXUy.col(i) += temp_XXUy / n_snps_variance_component[0];
+          collect_XXUy.col(((n_variance_components + 1)) + i) +=
+              temp_GUy / n_snps_variance_component[1];
+        }
+
+        deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
+                          genotype_block);
+      }
+    }
+
+    for (int i = 0; i < (n_variance_components + 1); i++) {
+      collect_XXUy.col((n_variance_components * (n_variance_components + 1)) +
+                       i) = collect_XXy.col(i);
+    }
+
+    int n_samples_mask = pheno_mask.sum();
+
+    // naming from eq. (5) in mvMAPIT paper
+    MatrixXdr S(n_variance_components + 1, n_variance_components + 1);
+    MatrixXdr q(n_variance_components + 1, 1);
+    compute_mom_components(n_randvecs, n_variance_components, pheno,
+                           random_vectors, XXz, GxGz, yXXy,
+                           n_snps_variance_component, n_samples_mask, S, q);
+
+    MatrixXdr point_est = S.colPivHouseholderQr().solve(q);
+
+    MatrixXdr cov_q;
+    compute_covariance_q(n_variance_components, collect_XXUy, point_est, cov_q);
+
+    MatrixXdr invS = S.inverse();
+
+    MatrixXdr cov_sigma = invS * cov_q * invS;
+
+    PVE.row(process_count) = point_est.col(0).transpose();
+    SE.row(process_count) = cov_sigma.diagonal().array().sqrt().transpose();
   }
-
-  for (int i = 0; i < (n_variance_components + 1); i++) {
-    collect_XXUy.col((n_variance_components * (n_variance_components + 1)) +
-                     i) = collect_XXy.col(i);
-  }
-
-  int n_samples_mask = pheno_mask.sum();
-
-  // naming from eq. (5) in mvMAPIT paper
-  MatrixXdr S(n_variance_components + 1, n_variance_components + 1);
-  MatrixXdr q(n_variance_components + 1, 1);
-  compute_mom_components(n_randvecs, n_variance_components, pheno,
-                         random_vectors, XXz, GxGz, yXXy,
-                         n_snps_variance_component, n_samples_mask, S, q);
-
-  MatrixXdr point_est = S.colPivHouseholderQr().solve(q);
-
-  MatrixXdr cov_q;
-  compute_covariance_q(n_variance_components, collect_XXUy, point_est, cov_q);
-
-  MatrixXdr invS = S.inverse();
-
-  MatrixXdr cov_sigma = invS * cov_q * invS;
-
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_gxg = end - start_gxg;
-  std::chrono::duration<double> elapsed_grm = start_gxg - start_grm;
-  std::cout << "Execution time of grm: " << elapsed_grm.count() << " seconds."
-            << "Execution time of gxg: " << elapsed_gxg.count() << " seconds."
+  std::cout << "Execution time of gxg: " << elapsed_gxg.count() << " seconds."
             << std::endl;
-  return Rcpp::List::create(Rcpp::Named("Est") = point_est.col(0),
-                            Rcpp::Named("SE") =
-                                cov_sigma.diagonal().array().sqrt());
+  return Rcpp::List::create(Rcpp::Named("Est") = PVE, Rcpp::Named("SE") = SE);
 }

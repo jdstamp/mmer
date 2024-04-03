@@ -15,12 +15,12 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
 
   int y[4];
 
-  for (int i = 0; i < focal_snp_index; i++) {
+  for (int i = 0; i <= focal_snp_index; i++) {
     global_snp_index++;
     ifs.read(reinterpret_cast<char *>(gtype),
              metadata.ncol * sizeof(unsigned char));
     // skip to the block_size of interest
-    if (i == (focal_snp_index - 1)) {
+    if (i == (focal_snp_index)) {
       float p_j = get_observed_allelefreq(gtype, metadata);
       for (int k = 0; k < metadata.ncol; k++) {
         unsigned char c = gtype[k];

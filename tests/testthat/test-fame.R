@@ -8,6 +8,8 @@ test_that("fame end-to-end", {
   rand_seed = 123
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
+  # snp_indices <- NULL
+
   expected_est <- matrix(
     c(
       0.414218, 0.232245, 0.363624,
@@ -37,19 +39,15 @@ test_that("fame end-to-end", {
     ), ncol = 3, byrow = TRUE
   )
   # when
-  observed_est <- NULL
-  observed_se <- NULL
-  for (i in snp_indices) {
-    result <- fame(plink_file,
-                   pheno_file,
-                   covariate_file,
-                   n_randvecs,
-                   i,
-                   n_blocks,
-                   rand_seed)
-    observed_est <- rbind(observed_est, result$Est)
-    observed_se <- rbind(observed_se, result$SE)
-  }
+  result <- fame(plink_file,
+                 pheno_file,
+                 covariate_file,
+                 n_randvecs,
+                 snp_indices,
+                 n_blocks,
+                 rand_seed)
+  observed_est <- result$Est
+  observed_se <- result$SE
 
   # then
   expect_equal(observed_est, expected_est, tolerance = 1e-5)
@@ -81,17 +79,14 @@ test_that("fame end-to-end with covariate file", {
     ), ncol = 3, byrow = TRUE
   )
   # when
-  observed <- NULL
-  for (i in snp_indices) {
-    result <- fame(plink_file,
-                   pheno_file,
-                   covariate_file,
-                   n_randvecs,
-                   i,
-                   n_blocks,
-                   rand_seed)
-    observed <- rbind(observed, result$Est)
-  }
+  result <- fame(plink_file,
+                 pheno_file,
+                 covariate_file,
+                 n_randvecs,
+                 snp_indices,
+                 n_blocks,
+                 rand_seed)
+  observed <- result$Est
 
   # then
   expect_equal(observed, expected, tolerance = 1e-5)
