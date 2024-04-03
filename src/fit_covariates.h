@@ -7,8 +7,8 @@
 
 #include "fame.h"
 
-MatrixXdr &
-fit_covariates(const MatrixXdr &trait_mask, MatrixXdr &trait, int n_samples,
-               double y_sum, double y_mean, MatrixXdr &covariate, int cov_num);
+MatrixXdr &fit_covariates(const MatrixXdr &trait_mask, MatrixXdr &trait,
+                          int n_samples, double y_sum, double y_mean,
+                          MatrixXdr &covariate, int cov_num);
 
-#endif //FAMER_FIT_COVARIATES_H
+#endif // FAMER_FIT_COVARIATES_H

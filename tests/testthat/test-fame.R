@@ -8,7 +8,7 @@ test_that("fame end-to-end", {
   rand_seed = 123
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
-  expected <- matrix(
+  expected_est <- matrix(
     c(
       0.414218, 0.232245, 0.363624,
       0.425354, -0.0394186, 0.594756,
@@ -22,8 +22,23 @@ test_that("fame end-to-end", {
       0.423682, 0.0074807, 0.5438
     ), ncol = 3, byrow = TRUE
   )
+  expected_se <- matrix(
+    c(
+      0.1207738, 0.16184765, 0.15113731,
+      0.1211554, 0.02243126, 0.08744855,
+      0.1209582, 0.04043788, 0.09893784,
+      0.1214335, 0.04355752, 0.09343718,
+      0.1207895, 0.05948262, 0.10581516,
+      0.1201660, 0.08556147, 0.13006928,
+      0.1214145, 0.04715497, 0.09027384,
+      0.1219379, 0.16492895, 0.17881043,
+      0.1210386, 0.03876772, 0.09262924,
+      0.1209970, 0.05537885, 0.09436732
+    ), ncol = 3, byrow = TRUE
+  )
   # when
-  observed <- NULL
+  observed_est <- NULL
+  observed_se <- NULL
   for (i in snp_indices) {
     result <- fame(plink_file,
                    pheno_file,
@@ -32,11 +47,13 @@ test_that("fame end-to-end", {
                    i,
                    n_blocks,
                    rand_seed)
-    observed <- rbind(observed, result$Est)
+    observed_est <- rbind(observed_est, result$Est)
+    observed_se <- rbind(observed_se, result$SE)
   }
 
   # then
-  expect_equal(observed, expected, tolerance = 1e-5)
+  expect_equal(observed_est, expected_est, tolerance = 1e-5)
+  expect_equal(observed_se, expected_se, tolerance = 1e-5)
 })
 
 test_that("fame end-to-end with covariate file", {

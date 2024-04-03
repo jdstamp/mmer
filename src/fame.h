@@ -23,5 +23,3 @@ typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                     std::string covariate_file, int n_randvecs,
                     int focal_snp_index, int n_blocks, int rand_seed);
-
-

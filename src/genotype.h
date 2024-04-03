@@ -11,7 +11,7 @@ public:
   std::vector<double> columnmeans;
 
   int block_size, n_snps, n_samples, n_segments_hori, segment_size_hori,
-  segment_size_ver;
+      segment_size_ver;
   std::vector<std::vector<int>> p;
 
   std::vector<std::vector<int>> not_O_j;
