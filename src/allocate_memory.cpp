@@ -45,8 +45,6 @@ void deallocate_memory(double *partialsums, double *sum_op, double *yint_e,
   delete[] y_e;
 
   std::vector<std::vector<int>>().swap(genotype_block.p);
-  std::vector<std::vector<int>>().swap(genotype_block.not_O_j);
-  std::vector<std::vector<int>>().swap(genotype_block.not_O_i);
   genotype_block.columnsum.clear();
   genotype_block.columnmeans.clear();
 }

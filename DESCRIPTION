@@ -16,6 +16,7 @@ LinkingTo:
     RcppEigen,
     testthat
 Imports: 
+    dplyr,
     Rcpp,
     RcppEigen
 Suggests: 

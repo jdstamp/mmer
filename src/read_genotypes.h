@@ -21,8 +21,7 @@ int impute_genotype(const float &p_j);
 
 void read_genotype_block(std::istream &ifs, const int &block_size,
                          genotype &genotype_block, const int &n_samples,
-                         const int &n_snps, int &global_snp_index,
-                         const metaData &metadata);
+                         int &global_snp_index, const metaData &metadata);
 
 void extract_plink_genotypes(int *y, const unsigned char &c,
                              const unsigned char &mask);

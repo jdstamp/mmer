@@ -3,6 +3,7 @@ test_that("fame end-to-end", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file = ""
+  mask_file <- ""
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
@@ -42,13 +43,18 @@ test_that("fame end-to-end", {
   result <- fame(plink_file,
                  pheno_file,
                  covariate_file,
+                 mask_file,
                  n_randvecs,
                  snp_indices,
                  n_blocks,
                  rand_seed)
   observed_est <- result$Est
   observed_se <- result$SE
-
+  print(result$Est)
+  print(result$SE)
+  print(result$p)
+  print(result$pve)
+  print(result$summary)
   # then
   expect_equal(observed_est, expected_est, tolerance = 1e-5)
   expect_equal(observed_se, expected_se, tolerance = 1e-5)
@@ -59,6 +65,7 @@ test_that("fame end-to-end with covariate file", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file <- system.file("testdata", "test.cov", package="famer")
+  mask_file <- ""
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
@@ -82,6 +89,7 @@ test_that("fame end-to-end with covariate file", {
   result <- fame(plink_file,
                  pheno_file,
                  covariate_file,
+                 mask_file,
                  n_randvecs,
                  snp_indices,
                  n_blocks,
@@ -98,6 +106,7 @@ test_that("fame end-to-end with covariate file", {
 #   plink_file <- "/Users/jds/Downloads/test100k/test100k"
 #   pheno_file <- "/Users/jds/Downloads/test100k/h2_0.5.large.pheno"
 #   covariate_file <- ""
+#   mask_file <- ""
 #   n_randvecs = 100
 #   n_blocks = 100
 #
@@ -122,6 +131,7 @@ test_that("fame end-to-end with covariate file", {
 #     result <- fame(plink_file,
 #                    pheno_file,
 #                    covariate_file,
+#                    mask_file,
 #                    n_randvecs,
 #                    i,
 #                    n_blocks)
@@ -131,3 +141,36 @@ test_that("fame end-to-end with covariate file", {
 #   # then
 #   expect_equal(observed, expected, tolerance = 1e-5)
 # })
+
+test_that("fame end-to-end with subset file", {
+  # given
+  plink_file <- "/Users/jds/Downloads/test100k/subset_10000"
+  pheno_file <- "/Users/jds/Downloads/test100k/subset_10000.phen"
+  covariate_file <- ""
+  mask_file <- "/Users/jds/Downloads/test100k/hdf5_mask.h5"
+  mask_file <- ""
+  n_randvecs <- 100
+  n_blocks <- 100
+  rand_seed <- 123
+
+  snp_indices <- c(13, 18, 29, 34, 37, 74, 82, 88, 94, 96)
+  snp_indices <- c(74, 94)
+  # snp_indices <- sort(sample(snp_indices, 2, replace = FALSE))
+
+  # # when
+  # result <- fame(plink_file,
+  #                pheno_file,
+  #                covariate_file,
+  #                mask_file,
+  #                n_randvecs,
+  #                snp_indices,
+  #                n_blocks,
+  #                rand_seed)
+  #
+  # # then
+  # print(result$Est)
+  # print(result$SE)
+  # print(result$p)
+  # print(result$pve)
+  # print(result$summary)
+})

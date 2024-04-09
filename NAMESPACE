@@ -3,4 +3,6 @@
 export(fame)
 import(Rcpp)
 import(RcppEigen)
+import(dplyr)
+importFrom(stats,pnorm)
 useDynLib(famer)

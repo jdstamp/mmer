@@ -11,9 +11,7 @@ void set_block_parameters(genotype &genotype_block, const int &n_samples,
       ceil(block_size * 1.0 / (genotype_block.segment_size_hori * 1.0));
   genotype_block.p.resize(genotype_block.n_segments_hori,
                           std::vector<int>(n_samples));
-  genotype_block.not_O_i.resize(block_size);
-  genotype_block.not_O_j.resize(n_samples);
-  genotype_block.block_size = 0;
+  genotype_block.block_size = 0; // will be updated in read_genotype_block
   genotype_block.n_snps = block_size;
   genotype_block.n_samples = n_samples;
 

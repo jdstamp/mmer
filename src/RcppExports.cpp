@@ -11,9 +11,42 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// count_samples
+int count_samples(std::string filename);
+RcppExport SEXP _famer_count_samples(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_samples(filename));
+    return rcpp_result_gen;
+END_RCPP
+}
+// count_fam
+int count_fam(std::string filename);
+RcppExport SEXP _famer_count_fam(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_fam(filename));
+    return rcpp_result_gen;
+END_RCPP
+}
+// count_snps_bim
+int count_snps_bim(std::string filename);
+RcppExport SEXP _famer_count_snps_bim(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(count_snps_bim(filename));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fame_cpp
-Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int n_blocks, int rand_seed, Rcpp::Nullable<Rcpp::NumericVector> variantIndices);
-RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP variantIndicesSEXP) {
+Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, std::string genotype_mask_file);
+RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP genotype_mask_fileSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,8 +56,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_randvecs(n_randvecsSEXP);
     Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
     Rcpp::traits::input_parameter< int >::type rand_seed(rand_seedSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type variantIndices(variantIndicesSEXP);
-    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, variantIndices));
+    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_indices(gxg_indicesSEXP);
+    Rcpp::traits::input_parameter< std::string >::type genotype_mask_file(genotype_mask_fileSEXP);
+    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -32,7 +66,10 @@ END_RCPP
 RcppExport SEXP run_testthat_tests(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 7},
+    {"_famer_count_samples", (DL_FUNC) &_famer_count_samples, 1},
+    {"_famer_count_fam", (DL_FUNC) &_famer_count_fam, 1},
+    {"_famer_count_snps_bim", (DL_FUNC) &_famer_count_snps_bim, 1},
+    {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 8},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };

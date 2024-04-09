@@ -28,6 +28,7 @@
 
 #include "count_data.h"
 
+// [[Rcpp::export]]
 int count_samples(std::string filename) {
   ifstream ifs(filename.c_str(), ios::in);
 
@@ -40,6 +41,7 @@ int count_samples(std::string filename) {
   return (n_samples);
 }
 
+// [[Rcpp::export]]
 int count_fam(std::string filename) {
   std::ifstream ifs(filename.c_str(), ios::in);
 
@@ -51,6 +53,7 @@ int count_fam(std::string filename) {
   return i;
 }
 
+// [[Rcpp::export]]
 int count_snps_bim(std::string filename) {
   std::ifstream bim_file(filename.c_str(), ios::in);
   if (!bim_file.is_open()) {

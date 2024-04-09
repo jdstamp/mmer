@@ -105,8 +105,7 @@ int impute_genotype(const float &p_j) {
 
 void read_genotype_block(std::istream &ifs, const int &block_size,
                          genotype &genotype_block, const int &n_samples,
-                         const int &n_snps, int &global_snp_index,
-                         const metaData &metadata) {
+                         int &global_snp_index, const metaData &metadata) {
   char magic[3];
 
   unsigned char *gtype;
@@ -121,7 +120,9 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
     global_snp_index++;
     ifs.read(reinterpret_cast<char *>(gtype),
              metadata.ncol * sizeof(unsigned char));
-    float p_j = get_observed_allelefreq(gtype, metadata);
+    // TODO: compute p_j in preprocessing for all SNPs and only look up when
+    //  needed?
+    //    float p_j = get_observed_allelefreq(gtype, metadata);
 
     for (int k = 0; k < metadata.ncol; k++) {
       unsigned char c = gtype[k];
@@ -134,7 +135,9 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
         int j = j0 + l;
         int val = encoding_to_allelecount(y[l]);
         // impute missing genotype
-        val = (val == -1) ? impute_genotype(p_j) : val;
+        val = (val == -1)
+                  ? impute_genotype(get_observed_allelefreq(gtype, metadata))
+                  : val;
         int snp_index;
         snp_index = genotype_block.block_size;
         int horiz_seg_no = snp_index / genotype_block.segment_size_hori;

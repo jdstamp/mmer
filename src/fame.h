@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #include "boost/random.hpp"
 #include "genotype.h"
@@ -21,5 +22,6 @@ typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
     MatrixXdr;
 
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
-                    std::string covariate_file, int n_randvecs,
-                    int focal_snp_index, int n_blocks, int rand_seed);
+                    std::string covariate_file, int n_randvecs, int n_blocks,
+                    int rand_seed, std::vector<int> gxg_indices,
+                    std::string genotype_mask_file);
