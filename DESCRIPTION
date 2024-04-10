@@ -17,6 +17,7 @@ LinkingTo:
     testthat
 Imports: 
     dplyr,
+    logging,
     Rcpp,
     RcppEigen
 Suggests: 
