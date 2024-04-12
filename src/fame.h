@@ -1,5 +1,6 @@
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>

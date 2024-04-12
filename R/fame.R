@@ -16,6 +16,7 @@
 #' @import RcppEigen
 #' @import dplyr
 #' @importFrom stats pnorm
+#' @importFrom tidyr pivot_longer
 #' @export
 fame <- function(plink_file, pheno_file, covariate_file, mask_file = NULL,
 n_randvecs = 10, gxg_indices = NULL, n_blocks = 100, rand_seed = -1) {
@@ -42,15 +43,19 @@ n_randvecs = 10, gxg_indices = NULL, n_blocks = 100, rand_seed = -1) {
 
   result <- fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs,
   n_blocks, rand_seed, gxg_indices - 1, mask_file) # R is 1-indexed, C++ is 0-indexed
-  z_score <- result$Est / result$SE
-  p_values <- (1 - pnorm(z_score))
-  pve <- result$Est / apply(result$Est, 1, sum)
+  z_score <- abs(result$vc_estimate / result$vc_se)
+  p_values <- 2 * (1 - pnorm(z_score))
+  pve <- result$vc_estimate / apply(result$vc_estimate, 1, sum)
   id <- sprintf("gxg_%d", gxg_indices)
+  vc_names <- c("id", "grm", "gxg", "error")
   summary <- data.frame(id = id, p = p_values[,2], pve = pve[,2])
-  pve <- cbind(id, pve)
-  colnames(pve) <- c("id", "grm", "gxg", "error")
-  result$p <- p_values
-  result$pve <- as_tibble(pve)
+  pve <- cbind(id, as.data.frame(pve))
+  p_values <- cbind(id, as.data.frame(p_values))
+  colnames(pve) <- vc_names
+  colnames(p_values) <- vc_names
+  result$p <- as_tibble(p_values)
+  result$pve <- as_tibble(pve) %>% pivot_longer(cols = c("grm", "gxg",
+  "error"), names_to = "component", values_to = "pve")
   result$summary <- as_tibble(summary)
   return(result)
 }

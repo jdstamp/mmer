@@ -17,3 +17,15 @@ fame_cpp <- function(plink_file, pheno_file, covariate_file, n_randvecs, n_block
     .Call('_famer_fame_cpp', PACKAGE = 'famer', plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file)
 }
 
+readH5File <- function(filename, datasetName) {
+    .Call('_famer_readH5File', PACKAGE = 'famer', filename, datasetName)
+}
+
+replaceH5Dataset <- function(filename, datasetName, newData) {
+    invisible(.Call('_famer_replaceH5Dataset', PACKAGE = 'famer', filename, datasetName, newData))
+}
+
+simulate_traits_cpp <- function(plink_file, heritability, rho, n_additive_snps, gxg_group_1, gxg_group_2) {
+    .Call('_famer_simulate_traits_cpp', PACKAGE = 'famer', plink_file, heritability, rho, n_additive_snps, gxg_group_1, gxg_group_2)
+}
+

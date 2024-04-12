@@ -12,14 +12,17 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 LinkingTo:
+    BH,
     Rcpp,
     RcppEigen,
     testthat
 Imports: 
     dplyr,
+    genio,
     logging,
     Rcpp,
-    RcppEigen
+    RcppEigen,
+    tidyr
 Suggests: 
     testthat (>= 3.0.0),
     xml2

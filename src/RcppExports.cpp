@@ -62,6 +62,46 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// readH5File
+std::vector<int> readH5File(const std::string& filename, const std::string& datasetName);
+RcppExport SEXP _famer_readH5File(SEXP filenameSEXP, SEXP datasetNameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type datasetName(datasetNameSEXP);
+    rcpp_result_gen = Rcpp::wrap(readH5File(filename, datasetName));
+    return rcpp_result_gen;
+END_RCPP
+}
+// replaceH5Dataset
+void replaceH5Dataset(const std::string& filename, const std::string& datasetName, const std::vector<int>& newData);
+RcppExport SEXP _famer_replaceH5Dataset(SEXP filenameSEXP, SEXP datasetNameSEXP, SEXP newDataSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type datasetName(datasetNameSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type newData(newDataSEXP);
+    replaceH5Dataset(filename, datasetName, newData);
+    return R_NilValue;
+END_RCPP
+}
+// simulate_traits_cpp
+Rcpp::List simulate_traits_cpp(std::string plink_file, float heritability, float rho, int n_additive_snps, std::vector<int> gxg_group_1, std::vector<int> gxg_group_2);
+RcppExport SEXP _famer_simulate_traits_cpp(SEXP plink_fileSEXP, SEXP heritabilitySEXP, SEXP rhoSEXP, SEXP n_additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type plink_file(plink_fileSEXP);
+    Rcpp::traits::input_parameter< float >::type heritability(heritabilitySEXP);
+    Rcpp::traits::input_parameter< float >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< int >::type n_additive_snps(n_additive_snpsSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_group_1(gxg_group_1SEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_group_2(gxg_group_2SEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_traits_cpp(plink_file, heritability, rho, n_additive_snps, gxg_group_1, gxg_group_2));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP run_testthat_tests(SEXP);
 
@@ -70,6 +110,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_famer_count_fam", (DL_FUNC) &_famer_count_fam, 1},
     {"_famer_count_snps_bim", (DL_FUNC) &_famer_count_snps_bim, 1},
     {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 8},
+    {"_famer_readH5File", (DL_FUNC) &_famer_readH5File, 2},
+    {"_famer_replaceH5Dataset", (DL_FUNC) &_famer_replaceH5Dataset, 3},
+    {"_famer_simulate_traits_cpp", (DL_FUNC) &_famer_simulate_traits_cpp, 6},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };

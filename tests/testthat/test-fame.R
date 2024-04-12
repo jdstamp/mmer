@@ -48,10 +48,10 @@ test_that("fame end-to-end", {
                  snp_indices,
                  n_blocks,
                  rand_seed)
-  observed_est <- result$Est
-  observed_se <- result$SE
-  print(result$Est)
-  print(result$SE)
+  observed_est <- result$vc_estimate
+  observed_se <- result$vc_se
+  print(result$vc_estimate)
+  print(result$vc_se)
   print(result$p)
   print(result$pve)
   print(result$summary)
@@ -94,7 +94,7 @@ test_that("fame end-to-end with covariate file", {
                  snp_indices,
                  n_blocks,
                  rand_seed)
-  observed <- result$Est
+  observed <- result$vc_estimate
 
   # then
   expect_equal(observed, expected, tolerance = 1e-5)
@@ -135,7 +135,7 @@ test_that("fame end-to-end with covariate file", {
 #                    n_randvecs,
 #                    i,
 #                    n_blocks)
-#     observed <- rbind(observed, result$Est)
+#     observed <- rbind(observed, result$vc_estimate)
 #   }
 #
 #   # then
@@ -168,8 +168,8 @@ test_that("fame end-to-end with subset file", {
   #                rand_seed)
   #
   # # then
-  # print(result$Est)
-  # print(result$SE)
+  # print(result$vc_estimate)
+  # print(result$vc_se)
   # print(result$p)
   # print(result$pve)
   # print(result$summary)

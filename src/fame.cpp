@@ -49,7 +49,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   auto start_grm = std::chrono::high_resolution_clock::now();
   int n_variance_components = 2; // For now limited to GRM and GXG
   // initialize object to collect point_est and cov_sigma
-  MatrixXdr PVE;
+  MatrixXdr VC;
   MatrixXdr SE;
 
   std::stringstream bim_stream;
@@ -84,7 +84,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         "Number of samples in fam file and pheno file do not match.");
   }
 
-  PVE.resize(gxg_indices.size(), n_variance_components + 1);
+  VC.resize(gxg_indices.size(), n_variance_components + 1);
   SE.resize(gxg_indices.size(), n_variance_components + 1);
 
   // read data into matrices pheno and pheno_mask
@@ -195,7 +195,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       n_gxg_snps = genotype_mask_indices.size();
     } else {
       genotype_mask = MatrixXdr::Ones(n_snps, 1);
-      n_gxg_snps = n_snps;
+      n_gxg_snps = n_snps - 1;
     }
 
     // end experimental masking
@@ -213,6 +213,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     global_snp_index = -1;
     read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps,
                    global_snp_index);
+    normalize_genotype(focal_snp_gtype, n_samples);
 
     int focal_snp_block = std::min(gxg_i / step_size, n_blocks - 1);
 
@@ -382,12 +383,15 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     MatrixXdr cov_sigma = invS * cov_q * invS;
 
-    PVE.row(process_count) = point_est.col(0).transpose();
+      VC.row(process_count) = point_est.col(0).transpose();
     SE.row(process_count) = cov_sigma.diagonal().array().sqrt().transpose();
   }
+
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_gxg = end - start_gxg;
   std::cout << "Execution time of gxg: " << elapsed_gxg.count() << " seconds."
             << std::endl;
-  return Rcpp::List::create(Rcpp::Named("Est") = PVE, Rcpp::Named("SE") = SE);
+
+  return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
+                            Rcpp::Named("vc_se") = SE);
 }

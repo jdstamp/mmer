@@ -28,4 +28,6 @@ void extract_plink_genotypes(int *y, const unsigned char &c,
 
 int encoding_to_allelecount(const int &value);
 
+void normalize_genotype(MatrixXdr &focal_genotype, const int &n_samples);
+
 int get_sample_block_size(const int &n_samples, const int &k, const int &ncol);

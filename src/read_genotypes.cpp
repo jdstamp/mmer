@@ -40,11 +40,14 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
     }
   }
 
-  double mean_sel_snp = focal_genotype.array().sum() / n_samples;
-  double sd_sel_snp = sqrt((mean_sel_snp * (1 - (0.5 * mean_sel_snp))));
-  focal_genotype.array() = focal_genotype.array() - mean_sel_snp;
-  focal_genotype.array() = focal_genotype.array() / sd_sel_snp;
-  delete[] gtype;
+    delete[] gtype;
+}
+
+void normalize_genotype(MatrixXdr &focal_genotype, const int &n_samples) {
+    double mean_sel_snp = focal_genotype.array().sum() / n_samples;
+    double sd_sel_snp = sqrt((mean_sel_snp * (1 - (0.5 * mean_sel_snp))));
+    focal_genotype.array() = focal_genotype.array() - mean_sel_snp;
+    focal_genotype.array() = focal_genotype.array() / sd_sel_snp;
 }
 
 int get_sample_block_size(const int &n_samples, const int &k, const int &ncol) {
