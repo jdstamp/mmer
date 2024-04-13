@@ -138,7 +138,7 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
                           bool subtract_means, int p, genotype g,
                           double *&yint_e, double **&y_e, int n) {
   bool var_normalize = false;
-  double *partialsums;
+  double *partialsums = new double[0];
 
   MatrixXdr op;
   op = op_orig.transpose();

@@ -96,7 +96,8 @@ void extract_plink_genotypes(int *y, const unsigned char &c,
 }
 
 int impute_genotype(const float &p_j) {
-  float rval = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+  Rcpp::NumericVector rand_unif = Rcpp::runif(1, 0.0, 1.0);
+  float rval = rand_unif[0];
   float dist_pj[3] = {(1 - p_j) * (1 - p_j), 2 * p_j * (1 - p_j), p_j * p_j};
   if (rval < dist_pj[0])
     return 0;

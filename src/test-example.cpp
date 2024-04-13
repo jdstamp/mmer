@@ -72,9 +72,7 @@ context("C++ test plink parsing") {
     int expected = oldMapping(yl, p_j, allow_missing);
     // when
     int val = mapValues(yl);
-    std::cout << "@@@@ " << val << std::endl;
     int observed = (val == -1) ? impute_genotype(p_j) : val;
-    std::cout << "observed " << observed << std::endl;
     // then
     expect_true(expected == observed);
   }
@@ -126,9 +124,7 @@ context("C++ get_observed_allelefreq") {
     int expected = oldMapping(yl, p_j, allow_missing);
     // when
     int val = mapValues(yl);
-    std::cout << "@@@@ " << val << std::endl;
     int observed = (val == -1) ? impute_genotype(p_j) : val;
-    std::cout << "observed " << observed << std::endl;
     // then
     expect_true(expected == observed);
   }

@@ -34,7 +34,10 @@ n_randvecs = 10, gxg_indices = NULL, n_blocks = 100, rand_seed = -1) {
     stop("Number of samples in fam file and pheno file do not match.")
   }
 
-  mem_req <- n_samples * ceiling(n_snps / n_blocks) * 8 / 1024 / 1024 / 1024
+  mem_req <- approximate_memory_requirements(n_samples,
+                                             n_snps,
+                                             n_blocks,
+                                             n_randvecs)
   log$debug("Estimated memory requirement: %.2f GB per block.", mem_req)
 
   if(is.null(gxg_indices)) {

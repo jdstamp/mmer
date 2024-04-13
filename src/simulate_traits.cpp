@@ -19,18 +19,17 @@ std::vector<int> draw_random_ints(std::vector<int> numbers, int x) {
 
 MatrixXdr draw_normal_effects(int n) {
     // Initialize a random number generator
-    std::random_device rd;
-    std::mt19937 gen(rd());
-
-    // Initialize a standard normal distribution
-    std::normal_distribution<> d(0, 1);
+    boost::mt19937 seedr;
+    seedr.seed(std::time(0));
+    boost::normal_distribution<> dist(0,1);
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > effect_size(seedr, dist);
 
     // Create a matrix to store the samples
     MatrixXdr samples(n, 1);
 
     // Draw the samples
     for (int i = 0; i < n; ++i) {
-        samples(i, 0) = d(gen);
+        samples(i, 0) = effect_size();
     }
 
     return samples;

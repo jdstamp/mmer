@@ -39,7 +39,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   // Mailman algo variables.
   // TODO: Give meaningful names or move into mailman algo file
-  double *partialsums;
+  double *partialsums = new double[0];
   double *sum_op;
   double *yint_e;
   double *yint_m;
@@ -91,8 +91,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   read_phenotypes(n_samples, pheno_file, pheno, pheno_mask);
 
   // Covariate handling - needs cleanup
-  double y_sum;
-  double y_mean;
+  double y_sum = 0;
+  double y_mean = 0;
   if (covariate_file != "") {
     bool snp_fix_ef = false;
     MatrixXdr covariate;
@@ -171,7 +171,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   int process_count = -1;
   for (int gxg_i : gxg_indices) {
     process_count++;
-    std::cout << "gxg_i: " << gxg_i << std::endl;
+//    std::cout << "gxg_i: " << gxg_i << std::endl;
     MatrixXdr focal_snp_gtype;
     // insert declaration GRM
     MatrixXdr temp_grm;
@@ -389,8 +389,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_gxg = end - start_gxg;
-  std::cout << "Execution time of gxg: " << elapsed_gxg.count() << " seconds."
-            << std::endl;
+//  std::cout << "Execution time of gxg: " << elapsed_gxg.count() << " seconds."
+//            << std::endl;
 
   return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
                             Rcpp::Named("vc_se") = SE);
