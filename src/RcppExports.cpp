@@ -62,6 +62,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fame_traits_cpp
+Rcpp::List fame_traits_cpp(std::string plink_file, float additive_variance_component, float gxg_variance_component, int focal_snp, std::vector<int> gxg_indices, std::vector<int> additive_indices);
+RcppExport SEXP _famer_fame_traits_cpp(SEXP plink_fileSEXP, SEXP additive_variance_componentSEXP, SEXP gxg_variance_componentSEXP, SEXP focal_snpSEXP, SEXP gxg_indicesSEXP, SEXP additive_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type plink_file(plink_fileSEXP);
+    Rcpp::traits::input_parameter< float >::type additive_variance_component(additive_variance_componentSEXP);
+    Rcpp::traits::input_parameter< float >::type gxg_variance_component(gxg_variance_componentSEXP);
+    Rcpp::traits::input_parameter< int >::type focal_snp(focal_snpSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_indices(gxg_indicesSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type additive_indices(additive_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(fame_traits_cpp(plink_file, additive_variance_component, gxg_variance_component, focal_snp, gxg_indices, additive_indices));
+    return rcpp_result_gen;
+END_RCPP
+}
 // readH5File
 std::vector<int> readH5File(const std::string& filename, const std::string& datasetName);
 RcppExport SEXP _famer_readH5File(SEXP filenameSEXP, SEXP datasetNameSEXP) {
@@ -110,6 +126,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_famer_count_fam", (DL_FUNC) &_famer_count_fam, 1},
     {"_famer_count_snps_bim", (DL_FUNC) &_famer_count_snps_bim, 1},
     {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 8},
+    {"_famer_fame_traits_cpp", (DL_FUNC) &_famer_fame_traits_cpp, 6},
     {"_famer_readH5File", (DL_FUNC) &_famer_readH5File, 2},
     {"_famer_replaceH5Dataset", (DL_FUNC) &_famer_replaceH5Dataset, 3},
     {"_famer_simulate_traits_cpp", (DL_FUNC) &_famer_simulate_traits_cpp, 6},

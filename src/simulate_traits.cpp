@@ -117,8 +117,11 @@ simulate_traits_cpp(std::string plink_file, float heritability, float rho,
             int global_snp_index = -1;
             read_focal_snp(bed_file, snp_genotype1, snp_index1, n_samples, n_snps,
                            global_snp_index);
+            normalize_genotype(snp_genotype1, n_samples);
+            global_snp_index = -1;
             read_focal_snp(bed_file, snp_genotype2, snp_index2, n_samples, n_snps,
                            global_snp_index);
+            normalize_genotype(snp_genotype2, n_samples);
             epistatic_component = epistatic_component.array()
                     + snp_genotype1.array() * snp_genotype2.array() * epistatic_effects(i*n_group_2 + j, 0);
         }
