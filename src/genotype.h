@@ -10,8 +10,7 @@ public:
   std::vector<int> columnsum;
   std::vector<double> columnmeans;
 
-  int block_size, n_snps, n_samples, n_segments_hori, segment_size_hori,
-      segment_size_ver;
+  int block_size, n_snps, n_samples, n_segments_hori, segment_size_hori;
   std::vector<std::vector<int>> p;
 
   double get_col_mean(int snpindex) const;

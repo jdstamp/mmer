@@ -48,7 +48,6 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
   for (int j = 0; j < num_snp; j++)
     for (int k = 0; k < Nz; k++) {
       res(j, k) = res(j, k) * stds(j, 0);
-      res(j, k) = res(j, k) * genotype_mask(j, 0);
     }
 
   ////GxG
@@ -61,9 +60,13 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
   resid = inter * zb_sum;
   MatrixXdr inter_zb = res - resid;
 
-  for (int k = 0; k < Nz; k++)
-    for (int j = 0; j < num_snp; j++)
+  // masking
+  for (int j = 0; j < num_snp; j++)
+    for (int k = 0; k < Nz; k++) {
       inter_zb(j, k) = inter_zb(j, k) * stds(j, 0);
+      inter_zb(j, k) = inter_zb(j, k) * genotype_mask(j, 0);
+    }
+
   MatrixXdr new_zb = inter_zb.transpose();
   MatrixXdr new_res(Nz, Nindv);
 
@@ -73,6 +76,12 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
   MatrixXdr new_resid(Nz, num_snp);
   MatrixXdr zb_scale_sum = new_zb * means;
   new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
+
+  // masking
+  for (int j = 0; j < num_snp; j++)
+    for (int k = 0; k < Nz; k++) {
+      new_resid(k, j) = new_resid(k, j) * genotype_mask(j, 0);
+    }
 
   /// new zb
   MatrixXdr temp = new_res - new_resid;
@@ -207,6 +216,7 @@ compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
   for (int j = 0; j < num_snp; j++) {
     res(j, 0) = res(j, 0) * stds(j, 0);
     res(j, 0) = res(j, 0) * genotype_mask(j, 0);
+    // TODO: check whether this needs to go to line 226
   }
 
   // GxG
@@ -237,11 +247,12 @@ compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
 
   return temp.transpose();
 }
-
+// TODO: masking is missing here!!!
 double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
                     const MatrixXdr &means, const MatrixXdr &stds,
                     const int &sel_snp_local_index, double *&sum_op,
-                    const genotype &genotype_block, double *&yint_m,
+                    const genotype &genotype_block,
+                    const MatrixXdr &genotype_mask, double *&yint_m,
                     double **&y_m, const int &p, double *&partialsums,
                     const bool &exclude_sel_snp) {
   MatrixXdr res;          // Boyang: add declarative res
@@ -254,11 +265,15 @@ double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
   //  bool exclude_sel_snp = false;
   if (exclude_sel_snp == true)
     res(sel_snp_local_index, 0) = 0;
+  for (int j = 0; j < num_snp; j++)
+    res(j, 0) = res(j, 0) * genotype_mask(j, 0);
 
   res = res.cwiseProduct(stds);
   MatrixXdr resid(num_snp, 1);
   resid = means.cwiseProduct(stds);
   resid = resid * y_vec.sum();
+  for (int j = 0; j < num_snp; j++)
+    resid(j, 0) = resid(j, 0) * genotype_mask(j, 0);
   MatrixXdr Xy(num_snp, 1);
   Xy = res - resid;
 

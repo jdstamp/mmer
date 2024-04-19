@@ -21,6 +21,10 @@
 
 #include "set_block_parameters.h"
 
+void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,
+                        int gxg_i, const string &gxg_h5_dataset,
+                        MatrixXdr &genotype_mask, int &n_gxg_snps);
+
 MatrixXdr indices_to_binary(const std::vector<int> &indices, int length) {
   MatrixXdr binaryVec = MatrixXdr::Zero(length, 1);
   for (int index : indices) {
@@ -82,7 +86,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   if (n_fam_lines != n_samples) {
     throw std::runtime_error(
         "Number of samples in fam file and pheno file do not match.");
-  }
+  } // TODO: this is already done in the R part. do we need it here?
 
   VC.resize(gxg_indices.size(), n_variance_components + 1);
   SE.resize(gxg_indices.size(), n_variance_components + 1);
@@ -117,7 +121,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   }
 
   // inserted below
-  //    MatrixXdr temp_grm;
+  //    MatrixXdr XXz_observed;
   //    MatrixXdr random_vectors;
   //
   //    XXz = MatrixXdr::Zero(n_samples, n_randvecs);
@@ -147,14 +151,14 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   //      yint_e,
   //                      yint_m, y_e, y_m);
   //
-  //      temp_grm = compute_XXz(block_size, random_vectors, allelecount_means,
+  //      XXz_observed = compute_XXz(block_size, random_vectors, allelecount_means,
   //                             allelecount_stds, pheno_mask, n_randvecs,
   //                             n_samples, 0, sum_op, genotype_block, yint_m,
   //                             y_m, block_size, yint_e, y_e, partialsums,
   //                             false);
   //
   //      for (int z_index = 0; z_index < n_randvecs; z_index++) {
-  //        XXz.col(z_index) += temp_grm.col(z_index);
+  //        XXz.col(z_index) += XXz_observed.col(z_index);
   //      }
   //      deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
   //                        genotype_block);
@@ -171,7 +175,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   int process_count = -1;
   for (int gxg_i : gxg_indices) {
     process_count++;
-//    std::cout << "gxg_i: " << gxg_i << std::endl;
+    //    std::cout << "gxg_i: " << gxg_i << std::endl;
     MatrixXdr focal_snp_gtype;
     // insert declaration GRM
     MatrixXdr temp_grm;
@@ -183,20 +187,12 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     // end insert
 
     // experimental masking
-    int mask_size;
-    std::vector<int> genotype_mask_indices;
+    string gxg_h5_dataset = "gxg";
     MatrixXdr genotype_mask;
     int n_gxg_snps;
-    if (genotype_mask_file != "") {
-      H5Easy::File file(genotype_mask_file, H5Easy::File::ReadOnly);
-      genotype_mask_indices =
-          H5Easy::load<std::vector<int>>(file, "gxg/" + std::to_string(gxg_i));
-      genotype_mask = indices_to_binary(genotype_mask_indices, n_snps);
-      n_gxg_snps = genotype_mask_indices.size();
-    } else {
-      genotype_mask = MatrixXdr::Ones(n_snps, 1);
-      n_gxg_snps = n_snps - 1;
-    }
+    // read mask file into genotype_mask and n_gxg_snps
+    read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
+                       genotype_mask, n_gxg_snps);
 
     // end experimental masking
     vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
@@ -291,15 +287,15 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         temp_Gy = temp_Gy.array() * focal_snp_gtype.col(0).array();
         collect_XXy.col(1) += temp_Gy;
 
-        yXXy(0, 0) +=
-            compute_yXXy(block_size, pheno, allelecount_means, allelecount_stds,
-                         focal_snp_local_index, sum_op, genotype_block, yint_m,
-                         y_m, block_size, partialsums, false);
-
-        yXXy(1, 0) += compute_yXXy(block_size, gxg_pheno, allelecount_means,
+        yXXy(0, 0) += compute_yXXy(block_size, pheno, allelecount_means,
                                    allelecount_stds, focal_snp_local_index,
-                                   sum_op, genotype_block, yint_m, y_m,
-                                   block_size, partialsums, in_gxg_block);
+                                   sum_op, genotype_block, grm_mask,
+                                   yint_m, y_m, block_size, partialsums, false);
+
+        yXXy(1, 0) += compute_yXXy(
+            block_size, gxg_pheno, allelecount_means, allelecount_stds,
+            focal_snp_local_index, sum_op, genotype_block, gxg_mask,
+            yint_m, y_m, block_size, partialsums, in_gxg_block);
         deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
                           genotype_block);
       }
@@ -383,15 +379,32 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     MatrixXdr cov_sigma = invS * cov_q * invS;
 
-      VC.row(process_count) = point_est.col(0).transpose();
+    VC.row(process_count) = point_est.col(0).transpose();
     SE.row(process_count) = cov_sigma.diagonal().array().sqrt().transpose();
   }
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_gxg = end - start_gxg;
-//  std::cout << "Execution time of gxg: " << elapsed_gxg.count() << " seconds."
-//            << std::endl;
+  //  std::cout << "Execution time of gxg: " << elapsed_gxg.count() << "
+  //  seconds."
+  //            << std::endl;
 
   return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
                             Rcpp::Named("vc_se") = SE);
+}
+
+void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,
+                        int gxg_i, const string &gxg_h5_dataset,
+                        MatrixXdr &genotype_mask, int &n_gxg_snps) {
+  std::vector<int> genotype_mask_indices;
+  if (genotype_mask_file != "") {
+    H5Easy::File file(genotype_mask_file, H5Easy::File::ReadOnly);
+    genotype_mask_indices = H5Easy::load<std::vector<int>>(
+        file, gxg_h5_dataset + "/" + std::to_string(gxg_i));
+    genotype_mask = indices_to_binary(genotype_mask_indices, n_snps);
+    n_gxg_snps = genotype_mask_indices.size();
+  } else {
+    genotype_mask = MatrixXdr::Ones(n_snps, 1);
+    n_gxg_snps = n_snps - 1;
+  }
 }

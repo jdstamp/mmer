@@ -6,8 +6,7 @@
 
 MatrixXdr &initialize_random_vectors(int n_randvecs, int rand_seed,
                                      const MatrixXdr &pheno_mask,
-                                     MatrixXdr &random_vectors,
-                                     int n_samples) {
+                                     MatrixXdr &random_vectors, int n_samples) {
   random_vectors = MatrixXdr::Zero(n_samples, n_randvecs);
 
   boost::mt19937 seedr;

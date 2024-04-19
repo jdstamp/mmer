@@ -7,6 +7,8 @@ void set_block_parameters(genotype &genotype_block, const int &n_samples,
                           const int &block_size) {
   genotype_block.segment_size_hori =
       floor(log(n_samples) / log(3)) - 2; // object of the mailman
+  // TODO: the above line introduces a minimum size limit. Investigate the
+  //  limitations
   genotype_block.n_segments_hori =
       ceil(block_size * 1.0 / (genotype_block.segment_size_hori * 1.0));
   genotype_block.p.resize(genotype_block.n_segments_hori,

@@ -31,6 +31,7 @@ compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
 double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
                     const MatrixXdr &means, const MatrixXdr &stds,
                     const int &sel_snp_local_index, double *&sum_op,
-                    const genotype &genotype_block, double *&yint_m,
+                    const genotype &genotype_block,
+                    const MatrixXdr &genotype_mask, double *&yint_m,
                     double **&y_m, const int &p, double *&partialsums,
                     const bool &exclude_sel_snp);

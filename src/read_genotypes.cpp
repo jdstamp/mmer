@@ -40,14 +40,14 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
     }
   }
 
-    delete[] gtype;
+  delete[] gtype;
 }
 
 void normalize_genotype(MatrixXdr &focal_genotype, const int &n_samples) {
-    double mean_sel_snp = focal_genotype.array().sum() / n_samples;
-    double sd_sel_snp = sqrt((mean_sel_snp * (1 - (0.5 * mean_sel_snp))));
-    focal_genotype.array() = focal_genotype.array() - mean_sel_snp;
-    focal_genotype.array() = focal_genotype.array() / sd_sel_snp;
+  double mean_sel_snp = focal_genotype.array().sum() / n_samples;
+  double sd_sel_snp = sqrt((mean_sel_snp * (1 - (0.5 * mean_sel_snp))));
+  focal_genotype.array() = focal_genotype.array() - mean_sel_snp;
+  focal_genotype.array() = focal_genotype.array() / sd_sel_snp;
 }
 
 int get_sample_block_size(const int &n_samples, const int &k, const int &ncol) {
@@ -142,19 +142,22 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
         val = (val == -1)
                   ? impute_genotype(get_observed_allelefreq(gtype, metadata))
                   : val;
-        int snp_index;
-        snp_index = genotype_block.block_size;
-        int horiz_seg_no = snp_index / genotype_block.segment_size_hori;
-        genotype_block.p[horiz_seg_no][j] =
-            3 * genotype_block.p[horiz_seg_no][j] + val;
-        // computing sum for every snp to compute mean
-        genotype_block.columnsum[snp_index] += val;
+        encode_genotypes(genotype_block, j, val);
       }
     }
 
     genotype_block.block_size++;
   }
   delete[] gtype;
+}
+void encode_genotypes(genotype &genotype_block, int j, int val) {
+  int snp_index;
+  snp_index = genotype_block.block_size;
+  int horiz_seg_no = snp_index / genotype_block.segment_size_hori;
+  genotype_block.p[horiz_seg_no][j] =
+      3 * genotype_block.p[horiz_seg_no][j] + val;
+  // computing sum for every snp to compute mean
+  genotype_block.columnsum[snp_index] += val;
 }
 
 int encoding_to_allelecount(const int &value) {

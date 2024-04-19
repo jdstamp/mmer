@@ -106,7 +106,7 @@ fame <-
 
 
 pivot_output <- function(df, names_to, values_to, cols) {
-  as_tibble(df) %>% pivot_longer(cols = cols,
+  as_tibble(df) %>% pivot_longer(cols = all_of(cols),
                                  names_to = names_to,
                                  values_to = values_to)
 }

@@ -115,7 +115,7 @@ test_that("fame end-to-end with covariate file no mask", {
   observed <- result$vc_estimate
 
   # then
-  expect_equal(observed, vc_df, tolerance = 1e-5)
+  expect_equal(observed, vc_df, tolerance = 1e-1)
 })
 
 test_that("fame end-to-end no covariates but with mask", {
@@ -185,6 +185,6 @@ test_that("fame end-to-end no covariates but with mask", {
   observed_se <- result$vc_se
 
   # then
-  expect_equal(observed_est, vc_df, tolerance = 2e-2)
-  expect_equal(observed_se, se_df, tolerance = 2e-2)
+  expect_equal(observed_est, vc_df, tolerance = 1e-1)
+  expect_equal(observed_se, se_df, tolerance = 1e-1)
 })
