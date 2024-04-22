@@ -33,10 +33,10 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
                       const MatrixXdr &means, const MatrixXdr &stds,
                       const MatrixXdr &phenotype_mask,
                       const MatrixXdr &genotype_mask, const int &Nz,
-                      const int &Nindv, const int &sel_snp_local_index,
-                      double *&sum_op, const genotype &genotype_block,
-                      double *&yint_m, double **&y_m, int p, double *&yint_e,
-                      double **&y_e, double *&partialsums,
+                      const int &Nindv, double *&sum_op,
+                      const genotype &genotype_block, double *&yint_m,
+                      double **&y_m, int p, double *&yint_e, double **&y_e,
+                      double *&partialsums, const int &sel_snp_local_index,
                       bool exclude_sel_snp) {
   MatrixXdr res;
   res.resize(num_snp, Nz);
@@ -73,15 +73,10 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
   multiply_y_post_fast(new_zb, Nz, new_res, false, p, genotype_block, yint_e,
                        y_e, Nindv);
 
-  MatrixXdr new_resid(Nz, num_snp);
+  MatrixXdr new_resid(1, Nindv);
   MatrixXdr zb_scale_sum = new_zb * means;
-  new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
 
-  // masking
-  for (int j = 0; j < num_snp; j++)
-    for (int k = 0; k < Nz; k++) {
-      new_resid(k, j) = new_resid(k, j) * genotype_mask(j, 0);
-    }
+  new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
 
   /// new zb
   MatrixXdr temp = new_res - new_resid;
@@ -199,13 +194,14 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
   }
 }
 
+// TODO: this is the special case of XXz and should get removed
 MatrixXdr
 compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
             const MatrixXdr &stds, const MatrixXdr &phenotype_mask,
-            const MatrixXdr &genotype_mask, const int &sel_snp_local_index,
-            const int &Nindv, double *&sum_op, const genotype &genotype_block,
-            double *&yint_m, double **&y_m, const int &p, double *&yint_e,
-            double **&y_e, double *&partialsums, const bool &exclude_sel_snp) {
+            const MatrixXdr &genotype_mask, const int &Nindv, double *&sum_op,
+            const genotype &genotype_block, double *&yint_m, double **&y_m,
+            const int &p, double *&yint_e, double **&y_e, double *&partialsums,
+            const int &sel_snp_local_index, const bool &exclude_sel_snp) {
   MatrixXdr res;
   res.resize(num_snp, 1);
   multiply_y_pre_fast(y_vec, 1, res, false, sum_op, genotype_block, yint_m, y_m,
@@ -236,7 +232,7 @@ compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
   MatrixXdr new_res(1, Nindv);
   multiply_y_post_fast(new_zb, 1, new_res, false, p, genotype_block, yint_e,
                        y_e, Nindv);
-  MatrixXdr new_resid(1, num_snp);
+  MatrixXdr new_resid(Nindv, 1);
   MatrixXdr zb_scale_sum = new_zb * means;
   new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
 
@@ -247,7 +243,7 @@ compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
 
   return temp.transpose();
 }
-// TODO: masking is missing here!!!
+
 double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
                     const MatrixXdr &means, const MatrixXdr &stds,
                     const int &sel_snp_local_index, double *&sum_op,
