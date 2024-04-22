@@ -194,56 +194,6 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
   }
 }
 
-// TODO: this is the special case of XXz and should get removed
-MatrixXdr
-compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
-            const MatrixXdr &stds, const MatrixXdr &phenotype_mask,
-            const MatrixXdr &genotype_mask, const int &Nindv, double *&sum_op,
-            const genotype &genotype_block, double *&yint_m, double **&y_m,
-            const int &p, double *&yint_e, double **&y_e, double *&partialsums,
-            const int &sel_snp_local_index, const bool &exclude_sel_snp) {
-  MatrixXdr res;
-  res.resize(num_snp, 1);
-  multiply_y_pre_fast(y_vec, 1, res, false, sum_op, genotype_block, yint_m, y_m,
-                      p, partialsums);
-
-  MatrixXdr zb_sum = y_vec.colwise().sum();
-
-  for (int j = 0; j < num_snp; j++) {
-    res(j, 0) = res(j, 0) * stds(j, 0);
-    res(j, 0) = res(j, 0) * genotype_mask(j, 0);
-    // TODO: check whether this needs to go to line 226
-  }
-
-  // GxG
-  if (exclude_sel_snp == true) {
-    res(sel_snp_local_index, 0) = 0;
-  }
-
-  MatrixXdr resid(num_snp, 1);
-  MatrixXdr inter = means.cwiseProduct(stds);
-  resid = inter * zb_sum;
-  MatrixXdr inter_zb = res - resid;
-
-  for (int j = 0; j < num_snp; j++)
-    inter_zb(j, 0) = inter_zb(j, 0) * stds(j, 0);
-
-  MatrixXdr new_zb = inter_zb.transpose();
-  MatrixXdr new_res(1, Nindv);
-  multiply_y_post_fast(new_zb, 1, new_res, false, p, genotype_block, yint_e,
-                       y_e, Nindv);
-  MatrixXdr new_resid(Nindv, 1);
-  MatrixXdr zb_scale_sum = new_zb * means;
-  new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
-
-  MatrixXdr temp = new_res - new_resid;
-
-  for (int j = 0; j < Nindv; j++)
-    temp(0, j) = temp(0, j) * phenotype_mask(j, 0);
-
-  return temp.transpose();
-}
-
 double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
                     const MatrixXdr &means, const MatrixXdr &stds,
                     const int &sel_snp_local_index, double *&sum_op,

@@ -20,14 +20,6 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
                           bool subtract_means, int p, genotype g,
                           double *&yint_e, double **&y_e, int n);
 
-MatrixXdr
-compute_XXy(const int &num_snp, const MatrixXdr &y_vec, const MatrixXdr &means,
-            const MatrixXdr &stds, const MatrixXdr &phenotype_mask,
-            const MatrixXdr &genotype_mask, const int &Nindv, double *&sum_op,
-            const genotype &genotype_block, double *&yint_m, double **&y_m,
-            const int &p, double *&yint_e, double **&y_e, double *&partialsums,
-            const int &sel_snp_local_index, const bool &exclude_sel_snp);
-
 double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
                     const MatrixXdr &means, const MatrixXdr &stds,
                     const int &sel_snp_local_index, double *&sum_op,
