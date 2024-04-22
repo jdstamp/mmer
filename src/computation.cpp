@@ -50,15 +50,15 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
       res(j, k) = res(j, k) * stds(j, 0);
     }
 
-  ////GxG
-  if (exclude_sel_snp == true)
-    for (int k = 0; k < Nz; k++)
-      res(sel_snp_local_index, k) = 0;
-
   MatrixXdr resid(num_snp, Nz);
   MatrixXdr inter = means.cwiseProduct(stds);
   resid = inter * zb_sum;
   MatrixXdr inter_zb = res - resid;
+
+  // GxG case
+  if (exclude_sel_snp == true)
+    for (int k = 0; k < Nz; k++)
+      inter_zb(sel_snp_local_index, k) = 0;
 
   // masking
   for (int j = 0; j < num_snp; j++)
@@ -201,18 +201,11 @@ double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
                     const MatrixXdr &genotype_mask, double *&yint_m,
                     double **&y_m, const int &p, double *&partialsums,
                     const bool &exclude_sel_snp) {
-  MatrixXdr res;          // Boyang: add declarative res
-  res.resize(num_snp, 1); // Boyang: change to resize
+  MatrixXdr res;
+  res.resize(num_snp, 1); 
 
   multiply_y_pre_fast(y_vec, 1, res, false, sum_op, genotype_block, yint_m, y_m,
                       p, partialsums);
-
-  /// GxG
-  //  bool exclude_sel_snp = false;
-  if (exclude_sel_snp == true)
-    res(sel_snp_local_index, 0) = 0;
-  for (int j = 0; j < num_snp; j++)
-    res(j, 0) = res(j, 0) * genotype_mask(j, 0);
 
   res = res.cwiseProduct(stds);
   MatrixXdr resid(num_snp, 1);
@@ -222,6 +215,13 @@ double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
     resid(j, 0) = resid(j, 0) * genotype_mask(j, 0);
   MatrixXdr Xy(num_snp, 1);
   Xy = res - resid;
+
+  // GxG case
+  if (exclude_sel_snp == true)
+    Xy(sel_snp_local_index, 0) = 0;
+
+  for (int j = 0; j < num_snp; j++)
+    Xy(j, 0) = Xy(j, 0) * genotype_mask(j, 0);
 
   double yXXy = (Xy.array() * Xy.array()).sum();
 
