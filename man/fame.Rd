@@ -9,8 +9,8 @@ fame(
   pheno_file,
   covariate_file,
   mask_file = NULL,
-  n_randvecs = 10,
   gxg_indices = NULL,
+  n_randvecs = 10,
   n_blocks = 100,
   rand_seed = -1
 )
@@ -24,9 +24,9 @@ fame(
 
 \item{mask_file}{File path for gxg mask data.}
 
-\item{n_randvecs}{Integer. Number of random vectors.}
-
 \item{gxg_indices}{List of indices for the focal variants.}
+
+\item{n_randvecs}{Integer. Number of random vectors.}
 
 \item{n_blocks}{Integer representing the number of blocks the SNPs will be read in.}
 

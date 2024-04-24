@@ -9,10 +9,10 @@ update_mask(mask_file, gxg_group_1, gxg_group_2)
 \arguments{
 \item{mask_file}{Genotype mask}
 
-\item{gxg_group_1}{snps in group 1}
+\item{gxg_group_1}{snps in group 1 in 1-based indexing}
 
-\item{gxg_group_2}{snps in group 2}
+\item{gxg_group_2}{snps in group 2 in 1-based indexing}
 }
 \description{
-Update mask
+Update the mask for two groups of snps.
 }

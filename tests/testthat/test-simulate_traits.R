@@ -4,8 +4,8 @@ test_that("simulate_traits works", {
     gsub("\\.bed", "", system.file("testdata", "test.bed", package = "famer"))
   temp_dir <- tempdir(check=TRUE)
   out_file <- paste0(temp_dir, "/test.phen")
-  heritability <- 0.5
-  rho <- 0.8
+  heritability <- 0.3
+  rho <- 0.1
   n_additive_snps <- 50
   gxg_indices <- 1:6
   target_mean <- 0

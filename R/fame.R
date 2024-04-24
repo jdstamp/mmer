@@ -4,8 +4,8 @@
 #' @param pheno_file File path for plink *.pheno data.
 #' @param covariate_file File path for covariates data.
 #' @param mask_file File path for gxg mask data.
-#' @param n_randvecs Integer. Number of random vectors.
 #' @param gxg_indices List of indices for the focal variants.
+#' @param n_randvecs Integer. Number of random vectors.
 #' @param n_blocks Integer representing the number of blocks the SNPs will be read in.
 #' @param rand_seed Integer to seed generation of random vectors. Only positive values are considered.
 #'
@@ -23,8 +23,8 @@ fame <-
            pheno_file,
            covariate_file,
            mask_file = NULL,
-           n_randvecs = 10,
            gxg_indices = NULL,
+           n_randvecs = 10,
            n_blocks = 100,
            rand_seed = -1) {
     logging::logReset()

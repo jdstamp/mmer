@@ -202,7 +202,7 @@ double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
                     double **&y_m, const int &p, double *&partialsums,
                     const bool &exclude_sel_snp) {
   MatrixXdr res;
-  res.resize(num_snp, 1); 
+  res.resize(num_snp, 1);
 
   multiply_y_pre_fast(y_vec, 1, res, false, sum_op, genotype_block, yint_m, y_m,
                       p, partialsums);

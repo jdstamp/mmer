@@ -62,8 +62,8 @@ void replaceH5Dataset(const std::string &filename,
 }
 
 // [[Rcpp::export]]
-Rcpp::List simulate_traits_cpp(std::string plink_file, float heritability,
-                               float rho, int n_additive_snps,
+Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritability,
+                               float gxg_heritability, int n_additive_snps,
                                std::vector<int> gxg_group_1,
                                std::vector<int> gxg_group_2) {
 
@@ -159,12 +159,13 @@ Rcpp::List simulate_traits_cpp(std::string plink_file, float heritability,
   // scale the additive, epistatic, and error components to control variance of
   // the trait
   error_component =
-      error_component.array() * std::sqrt((1 - heritability) / error_variance);
+      error_component.array() * std::sqrt((1 - additive_heritability - gxg_heritability) /
+                                          error_variance);
   additive_component = additive_component.array() *
-                       std::sqrt(heritability * rho / additive_variance);
+                       std::sqrt(additive_heritability / additive_variance);
   epistatic_component =
       epistatic_component.array() *
-      std::sqrt(heritability * (1 - rho) / epistatic_variance);
+      std::sqrt(gxg_heritability / epistatic_variance);
 
   // sum the additive, epistatic, and error components to get the trait
   MatrixXdr trait = additive_component + epistatic_component + error_component;

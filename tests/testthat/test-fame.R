@@ -57,8 +57,8 @@ test_that("fame end-to-end no covariates no mask", {
                  pheno_file,
                  covariate_file,
                  mask_file,
-                 n_randvecs,
                  snp_indices,
+                 n_randvecs,
                  n_blocks,
                  rand_seed)
   observed_est <- result$vc_estimate
@@ -108,8 +108,8 @@ test_that("fame end-to-end with covariate file no mask", {
                  pheno_file,
                  covariate_file,
                  mask_file,
-                 n_randvecs,
                  snp_indices,
+                 n_randvecs,
                  n_blocks,
                  rand_seed)
   observed <- result$vc_estimate
@@ -178,8 +178,8 @@ test_that("fame end-to-end no covariates but with mask", {
                  pheno_file,
                  covariate_file,
                  mask_file,
-                 n_randvecs,
                  snp_indices,
+                 n_randvecs,
                  n_blocks,
                  rand_seed)
   observed_est <- result$vc_estimate

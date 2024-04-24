@@ -103,18 +103,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulate_traits_cpp
-Rcpp::List simulate_traits_cpp(std::string plink_file, float heritability, float rho, int n_additive_snps, std::vector<int> gxg_group_1, std::vector<int> gxg_group_2);
-RcppExport SEXP _famer_simulate_traits_cpp(SEXP plink_fileSEXP, SEXP heritabilitySEXP, SEXP rhoSEXP, SEXP n_additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
+Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritability, float gxg_heritability, int n_additive_snps, std::vector<int> gxg_group_1, std::vector<int> gxg_group_2);
+RcppExport SEXP _famer_simulate_traits_cpp(SEXP plink_fileSEXP, SEXP additive_heritabilitySEXP, SEXP gxg_heritabilitySEXP, SEXP n_additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type plink_file(plink_fileSEXP);
-    Rcpp::traits::input_parameter< float >::type heritability(heritabilitySEXP);
-    Rcpp::traits::input_parameter< float >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< float >::type additive_heritability(additive_heritabilitySEXP);
+    Rcpp::traits::input_parameter< float >::type gxg_heritability(gxg_heritabilitySEXP);
     Rcpp::traits::input_parameter< int >::type n_additive_snps(n_additive_snpsSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type gxg_group_1(gxg_group_1SEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type gxg_group_2(gxg_group_2SEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_traits_cpp(plink_file, heritability, rho, n_additive_snps, gxg_group_1, gxg_group_2));
+    rcpp_result_gen = Rcpp::wrap(simulate_traits_cpp(plink_file, additive_heritability, gxg_heritability, n_additive_snps, gxg_group_1, gxg_group_2));
     return rcpp_result_gen;
 END_RCPP
 }

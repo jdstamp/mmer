@@ -29,7 +29,7 @@ replaceH5Dataset <- function(filename, datasetName, newData) {
     invisible(.Call('_famer_replaceH5Dataset', PACKAGE = 'famer', filename, datasetName, newData))
 }
 
-simulate_traits_cpp <- function(plink_file, heritability, rho, n_additive_snps, gxg_group_1, gxg_group_2) {
-    .Call('_famer_simulate_traits_cpp', PACKAGE = 'famer', plink_file, heritability, rho, n_additive_snps, gxg_group_1, gxg_group_2)
+simulate_traits_cpp <- function(plink_file, additive_heritability, gxg_heritability, n_additive_snps, gxg_group_1, gxg_group_2) {
+    .Call('_famer_simulate_traits_cpp', PACKAGE = 'famer', plink_file, additive_heritability, gxg_heritability, n_additive_snps, gxg_group_1, gxg_group_2)
 }
 

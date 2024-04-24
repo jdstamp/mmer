@@ -7,8 +7,8 @@
 simulate_traits(
   plink_file,
   output_file,
-  heritability,
-  rho,
+  additive_heritability,
+  gxg_heritability,
   n_causal,
   gxg_indices
 )
@@ -18,11 +18,11 @@ simulate_traits(
 
 \item{output_file}{Path to the file that stores the simulated trait}
 
-\item{heritability}{Float between 0 and 1 that quantifies the heritability of the trait}
+\item{additive_heritability}{Float between 0 and 1 that quantifies the heritability of the trait}
 
-\item{rho}{Fraction of heritability due to additive only effects}
+\item{gxg_heritability}{Fraction of heritability due to additive only effects}
 
-\item{n_causal}{Integers number of causal SNPs}
+\item{n_causal}{Integer number of causal SNPs}
 
 \item{gxg_indices}{Vector of SNP indices that are chosen to be epistatic}
 }

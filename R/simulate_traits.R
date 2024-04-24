@@ -2,9 +2,9 @@
 #'
 #' @param plink_file Path to the plink data set without file extension
 #' @param output_file Path to the file that stores the simulated trait
-#' @param heritability Float between 0 and 1 that quantifies the heritability of the trait
-#' @param rho Fraction of heritability due to additive only effects
-#' @param n_causal Integers number of causal SNPs
+#' @param additive_heritability Float between 0 and 1 that quantifies the heritability of the trait
+#' @param gxg_heritability Fraction of heritability due to additive only effects
+#' @param n_causal Integer number of causal SNPs
 #' @param gxg_indices Vector of SNP indices that are chosen to be epistatic
 #'
 #' @return None
@@ -15,14 +15,21 @@
 #' @importFrom utils write.table
 simulate_traits <- function(plink_file,
                             output_file,
-                            heritability,
-                            rho,
+                            additive_heritability,
+                            gxg_heritability,
                             n_causal,
                             gxg_indices) {
+
+   if (additive_heritability + gxg_heritability > 1) {
+     stop("Additive heritability and gxg heritability should sum to less than 1")
+   } else if (additive_heritability < 0 || gxg_heritability < 0) {
+     stop("Heritabilities should be positive")
+   }
+
   gxg <- get_groups(gxg_indices)
   sim <- simulate_traits_cpp(plink_file,
-                             heritability,
-                             rho,
+                             additive_heritability,
+                             gxg_heritability,
                              n_causal,
                              gxg$group_1 - 1,
                              gxg$group_2 - 1
