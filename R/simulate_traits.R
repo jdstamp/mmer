@@ -25,7 +25,8 @@ simulate_traits <- function(plink_file,
    } else if (additive_heritability < 0 || gxg_heritability < 0) {
      stop("Heritabilities should be positive")
    }
-
+  logging::basicConfig()
+  log <- logging::getLogger("famer::simulate_traits")
   gxg <- get_groups(gxg_indices)
   sim <- simulate_traits_cpp(plink_file,
                              additive_heritability,
@@ -34,6 +35,7 @@ simulate_traits <- function(plink_file,
                              gxg$group_1 - 1,
                              gxg$group_2 - 1
                              )
+  log$info("Simulated traits with additive variance %.2f, gxg variance %.2f, and error variance %.2f", sim$additive_variance, sim$gxg_variance, sim$error_variance)
   fam_data <- read_fam(paste0(plink_file, ".fam"), verbose = FALSE)
   pheno_data <- data.frame(FID = fam_data$fam,
                            IID = fam_data$id,

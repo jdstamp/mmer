@@ -76,21 +76,20 @@ Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritabili
   int n_group_2 = gxg_group_2.size();
   int n_remaining_causal = n_additive_snps - n_group_1 - n_group_2;
 
-  std::vector<int> epistatic_snps = gxg_group_1;
-  epistatic_snps.insert(epistatic_snps.end(), gxg_group_2.begin(),
+  std::vector<int> gxg_snps = gxg_group_1;
+  gxg_snps.insert(gxg_snps.end(), gxg_group_2.begin(),
                         gxg_group_2.end());
-  std::sort(epistatic_snps.begin(), epistatic_snps.end());
+  std::sort(gxg_snps.begin(), gxg_snps.end());
   std::vector<int> difference;
   std::vector<int> numbers(n_snps);
   std::iota(numbers.begin(), numbers.end(), 0); // Fill with 0, 1, ..., n-1
 
-  std::set_difference(numbers.begin(), numbers.end(), epistatic_snps.begin(),
-                      epistatic_snps.end(), std::back_inserter(difference));
+  std::set_difference(numbers.begin(), numbers.end(), gxg_snps.begin(),
+                      gxg_snps.end(), std::back_inserter(difference));
 
   std::vector<int> additive_snps =
       draw_random_ints(difference, n_remaining_causal);
-  additive_snps.insert(additive_snps.end(), epistatic_snps.begin(),
-                       epistatic_snps.end());
+  additive_snps.insert(additive_snps.end(), gxg_snps.begin(), gxg_snps.end());
   std::sort(additive_snps.begin(), additive_snps.end());
 
   MatrixXdr additive_effects = draw_normal_effects(n_additive_snps);
@@ -100,7 +99,7 @@ Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritabili
   // initialize the trait components for additive, epistatic and error
   // components
   MatrixXdr additive_component = MatrixXdr::Zero(n_samples, 1);
-  MatrixXdr epistatic_component = MatrixXdr::Zero(n_samples, 1);
+  MatrixXdr gxg_component = MatrixXdr::Zero(n_samples, 1);
   MatrixXdr error_component = draw_normal_effects(n_samples);
 
   // loop over the additive SNPs vector. For each SNP read the genotype
@@ -135,7 +134,7 @@ Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritabili
       read_focal_snp(bed_file, snp_genotype2, snp_index2, n_samples, n_snps,
                      global_snp_index);
       normalize_genotype(snp_genotype2, n_samples);
-      epistatic_component = epistatic_component.array() +
+      gxg_component = gxg_component.array() +
                             snp_genotype1.array() * snp_genotype2.array() *
                                 epistatic_effects(i * n_group_2 + j, 0);
     }
@@ -147,8 +146,8 @@ Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritabili
       (additive_component.array() - additive_component.array().mean())
           .square()
           .mean();
-  float epistatic_variance =
-      (epistatic_component.array() - epistatic_component.array().mean())
+  float gxg_variance =
+      (gxg_component.array() - gxg_component.array().mean())
           .square()
           .mean();
   float error_variance =
@@ -163,20 +162,20 @@ Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritabili
                                           error_variance);
   additive_component = additive_component.array() *
                        std::sqrt(additive_heritability / additive_variance);
-  epistatic_component =
-      epistatic_component.array() *
-      std::sqrt(gxg_heritability / epistatic_variance);
+  gxg_component =
+      gxg_component.array() *
+      std::sqrt(gxg_heritability / gxg_variance);
 
   // sum the additive, epistatic, and error components to get the trait
-  MatrixXdr trait = additive_component + epistatic_component + error_component;
+  MatrixXdr trait = additive_component + gxg_component + error_component;
 
   // Compute the updated variances
   additive_variance =
       (additive_component.array() - additive_component.array().mean())
           .square()
           .mean();
-  epistatic_variance =
-      (epistatic_component.array() - epistatic_component.array().mean())
+  gxg_variance =
+      (gxg_component.array() - gxg_component.array().mean())
           .square()
           .mean();
   error_variance = (error_component.array() - error_component.array().mean())
@@ -186,8 +185,8 @@ Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritabili
   // return a Rcpp list with the trait and the epistatic snps
   return Rcpp::List::create(
       Rcpp::Named("trait") = trait,
-      Rcpp::Named("epistatic_snps") = epistatic_snps,
+      Rcpp::Named("gxg_snps") = gxg_snps,
       Rcpp::Named("additive_variance") = additive_variance,
-      Rcpp::Named("epistatic_variance") = epistatic_variance,
+      Rcpp::Named("gxg_variance") = gxg_variance,
       Rcpp::Named("error_variance") = error_variance);
 }

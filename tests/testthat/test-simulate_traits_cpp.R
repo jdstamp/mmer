@@ -26,7 +26,7 @@ test_that("trait simulation works", {
 
   # then
   expect_equal(observed_var, target_var, tolerance = 2e-1)
-  expect_equal(sim$epistatic_variance, gxg_heritability, tolerance = 1e-2)
+  expect_equal(sim$gxg_variance, gxg_heritability, tolerance = 1e-2)
   expect_equal(sim$additive_variance, additive_heritability, tolerance = 1e-2)
   expect_equal(sim$error_variance, target_error_variance, tolerance = 1e-2)
 })
