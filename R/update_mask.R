@@ -22,7 +22,7 @@ update_mask <- function(mask_file, gxg_group_1, gxg_group_2) {
 #' @param mask_file Genotype mask
 #' @param gxg_group_1 snps in group 1
 #' @param gxg_group_2 snps in group 2
-#' @noRd
+#' @export
 update_single_group <- function(mask_file, gxg_group_1, gxg_group_2) {
   for (gt in gxg_group_1) {
     h5_ds <- sprintf("gxg/%d", gt)
