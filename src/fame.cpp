@@ -57,13 +57,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr SE;
 
   std::stringstream bim_stream;
-  std::stringstream fam_stream;
   std::stringstream bed_stream;
   bim_stream << plink_file << ".bim";
-  fam_stream << plink_file << ".fam";
   bed_stream << plink_file << ".bed";
   std::string bim_file = bim_stream.str();
-  std::string fam_file = fam_stream.str();
   std::string bed_file = bed_stream.str();
 
   MatrixXdr pheno_mask;
@@ -76,17 +73,11 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   int n_snps = count_snps_bim(bim_file);
   int n_samples = count_samples(pheno_file);
-  int n_fam_lines = count_fam(fam_file);
 
   int step_size = n_snps / n_blocks;
   int step_size_remainder = n_snps % n_blocks;
   std::vector<int> block_sizes(n_blocks, step_size);
   block_sizes.back() += step_size_remainder; // add remainder to last block
-
-  if (n_fam_lines != n_samples) {
-    throw std::runtime_error(
-        "Number of samples in fam file and pheno file do not match.");
-  } // TODO: this is already done in the R part. do we need it here?
 
   VC.resize(gxg_indices.size(), n_variance_components + 1);
   SE.resize(gxg_indices.size(), n_variance_components + 1);
@@ -103,6 +94,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     int cov_num;
     cov_num = read_covariates(false, n_samples, covariate_file, covariate,
                               snp_fix_ef);
+    // TODO: make this a default true and remove the option ? this might have
+    //  to move to the SNP specific portion if we do that
     //        if (snp_fix_ef == true) {
     //            covariate.col(cov_num - 1) = focal_snp_gtype.col(0);
     //        }
@@ -113,6 +106,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   } else {
     y_sum = pheno.sum();
     y_mean = y_sum / pheno_mask.sum();
+    // TODO: should we scale to 1 as well?
     for (int i = 0; i < n_samples; i++) {
       if (pheno(i, 0) != 0) {
         pheno(i, 0) = pheno(i, 0) - y_mean;
@@ -120,56 +114,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     }
   }
 
-  // inserted below
-  //    MatrixXdr XXz_observed;
-  //    MatrixXdr random_vectors;
-  //
-  //    XXz = MatrixXdr::Zero(n_samples, n_randvecs);
-  //    random_vectors = initialize_random_vectors(n_randvecs, rand_seed,
-  //    pheno_mask,
-  //                                             random_vectors, n_samples);
-
   metaData metadata = set_metadata(n_samples, n_snps);
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   int global_snp_index = -1;
-  // inserted below
-  //  for (int block_index = 0; block_index < n_blocks; block_index++) {
-  //
-  //    int block_size = block_sizes[block_index];
-  //
-  //    set_block_parameters(genotype_block, n_samples, block_size);
-  //
-  //      read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
-  //                          global_snp_index, metadata);
-  //
-  //    if (block_size != 0) {
-  //      compute_block_stats(genotype_block, allelecount_means,
-  //      allelecount_stds,
-  //                          n_samples, block_size);
-  //
-  //      allocate_memory(n_randvecs, genotype_block, partialsums, sum_op,
-  //      yint_e,
-  //                      yint_m, y_e, y_m);
-  //
-  //      XXz_observed = compute_XXz(block_size, random_vectors,
-  //      allelecount_means,
-  //                             allelecount_stds, pheno_mask, n_randvecs,
-  //                             n_samples, 0, sum_op, genotype_block, yint_m,
-  //                             y_m, block_size, yint_e, y_e, partialsums,
-  //                             false);
-  //
-  //      for (int z_index = 0; z_index < n_randvecs; z_index++) {
-  //        XXz.col(z_index) += XXz_observed.col(z_index);
-  //      }
-  //      deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
-  //                        genotype_block);
-  //    }
-  //  }
-  //  auto end_grm = std::chrono::high_resolution_clock::now();
-  //  std::chrono::duration<double> elapsed_grm = end_grm - start_grm;
-  //  std::cout << "Execution time of grm: " << elapsed_grm.count() << "
-  //  seconds."
-  //            << std::endl;
+
   auto start_gxg = std::chrono::high_resolution_clock::now();
 
   // TODO: parallel loop starts here?

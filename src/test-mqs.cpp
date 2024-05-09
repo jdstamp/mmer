@@ -12,6 +12,7 @@
 #include "allocate_memory.h"
 #include "computation.h"
 #include "compute_block_stats.h"
+# include "compute_covariance_q.h"
 #include "compute_mom_components.h"
 #include "fame.h"
 #include "genotype.h"
@@ -158,7 +159,15 @@ context("C++ test mqs method is implemented correctly") {
     S_expected(2, 1) = G.trace();
     S_expected(2, 2) = n_samples_mqs;
 
-    MatrixXdr sigma_expected = S_expected.inverse() * q_expected;
+    MatrixXdr Sinv = S_expected.inverse();
+
+    MatrixXdr sigma_expected = Sinv * q_expected;
+
+    MatrixXdr V = sigma_expected(0, 0) * K + sigma_expected(1, 0) * G + sigma_expected(2, 0) * MatrixXdr::Identity(n_samples_mqs, n_samples_mqs);
+    MatrixXdr H = Sinv(0, 1) * K + Sinv(1, 1) * G + Sinv(2, 1) *
+                                                        MatrixXdr::Identity(n_samples_mqs, n_samples_mqs);
+
+    MatrixXdr sigma_variance = 2 * pheno.transpose() * H * V * H * pheno;
 
     // when
     int n_randvecs = 1000;
@@ -303,16 +312,25 @@ context("C++ test mqs method is implemented correctly") {
 
     MatrixXdr sigma_observed = S_observed.inverse() * q_observed;
 
-    //    // then
+    MatrixXdr cov_q_observed;
+    compute_covariance_q(n_variance_components, collect_XXUy, sigma_observed, cov_q_observed);
+
+    MatrixXdr invS = S_observed.inverse();
+
+    MatrixXdr cov_sigma = invS * cov_q_observed * invS;
+
+
+        // then
     float S_error =
         std::sqrt((S_observed.array() - S_expected.array()).square().sum());
     float q_error = (q_observed.array() - q_expected.array()).square().sum();
-
     float sigma_error =
         (sigma_observed.array() - sigma_expected.array()).square().sum();
+    float var_sigma_error = std::abs(cov_sigma(1, 1) - sigma_variance(0, 0));
 
     expect_true(S_error < 100);
     expect_true(q_error < tolerance_mqs);
     expect_true(sigma_error < tolerance_mqs);
+    expect_true(var_sigma_error < 1e-5);
   }
 }
