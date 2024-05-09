@@ -24,6 +24,7 @@
 #include <iostream>
 #include <unistd.h>
 
+// this should come from one configuration file
 std::string testdata_dir = "../../inst/testdata/";
 std::string test_bed = testdata_dir + "test.bed";
 std::string test_csv = testdata_dir + "test.csv";
@@ -105,6 +106,7 @@ context("C++ test yXXy with masking") {
     MatrixXdr means(block_size, 1);
     MatrixXdr stds(block_size, 1);
     means = matrix_block.colwise().sum().transpose() / n_samples;
+
     // compute stds_minor by iterating over the columns
     for (int i = 0; i < block_size; i++) {
       stds(i, 0) = 1 / sqrt((means(i, 0) * (1 - (0.5 * means(i, 0)))));
