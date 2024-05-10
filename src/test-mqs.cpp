@@ -9,72 +9,10 @@
 
 // All test files should include the <testthat.h>
 // header file.
-#include "allocate_memory.h"
-#include "computation.h"
-#include "compute_block_stats.h"
-# include "compute_covariance_q.h"
-#include "compute_mom_components.h"
-#include "fame.h"
-#include "genotype.h"
-#include "initialize_random_vectors.h"
-#include "read_genotypes.h"
-#include "read_phenotypes.h"
-#include "set_block_parameters.h"
-#include "set_metadata.h"
+
 #include <testthat.h>
 
-#include <fstream>
-#include <iostream>
-#include <unistd.h>
-
-// this should come from one configuration file
-std::string testdata_dir_mqs = "../../inst/testdata/";
-std::string test_bed_mqs = testdata_dir_mqs + "test.bed";
-std::string test_csv_mqs = testdata_dir_mqs + "test.csv";
-std::string test_pheno_mqs = testdata_dir_mqs + "test_h2_0.5.pheno";
-
-double tolerance_mqs = 1e-6;
-int n_samples_mqs = 200;
-int block_size_mqs = 10;
-metaData metadata_mqs = set_metadata(n_samples_mqs, block_size_mqs);
-
-MatrixXdr readCSVToMatrixXdr_mqs(const std::string &filename) {
-  std::ifstream data(filename);
-  std::string line;
-  std::vector<double> values;
-  int rows = 0;
-  int cols = 0;
-
-  // Skip the header line
-  std::getline(data, line);
-
-  // Read data, line by line
-  while (std::getline(data, line)) {
-    std::stringstream lineStream(line);
-    std::string cell;
-    int temp_cols = 0;
-
-    // Read each cell
-    while (std::getline(lineStream, cell, ',')) {
-      values.push_back(std::stod(cell));
-      temp_cols++;
-    }
-
-    // Update the number of columns
-    if (cols == 0) {
-      cols = temp_cols;
-    }
-
-    rows++;
-  }
-
-  // Convert the vector of values into a MatrixXdr
-  MatrixXdr mat(rows, cols);
-  for (int i = 0; i < rows; i++)
-    for (int j = 0; j < cols; j++)
-      mat(i, j) = values[i * cols + j];
-  return mat;
-}
+#include "testing_utils.h"
 
 void centerAndStandardize(MatrixXdr &mat) {
   // Compute column-wise mean
@@ -118,25 +56,23 @@ void centerAndStandardize2(MatrixXdr &mat) {
 context("C++ test mqs method is implemented correctly") {
   test_that("test compute_mom_components") {
     // given
-    MatrixXdr data = readCSVToMatrixXdr_mqs(test_csv_mqs);
-    MatrixXdr matrix_block = data.block(0, 0, n_samples_mqs, block_size_mqs);
-    // MatrixXdr TWO = MatrixXdr::Ones(n_samples_mqs, block_size_mqs) * 2;
-    // matrix_block = TWO - matrix_block; // because encoding is inverted
+    MatrixXdr data = readCSVToMatrixXdr(test_csv);
+    MatrixXdr matrix_block = data.block(0, 0, n_samples, block_size);
     centerAndStandardize2(
         matrix_block); // TODO: check if we can switch to proper
                        // standardizing (version 1 above)
 
     MatrixXdr pheno_mask;
     MatrixXdr pheno;
-    read_phenotypes(n_samples_mqs, test_pheno_mqs, pheno, pheno_mask);
+    read_phenotypes(n_samples, test_pheno, pheno, pheno_mask);
 
     // select focal SNP as the first column of the matrix block
     MatrixXdr focal_snp = matrix_block.col(0);
 
     // compute K, G
-    MatrixXdr K = matrix_block * matrix_block.transpose() / block_size_mqs;
-    MatrixXdr G = (K * block_size_mqs - focal_snp * focal_snp.transpose()) /
-                  (block_size_mqs - 1);
+    MatrixXdr K = matrix_block * matrix_block.transpose() / block_size;
+    MatrixXdr G = (K * block_size - focal_snp * focal_snp.transpose()) /
+                  (block_size - 1);
 
     for (int i = 0; i < G.cols(); ++i) {
       G.col(i) = G.col(i).array() * focal_snp.array();
@@ -157,15 +93,15 @@ context("C++ test mqs method is implemented correctly") {
     S_expected(0, 2) = K.trace();
     S_expected(1, 2) = G.trace();
     S_expected(2, 1) = G.trace();
-    S_expected(2, 2) = n_samples_mqs;
+    S_expected(2, 2) = n_samples;
 
     MatrixXdr Sinv = S_expected.inverse();
 
     MatrixXdr sigma_expected = Sinv * q_expected;
 
-    MatrixXdr V = sigma_expected(0, 0) * K + sigma_expected(1, 0) * G + sigma_expected(2, 0) * MatrixXdr::Identity(n_samples_mqs, n_samples_mqs);
+    MatrixXdr V = sigma_expected(0, 0) * K + sigma_expected(1, 0) * G + sigma_expected(2, 0) * MatrixXdr::Identity(n_samples, n_samples);
     MatrixXdr H = Sinv(0, 1) * K + Sinv(1, 1) * G + Sinv(2, 1) *
-                                                        MatrixXdr::Identity(n_samples_mqs, n_samples_mqs);
+                                                        MatrixXdr::Identity(n_samples, n_samples);
 
     MatrixXdr sigma_variance = 2 * pheno.transpose() * H * V * H * pheno;
 
@@ -177,17 +113,17 @@ context("C++ test mqs method is implemented correctly") {
     int focal_snp_local_index = 0;
     genotype genotype_block;
 
-    MatrixXdr genotype_mask_matrix = MatrixXdr::Ones(block_size_mqs, 1);
+    MatrixXdr genotype_mask_matrix = MatrixXdr::Ones(block_size, 1);
 
-    set_block_parameters(genotype_block, n_samples_mqs, block_size_mqs);
-    std::ifstream bed_ifs(test_bed_mqs.c_str(), ios::in | ios::binary);
+    set_block_parameters(genotype_block, n_samples, block_size);
+    std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     int global_snp_index = -1;
-    read_genotype_block(bed_ifs, block_size_mqs, genotype_block, n_samples_mqs,
-                        global_snp_index, metadata_mqs);
-    MatrixXdr fame_means(block_size_mqs, 1);
-    MatrixXdr fame_stds(block_size_mqs, 1);
-    compute_block_stats(genotype_block, fame_means, fame_stds, n_samples_mqs,
-                        block_size_mqs);
+    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
+                        global_snp_index, metadata);
+    MatrixXdr fame_means(block_size, 1);
+    MatrixXdr fame_stds(block_size, 1);
+    compute_block_stats(genotype_block, fame_means, fame_stds, n_samples,
+                        block_size);
 
     // memory setup for mailman
     double *partialsums = new double[0];
@@ -203,23 +139,23 @@ context("C++ test mqs method is implemented correctly") {
 
     MatrixXdr yXXy;
     yXXy = MatrixXdr::Zero(n_variance_components, 1);
-    yXXy(0, 0) += compute_yXXy(block_size_mqs, pheno, fame_means, fame_stds,
+    yXXy(0, 0) += compute_yXXy(block_size, pheno, fame_means, fame_stds,
                                focal_snp_local_index, sum_op, genotype_block,
                                genotype_mask_matrix, yint_m, y_m,
-                               block_size_mqs, partialsums, exclude_sel_snp);
+                               block_size, partialsums, exclude_sel_snp);
 
     MatrixXdr gxg_pheno;
     gxg_pheno = pheno.array() * focal_snp.col(0).array();
-    yXXy(1, 0) += compute_yXXy(block_size_mqs, gxg_pheno, fame_means, fame_stds,
+    yXXy(1, 0) += compute_yXXy(block_size, gxg_pheno, fame_means, fame_stds,
                                focal_snp_local_index, sum_op, genotype_block,
                                genotype_mask_matrix, yint_m, y_m,
-                               block_size_mqs, partialsums, true);
+                               block_size, partialsums, true);
 
     MatrixXdr random_vectors;
     MatrixXdr gxg_random_vectors;
 
     random_vectors = initialize_random_vectors(
-        n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples_mqs);
+        n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples);
     gxg_random_vectors =
         random_vectors.array().colwise() * focal_snp.col(0).array();
 
@@ -230,26 +166,26 @@ context("C++ test mqs method is implemented correctly") {
     MatrixXdr temp_grm;
     MatrixXdr temp_gxg;
 
-    XXz = MatrixXdr::Zero(n_samples_mqs, n_randvecs);
-    GxGz = MatrixXdr::Zero(n_samples_mqs, n_randvecs);
-    collect_XXy = MatrixXdr::Zero(n_samples_mqs, n_variance_components + 1);
+    XXz = MatrixXdr::Zero(n_samples, n_randvecs);
+    GxGz = MatrixXdr::Zero(n_samples, n_randvecs);
+    collect_XXy = MatrixXdr::Zero(n_samples, n_variance_components + 1);
     collect_XXUy =
-        MatrixXdr::Zero(n_samples_mqs, (n_variance_components + 1) *
+        MatrixXdr::Zero(n_samples, (n_variance_components + 1) *
                                            (n_variance_components + 1));
 
     temp_grm = compute_XXz(
-        block_size_mqs, random_vectors, fame_means, fame_stds, pheno_mask,
-        genotype_mask_matrix, n_randvecs, n_samples_mqs, sum_op, genotype_block,
-        yint_m, y_m, block_size_mqs, yint_e, y_e, partialsums, 0, false);
+        block_size, random_vectors, fame_means, fame_stds, pheno_mask,
+        genotype_mask_matrix, n_randvecs, n_samples, sum_op, genotype_block,
+        yint_m, y_m, block_size, yint_e, y_e, partialsums, 0, false);
 
     for (int z_index = 0; z_index < n_randvecs; z_index++) {
       XXz.col(z_index) += temp_grm.col(z_index);
     }
     bool in_gxg_block = true;
     temp_gxg =
-        compute_XXz(block_size_mqs, gxg_random_vectors, fame_means, fame_stds,
-                    pheno_mask, genotype_mask_matrix, n_randvecs, n_samples_mqs,
-                    sum_op, genotype_block, yint_m, y_m, block_size_mqs, yint_e,
+        compute_XXz(block_size, gxg_random_vectors, fame_means, fame_stds,
+                    pheno_mask, genotype_mask_matrix, n_randvecs, n_samples,
+                    sum_op, genotype_block, yint_m, y_m, block_size, yint_e,
                     y_e, partialsums, focal_snp_local_index, in_gxg_block);
     temp_gxg = temp_gxg.array().colwise() * focal_snp.col(0).array();
 
@@ -257,51 +193,51 @@ context("C++ test mqs method is implemented correctly") {
       GxGz.col(z_index) += temp_gxg.col(z_index);
     }
     collect_XXy.col(0) +=
-        compute_XXz(block_size_mqs, pheno, fame_means, fame_stds, pheno_mask,
-                    genotype_mask_matrix, 1, n_samples_mqs, sum_op,
-                    genotype_block, yint_m, y_m, block_size_mqs, yint_e, y_e,
+        compute_XXz(block_size, pheno, fame_means, fame_stds, pheno_mask,
+                    genotype_mask_matrix, 1, n_samples, sum_op,
+                    genotype_block, yint_m, y_m, block_size, yint_e, y_e,
                     partialsums, focal_snp_local_index, false);
 
     MatrixXdr temp_Gy =
-        compute_XXz(block_size_mqs, gxg_pheno, fame_means, fame_stds,
-                    pheno_mask, genotype_mask_matrix, 1, n_samples_mqs, sum_op,
-                    genotype_block, yint_m, y_m, block_size_mqs, yint_e, y_e,
+        compute_XXz(block_size, gxg_pheno, fame_means, fame_stds,
+                    pheno_mask, genotype_mask_matrix, 1, n_samples, sum_op,
+                    genotype_block, yint_m, y_m, block_size, yint_e, y_e,
                     partialsums, focal_snp_local_index, true);
     temp_Gy = temp_Gy.array() * focal_snp.col(0).array();
     collect_XXy.col(1) += temp_Gy;
 
-    collect_XXy.col(0) = collect_XXy.col(0) / block_size_mqs;
-    collect_XXy.col(1) = collect_XXy.col(1) / (block_size_mqs - 1);
+    collect_XXy.col(0) = collect_XXy.col(0) / block_size;
+    collect_XXy.col(1) = collect_XXy.col(1) / (block_size - 1);
     collect_XXy.col(2) = pheno;
     //
 
     MatrixXdr scaled_vec;
     for (int i = 0; i < (n_variance_components + 1); i++) {
       MatrixXdr temp_XXUy =
-          compute_XXz(block_size_mqs, collect_XXy.col(i), fame_means, fame_stds,
-                      pheno_mask, genotype_mask_matrix, 1, n_samples_mqs,
-                      sum_op, genotype_block, yint_m, y_m, block_size_mqs,
+          compute_XXz(block_size, collect_XXy.col(i), fame_means, fame_stds,
+                      pheno_mask, genotype_mask_matrix, 1, n_samples,
+                      sum_op, genotype_block, yint_m, y_m, block_size,
                       yint_e, y_e, partialsums, focal_snp_local_index, false);
 
       scaled_vec = collect_XXy.col(i).array() * focal_snp.col(0).array();
       MatrixXdr temp_GUy =
-          compute_XXz(block_size_mqs, scaled_vec, fame_means, fame_stds,
-                      pheno_mask, genotype_mask_matrix, 1, n_samples_mqs,
-                      sum_op, genotype_block, yint_m, y_m, block_size_mqs,
+          compute_XXz(block_size, scaled_vec, fame_means, fame_stds,
+                      pheno_mask, genotype_mask_matrix, 1, n_samples,
+                      sum_op, genotype_block, yint_m, y_m, block_size,
                       yint_e, y_e, partialsums, focal_snp_local_index, false);
       temp_GUy = temp_GUy.array() * focal_snp.col(0).array();
 
-      collect_XXUy.col(i) += temp_XXUy / block_size_mqs;
+      collect_XXUy.col(i) += temp_XXUy / block_size;
       collect_XXUy.col(((n_variance_components + 1)) + i) +=
-          temp_GUy / (block_size_mqs - 1);
+          temp_GUy / (block_size - 1);
     }
 
     for (int i = 0; i < (n_variance_components + 1); i++) {
       collect_XXUy.col((n_variance_components * (n_variance_components + 1)) +
                        i) = collect_XXy.col(i);
     }
-    vector<int> n_snps_variance_component = {block_size_mqs,
-                                             block_size_mqs - 1};
+    vector<int> n_snps_variance_component = {block_size,
+                                             block_size - 1};
     int n_samples_mask = pheno_mask.sum();
     MatrixXdr S_observed(n_variance_components + 1, n_variance_components + 1);
     MatrixXdr q_observed(n_variance_components + 1, 1);
@@ -329,8 +265,8 @@ context("C++ test mqs method is implemented correctly") {
     float var_sigma_error = std::abs(cov_sigma(1, 1) - sigma_variance(0, 0));
 
     expect_true(S_error < 100);
-    expect_true(q_error < tolerance_mqs);
-    expect_true(sigma_error < tolerance_mqs);
+    expect_true(q_error < tolerance);
+    expect_true(sigma_error < tolerance);
     expect_true(var_sigma_error < 1e-5);
   }
 }

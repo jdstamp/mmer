@@ -9,69 +9,9 @@
 
 // All test files should include the <testthat.h>
 // header file.
-#include "allocate_memory.h"
-#include "computation.h"
-#include "compute_block_stats.h"
-#include "fame.h"
-#include "genotype.h"
-#include "read_genotypes.h"
-#include "read_phenotypes.h"
-#include "set_block_parameters.h"
-#include "set_metadata.h"
 #include <testthat.h>
 
-#include <fstream>
-#include <iostream>
-#include <unistd.h>
-
-// this should come from one configuration file
-std::string testdata_dir = "../../inst/testdata/";
-std::string test_bed = testdata_dir + "test.bed";
-std::string test_csv = testdata_dir + "test.csv";
-std::string test_pheno = testdata_dir + "test_h2_0.5.pheno";
-
-double tolerance = 1e-6;
-int n_samples = 200;
-int block_size = 10;
-metaData metadata = set_metadata(n_samples, block_size);
-
-MatrixXdr readCSVToMatrixXdr(const std::string &filename) {
-  std::ifstream data(filename);
-  std::string line;
-  std::vector<double> values;
-  int rows = 0;
-  int cols = 0;
-
-  // Skip the header line
-  std::getline(data, line);
-
-  // Read data, line by line
-  while (std::getline(data, line)) {
-    std::stringstream lineStream(line);
-    std::string cell;
-    int temp_cols = 0;
-
-    // Read each cell
-    while (std::getline(lineStream, cell, ',')) {
-      values.push_back(std::stod(cell));
-      temp_cols++;
-    }
-
-    // Update the number of columns
-    if (cols == 0) {
-      cols = temp_cols;
-    }
-
-    rows++;
-  }
-
-  // Convert the vector of values into a MatrixXdr
-  MatrixXdr mat(rows, cols);
-  for (int i = 0; i < rows; i++)
-    for (int j = 0; j < cols; j++)
-      mat(i, j) = values[i * cols + j];
-  return mat;
-}
+# include "testing_utils.h"
 
 context("C++ test yXXy with masking") {
   test_that("mailman algorithm reproduces naive implementation for yXXy") {
@@ -227,7 +167,6 @@ context("C++ test yXXy with masking") {
         partialsums, exclude_sel_snp);
 
     // then
-    // print the expected and observed values
     expect_true(std::abs(yXXy_expected(0, 0) - yXXy_observed(0, 0)) <
                 tolerance);
   }
@@ -360,7 +299,6 @@ context("C++ test XXz with masking") {
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
 
     // then
-
     expect_true(abs_error < tolerance);
   }
 
@@ -446,9 +384,7 @@ context("C++ test XXz with masking") {
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
 
     // then
-    // for some reason 5 numbers are off by 61.31 adding to an error of 306.55.
     expect_true(abs_error < tolerance);
-    //    expect_true(abs_error < 306.54);
   }
 }
 
@@ -516,12 +452,6 @@ context("C++ test XXy with masking") {
                     yint_m, y_e, y_m);
 
     MatrixXdr XXy_observed = MatrixXdr::Zero(n_samples, 1);
-    //    XXy_observed.col(0) +=
-    //        compute_XXy(block_size, pheno, fame_means, fame_stds, pheno_mask,
-    //                    genotype_mask_matrix, n_samples,
-    //                    sum_op, genotype_block, yint_m, y_m, block_size,
-    //                    yint_e, y_e, partialsums, focal_snp_local_index,
-    //                    false);
 
     XXy_observed.col(0) +=
         compute_XXz(block_size, pheno, fame_means, fame_stds, pheno_mask,
