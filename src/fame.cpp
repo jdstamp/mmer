@@ -135,7 +135,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples);
     // end insert
 
-    // experimental masking
+    // TODO: make "gxg" configurable
     string gxg_h5_dataset = "gxg";
     MatrixXdr genotype_mask;
     int n_gxg_snps;
@@ -143,7 +143,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
                        genotype_mask, n_gxg_snps);
 
-    // end experimental masking
     vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
 
     MatrixXdr gxg_random_vectors;
