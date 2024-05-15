@@ -11,7 +11,7 @@
 // header file.
 #include <testthat.h>
 
-# include "testing_utils.h"
+#include "testing_utils.h"
 
 context("C++ test yXXy with masking") {
   test_that("mailman algorithm reproduces naive implementation for yXXy") {

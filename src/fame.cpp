@@ -40,7 +40,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                     std::string covariate_file, int n_randvecs, int n_blocks,
                     int rand_seed, std::vector<int> gxg_indices,
                     std::string genotype_mask_file) {
-
+  MatrixXdr debug_S;
+  MatrixXdr debug_q;
   // Mailman algo variables.
   // TODO: Give meaningful names or move into mailman algo file
   double *partialsums = new double[0];
@@ -317,6 +318,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                            random_vectors, XXz, GxGz, yXXy,
                            n_snps_variance_component, n_samples_mask, S, q);
 
+    debug_S = S;
+    debug_q = q;
+
     MatrixXdr point_est = S.colPivHouseholderQr().solve(q);
 
     MatrixXdr cov_q;
@@ -337,7 +341,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   //            << std::endl;
 
   return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
-                            Rcpp::Named("vc_se") = SE);
+                            Rcpp::Named("vc_se") = SE,
+                            Rcpp::Named("S") = debug_S,
+                            Rcpp::Named("q") = debug_q
+                            );
 }
 
 void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,
