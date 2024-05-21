@@ -78,6 +78,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// simulate_a_trait_cpp
+Rcpp::List simulate_a_trait_cpp(std::string plink_file, float additive_heritability, float gxg_heritability, std::vector<int> additive_snps, std::vector<int> gxg_group_1, std::vector<int> gxg_group_2);
+RcppExport SEXP _famer_simulate_a_trait_cpp(SEXP plink_fileSEXP, SEXP additive_heritabilitySEXP, SEXP gxg_heritabilitySEXP, SEXP additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type plink_file(plink_fileSEXP);
+    Rcpp::traits::input_parameter< float >::type additive_heritability(additive_heritabilitySEXP);
+    Rcpp::traits::input_parameter< float >::type gxg_heritability(gxg_heritabilitySEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type additive_snps(additive_snpsSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_group_1(gxg_group_1SEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_group_2(gxg_group_2SEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_a_trait_cpp(plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2));
+    return rcpp_result_gen;
+END_RCPP
+}
 // readH5File
 std::vector<int> readH5File(const std::string& filename, const std::string& datasetName);
 RcppExport SEXP _famer_readH5File(SEXP filenameSEXP, SEXP datasetNameSEXP) {
@@ -127,6 +143,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_famer_count_snps_bim", (DL_FUNC) &_famer_count_snps_bim, 1},
     {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 8},
     {"_famer_fame_traits_cpp", (DL_FUNC) &_famer_fame_traits_cpp, 6},
+    {"_famer_simulate_a_trait_cpp", (DL_FUNC) &_famer_simulate_a_trait_cpp, 6},
     {"_famer_readH5File", (DL_FUNC) &_famer_readH5File, 2},
     {"_famer_replaceH5Dataset", (DL_FUNC) &_famer_replaceH5Dataset, 3},
     {"_famer_simulate_traits_cpp", (DL_FUNC) &_famer_simulate_traits_cpp, 6},

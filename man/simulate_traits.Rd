@@ -10,7 +10,8 @@ simulate_traits(
   additive_heritability,
   gxg_heritability,
   n_causal,
-  gxg_indices
+  gxg_indices,
+  log_level = "WARNING"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ simulate_traits(
 \item{n_causal}{Integer number of causal SNPs}
 
 \item{gxg_indices}{Vector of SNP indices that are chosen to be epistatic}
+
+\item{log_level}{Log level.}
 }
 \value{
 None

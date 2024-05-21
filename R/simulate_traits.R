@@ -6,6 +6,7 @@
 #' @param gxg_heritability Fraction of heritability due to additive only effects
 #' @param n_causal Integer number of causal SNPs
 #' @param gxg_indices Vector of SNP indices that are chosen to be epistatic
+#' @param log_level Log level.
 #'
 #' @return None
 #' @useDynLib famer
@@ -18,14 +19,15 @@ simulate_traits <- function(plink_file,
                             additive_heritability,
                             gxg_heritability,
                             n_causal,
-                            gxg_indices) {
+                            gxg_indices,
+                            log_level = "WARNING") {
 
    if (additive_heritability + gxg_heritability > 1) {
      stop("Additive heritability and gxg heritability should sum to less than 1")
    } else if (additive_heritability < 0 || gxg_heritability < 0) {
      stop("Heritabilities should be positive")
    }
-  logging::basicConfig()
+  logging::basicConfig(level = log_level)
   log <- logging::getLogger("famer::simulate_traits")
   gxg <- get_groups(gxg_indices)
   sim <- simulate_traits_cpp(plink_file,

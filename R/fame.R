@@ -8,6 +8,7 @@
 #' @param n_randvecs Integer. Number of random vectors.
 #' @param n_blocks Integer representing the number of blocks the SNPs will be read in.
 #' @param rand_seed Integer to seed generation of random vectors. Only positive values are considered.
+#' @param log_level Log level.
 #'
 #' @return A list of P values and PVEs
 #' @name fame
@@ -26,9 +27,10 @@ fame <-
            gxg_indices = NULL,
            n_randvecs = 10,
            n_blocks = 100,
-           rand_seed = -1) {
+           rand_seed = -1,
+           log_level = "WARNING") {
     logging::logReset()
-    logging::basicConfig(level = "DEBUG")
+    logging::basicConfig(level = log_level)
     log <- logging::getLogger("fame")
 
     bim_file <- paste0(plink_file, ".bim")

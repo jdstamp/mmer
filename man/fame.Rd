@@ -12,7 +12,8 @@ fame(
   gxg_indices = NULL,
   n_randvecs = 10,
   n_blocks = 100,
-  rand_seed = -1
+  rand_seed = -1,
+  log_level = "WARNING"
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ fame(
 \item{n_blocks}{Integer representing the number of blocks the SNPs will be read in.}
 
 \item{rand_seed}{Integer to seed generation of random vectors. Only positive values are considered.}
+
+\item{log_level}{Log level.}
 }
 \value{
 A list of P values and PVEs
