@@ -140,7 +140,7 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
         int val = encoding_to_allelecount(y[l]);
         // impute missing genotype
         val = (val == -1)
-                  ? impute_genotype(get_observed_allelefreq(gtype, metadata))
+                  ? 2 //impute_genotype(get_observed_allelefreq(gtype, metadata))
                   : val;
         encode_genotypes(genotype_block, j, val);
       }
