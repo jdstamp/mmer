@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# famer <img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:150px; width: 30%;" />
+# famer <a href="https://jdstamp.github.io/famer"><img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:150px; width: 30%;" /></a>
 
 <!-- badges: start -->
 <!-- badges: end -->

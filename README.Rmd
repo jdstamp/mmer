@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# famer <img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:150px; width: 30%;" />
+# famer <a href="https://jdstamp.github.io/famer"><img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:150px; width: 30%;" /></a>
 
 
 <!-- badges: start -->
