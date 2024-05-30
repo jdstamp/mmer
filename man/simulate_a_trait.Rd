@@ -24,13 +24,13 @@ simulate_a_trait(
 
 \item{gxg_heritability}{Fraction of heritability due to additive only effects}
 
+\item{additive_indices}{Vector of SNP indices that are chosen to contribute to the additive heritability}
+
 \item{gxg_indices_1}{Vector of SNP indices that are chosen to be epistatic in group 1}
 
 \item{gxg_indices_2}{Vector of SNP indices that are chosen to be epistatic in group 2}
 
 \item{log_level}{Log level.}
-
-\item{n_causal}{Integer number of causal SNPs}
 }
 \value{
 None

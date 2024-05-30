@@ -4,7 +4,7 @@
 #' @param output_file Path to the file that stores the simulated trait
 #' @param additive_heritability Float between 0 and 1 that quantifies the heritability of the trait
 #' @param gxg_heritability Fraction of heritability due to additive only effects
-#' @param n_causal Integer number of causal SNPs
+#' @param additive_indices Vector of SNP indices that are chosen to contribute to the additive heritability
 #' @param gxg_indices_1 Vector of SNP indices that are chosen to be epistatic in group 1
 #' @param gxg_indices_2 Vector of SNP indices that are chosen to be epistatic in group 2
 #' @param log_level Log level.
