@@ -1,0 +1,9 @@
+^famer\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^Makefile$
+.idea
+^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

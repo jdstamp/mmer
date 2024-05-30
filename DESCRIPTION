@@ -1,0 +1,29 @@
+Package: famer
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Julian", "Stamp", email = "julian_stamp@brown.edu",
+    role = c("cre", "aut"), comment = c(ORCID = "0000-0003-3014-6249")),
+    person("Lorin", "Crawford", email = "lorin_crawford@brown.edu",
+    role = "aut", comment = c(ORCID = "0000-0003-0178-8242")))
+Description: What the package does (one paragraph).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+LinkingTo:
+    BH,
+    Rcpp,
+    RcppEigen,
+    testthat
+Imports: 
+    dplyr,
+    genio,
+    logging,
+    Rcpp,
+    RcppEigen,
+    tidyr
+Suggests: 
+    testthat (>= 3.0.0),
+    xml2
+Config/testthat/edition: 3
