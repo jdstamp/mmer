@@ -54,3 +54,8 @@ rsconnect/
 
 .DS_Store
 docs
+
+# Profiling files
+src/runner
+src/runner.cpp
+src/compile-runner.sh
