@@ -33,3 +33,8 @@ void normalize_genotype(MatrixXdr &focal_genotype, const int &n_samples);
 int get_sample_block_size(const int &n_samples, const int &k, const int &ncol);
 
 void encode_genotypes(genotype &genotype_block, int j, int val);
+
+void read_masked_genotype_block(std::istream &ifs, const int &block_size,
+                                genotype &genotype_block, const int &n_samples,
+                                int &global_snp_index, const metaData &metadata,
+                                const std::vector<int> &snp_indices);

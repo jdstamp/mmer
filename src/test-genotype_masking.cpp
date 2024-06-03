@@ -710,3 +710,99 @@ context("C++ test focal SNP exclusion") {
     expect_true(abs_error < tolerance);
   }
 }
+
+context("C++ rework masking") {
+  test_that("reworked masking gives the expected result for yXXy") {
+    // given
+    int n_variance_components = 1;
+    int focal_snp_local_index = 0;
+    genotype genotype_block;
+    std::vector<int> genotype_indices = {1,2,4,6,7};
+    std::vector<int> genotype_mask = {0, 1, 1, 0, 1, 0, 1, 1, 0, 0};
+    std::vector<int> skip_genotype_mask = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    // convert the genotype mask to a MatrixXdr
+    MatrixXdr genotype_mask_matrix = MatrixXdr::Zero(block_size, 1);
+    MatrixXdr skip_genotype_mask_matrix = MatrixXdr::Zero(block_size, 1);
+    for (int i = 0; i < block_size; i++) {
+      genotype_mask_matrix(i, 0) = genotype_mask[i];
+      skip_genotype_mask_matrix(i, 0) = skip_genotype_mask[i];
+    }
+    int mask_size = genotype_mask_matrix.sum();
+
+    set_block_parameters(genotype_block, n_samples, mask_size);
+    std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
+    int global_snp_index = -1;
+    read_masked_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
+                        global_snp_index, metadata, genotype_indices);
+
+    // print genotype_block.block_size
+        std::cout << "Block size: " << genotype_block.block_size << std::endl;
+
+    MatrixXdr data = readCSVToMatrixXdr(test_csv);
+    MatrixXdr matrix_block = data.block(0, 0, n_samples, block_size);
+    MatrixXdr masked_matrix_block(n_samples, mask_size);
+    int count = 0;
+    for (int i = 0; i < block_size; i++) {
+      if (genotype_mask[i] == 1) {
+        masked_matrix_block.col(count) = matrix_block.col(i);
+        count++;
+      }
+    }
+
+    MatrixXdr fame_means(mask_size, 1);
+    MatrixXdr fame_stds(mask_size, 1);
+    compute_block_stats(genotype_block, fame_means, fame_stds, n_samples,
+                        mask_size);
+
+    MatrixXdr TWO = MatrixXdr::Ones(n_samples, mask_size) * 2;
+    masked_matrix_block = TWO - masked_matrix_block;
+    MatrixXdr means(mask_size, 1);
+    MatrixXdr stds(mask_size, 1);
+    means = masked_matrix_block.colwise().mean().transpose();
+    for (int i = 0; i < mask_size; i++) {
+      stds(i, 0) = 1 / sqrt((means(i, 0) * (1 - (0.5 * means(i, 0)))));
+    }
+    for (int i = 0; i < mask_size; i++) {
+      masked_matrix_block.col(i) =
+          masked_matrix_block.col(i).array() - means(i, 0);
+      masked_matrix_block.col(i) =
+          masked_matrix_block.col(i).array() * stds(i, 0);
+    }
+
+    MatrixXdr pheno_mask;
+    MatrixXdr pheno;
+    read_phenotypes(n_samples, test_pheno, pheno, pheno_mask);
+
+    MatrixXdr Xy(mask_size, n_samples);
+    MatrixXdr yXXy_expected(1, 1);
+    Xy = masked_matrix_block.transpose() * pheno;
+    yXXy_expected(0, 0) = (Xy.array() * Xy.array()).sum();
+
+    // when
+    // memory setup for mailman
+    double *partialsums = new double[0];
+    double *sum_op;
+    double *yint_e;
+    double *yint_m;
+    double **y_e;
+    double **y_m;
+    bool exclude_sel_snp = false;
+    allocate_memory(10, genotype_block, partialsums, sum_op, yint_e,
+                    yint_m, y_e, y_m);
+
+    MatrixXdr yXXy_observed;
+    yXXy_observed = MatrixXdr::Zero(n_variance_components, 1);
+    yXXy_observed(0, 0) += compute_yXXy(
+        mask_size, pheno, fame_means, fame_stds, focal_snp_local_index, sum_op,
+        genotype_block, skip_genotype_mask_matrix, yint_m, y_m, mask_size,
+        partialsums, exclude_sel_snp);
+
+    // print yXXy_expected and yXXy_observed
+        std::cout << "yXXy_expected: " << yXXy_expected << std::endl;
+        std::cout << "yXXy_observed: " << yXXy_observed << std::endl;
+
+    // then
+    expect_true(std::abs(yXXy_expected(0, 0) - yXXy_observed(0, 0)) <
+                tolerance);
+  }
+}

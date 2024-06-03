@@ -150,6 +150,7 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
   }
   delete[] gtype;
 }
+
 void encode_genotypes(genotype &genotype_block, int j, int val) {
   int snp_index;
   snp_index = genotype_block.block_size;
@@ -180,4 +181,53 @@ int encoding_to_allelecount(const int &value) {
     // Handle invalid input
     return -1; // or any other default value you prefer
   }
+}
+
+void read_masked_genotype_block(std::istream &ifs, const int &block_size,
+                                genotype &genotype_block, const int &n_samples,
+                                int &global_snp_index, const metaData &metadata,
+                                const std::vector<int> &snp_indices) {
+  char magic[3];
+
+  unsigned char *gtype;
+  gtype = new unsigned char[metadata.ncol];
+
+  if (global_snp_index < 0) {
+    binary_read(ifs, magic);
+  }
+  int y[4];
+
+  // sort genotype_mask
+        std::vector<int> sorted_indices = snp_indices;
+        std::sort(sorted_indices.begin(), sorted_indices.end());
+
+  for (int snp : sorted_indices) {
+    // while global_snp_index < snp
+    for (int i = global_snp_index; i < snp; i++) {
+      global_snp_index++;
+      ifs.read(reinterpret_cast<char *>(gtype),
+               metadata.ncol * sizeof(unsigned char));
+    }
+    for (int k = 0; k < metadata.ncol; k++) {
+      unsigned char c = gtype[k];
+      unsigned char mask = metadata.mask;
+      extract_plink_genotypes(y, c, mask);
+      int j0 = k * metadata.unitsperword;
+      int ncol = metadata.ncol;
+      int lmax = get_sample_block_size(n_samples, k, ncol);
+      for (int l = 0; l < lmax; l++) {
+        int j = j0 + l;
+        int val = encoding_to_allelecount(y[l]);
+        // impute missing genotype
+        val = (val == -1)
+                  ? 2 //impute_genotype(get_observed_allelefreq(gtype, metadata))
+                  : val;
+
+        encode_genotypes(genotype_block, j, val);
+      }
+    }
+
+    genotype_block.block_size++;
+  }
+  delete[] gtype;
 }
