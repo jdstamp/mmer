@@ -231,3 +231,43 @@ void read_masked_genotype_block(std::istream &ifs, const int &block_size,
   }
   delete[] gtype;
 }
+
+void read_block(std::istream &ifs, const int &block_size,
+                         genotype &genotype_block, const int &n_samples,
+                         int &global_snp_index, const metaData &metadata) {
+  for (int i = 0; i < block_size; i++) {
+    MatrixXdr genotype;
+    char magic[3];
+
+    unsigned char *gtype;
+    gtype = new unsigned char[metadata.ncol];
+
+    if (global_snp_index < 0) {
+      binary_read(ifs, magic);
+    }
+    int y[4];
+    global_snp_index++;
+    ifs.read(reinterpret_cast<char *>(gtype),
+             metadata.ncol * sizeof(unsigned char));
+
+    for (int k = 0; k < metadata.ncol; k++) {
+      unsigned char c = gtype[k];
+      unsigned char mask = metadata.mask;
+      extract_plink_genotypes(y, c, mask);
+      int j0 = k * metadata.unitsperword;
+      int ncol = metadata.ncol;
+      int lmax = get_sample_block_size(n_samples, k, ncol);
+      for (int l = 0; l < lmax; l++) {
+        int j = j0 + l;
+        int val = encoding_to_allelecount(y[l]);
+        val = (val == -1)
+                  ? 2
+                  : val;
+        genotype(j, 0) = val;
+        encode_genotypes(genotype_block, j, genotype(j, 0));
+      }
+    }
+    genotype_block.block_size++;
+  }
+  delete[] gtype;
+}

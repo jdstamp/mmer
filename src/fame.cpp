@@ -89,6 +89,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   // Covariate handling - needs cleanup
   double y_sum = 0;
   double y_mean = 0;
+
+  // TODO: move covariate fitting to a separate function? doing it repeatedly
+  //  is a waste of time
   if (covariate_file != "") {
     bool snp_fix_ef = false;
     MatrixXdr covariate;
@@ -115,9 +118,56 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     }
   }
 
+  std::vector<int> grm_indices;
+  for (int i = 0; i <= n_snps; ++i) {
+    grm_indices.push_back(i);
+  }
+  MatrixXdr temp_grm;
+  MatrixXdr random_vectors;
+
+  XXz = MatrixXdr::Zero(n_samples, n_randvecs);
+  random_vectors = initialize_random_vectors(
+      n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples);
+
   metaData metadata = set_metadata(n_samples, n_snps);
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   int global_snp_index = -1;
+    for (int block_index = 0; block_index < n_blocks; block_index++) {
+
+      int block_size = block_sizes[block_index];
+
+      MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
+
+      set_block_parameters(genotype_block, n_samples, block_size);
+
+      std::vector<int> block_indices;
+      for (int i = block_index * block_size; i < (block_index + 1) * block_size; i++) {
+        block_indices.push_back(grm_indices[i]);
+      }
+        read_masked_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
+                                   global_snp_index, metadata, block_indices);
+
+      if (block_size != 0) {
+        compute_block_stats(genotype_block, allelecount_means,
+        allelecount_stds,
+                            n_samples, block_size);
+
+        allocate_memory(n_randvecs, genotype_block, partialsums, sum_op,
+        yint_e,
+                        yint_m, y_e, y_m);
+
+        temp_grm = compute_XXz(
+            block_size, random_vectors, allelecount_means, allelecount_stds,
+            pheno_mask, grm_mask, n_randvecs, n_samples, sum_op, genotype_block,
+            yint_m, y_m, block_size, yint_e, y_e, partialsums, 0, false);
+
+        for (int z_index = 0; z_index < n_randvecs; z_index++) {
+          XXz.col(z_index) += temp_grm.col(z_index);
+        }
+        deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
+                          genotype_block);
+      }
+    }
 
   auto start_gxg = std::chrono::high_resolution_clock::now();
 
@@ -127,14 +177,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     process_count++;
     //    std::cout << "gxg_i: " << gxg_i << std::endl;
     MatrixXdr focal_snp_gtype;
-    // insert declaration GRM
-    MatrixXdr temp_grm;
-    MatrixXdr random_vectors;
-
-    XXz = MatrixXdr::Zero(n_samples, n_randvecs);
-    random_vectors = initialize_random_vectors(
-        n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples);
-    // end insert
 
     // TODO: make "gxg" configurable
     string gxg_h5_dataset = "gxg";
@@ -163,9 +205,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     int focal_snp_block = std::min(gxg_i / step_size, n_blocks - 1);
 
     int focal_snp_local_index = gxg_i - (step_size * focal_snp_block);
-
-    random_vectors = initialize_random_vectors(
-        n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples);
 
     gxg_random_vectors =
         random_vectors.array().colwise() * focal_snp_gtype.col(0).array();
@@ -199,16 +238,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
         allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
                         yint_m, y_e, y_m);
-        // insert GRM
-        temp_grm = compute_XXz(
-            block_size, random_vectors, allelecount_means, allelecount_stds,
-            pheno_mask, grm_mask, n_randvecs, n_samples, sum_op, genotype_block,
-            yint_m, y_m, block_size, yint_e, y_e, partialsums, 0, false);
 
-        for (int z_index = 0; z_index < n_randvecs; z_index++) {
-          XXz.col(z_index) += temp_grm.col(z_index);
-        }
-        // end insert GRM
         bool in_gxg_block = (focal_snp_block == block_index);
         temp_gxg = compute_XXz(
             block_size, gxg_random_vectors, allelecount_means, allelecount_stds,

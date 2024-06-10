@@ -2,8 +2,8 @@
 #include <string>
 
 int main() {
-  std::string plink_file = "/Users/jds/data/ukbb/c12_100k-samples_020k-snps";
-  std::string pheno_file = "/Users/jds/data/ukbb/c12_100k-samples_010k-snps.phen";
+  std::string plink_file = "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed";
+  std::string pheno_file = "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed.phen";
   std::string covariate_file = "";
   std::string mask_file = ""; // "/Users/jds/Downloads/test100k/hdf5_mask.h5"
   int n_randvecs = 100;
