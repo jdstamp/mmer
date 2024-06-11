@@ -1,5 +1,6 @@
 #include "read_genotypes.h"
 
+
 void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
                     const int &focal_snp_index, const int &n_samples,
                     const int &n_snps, int &global_snp_index) {
@@ -110,25 +111,34 @@ int impute_genotype(const float &p_j) {
 void read_genotype_block(std::istream &ifs, const int &block_size,
                          genotype &genotype_block, const int &n_samples,
                          int &global_snp_index, const metaData &metadata) {
-  char magic[3];
 
+
+  for (int i = 0; i < block_size; i++) {
+    MatrixXdr genotype_matrix = MatrixXdr::Zero(n_samples, 1);
+    read_snp(ifs, n_samples, global_snp_index, metadata, genotype_matrix);
+
+    for (int j = 0; j < n_samples; j++) {
+        encode_genotypes(genotype_block, j, genotype_matrix(j, 0));
+      }
+
+    genotype_block.block_size++;
+
+  }
+}
+void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
+              const metaData &metadata, MatrixXdr &genotype_matrix) {
+  char magic[3];
   unsigned char *gtype;
   gtype = new unsigned char[metadata.ncol];
-
   if (global_snp_index < 0) {
     binary_read(ifs, magic);
   }
   int y[4];
+  global_snp_index++;
+  ifs.read(reinterpret_cast<char *>(gtype),
+           metadata.ncol * sizeof(unsigned char));
 
-  for (int i = 0; i < block_size; i++) {
-    global_snp_index++;
-    ifs.read(reinterpret_cast<char *>(gtype),
-             metadata.ncol * sizeof(unsigned char));
-    // TODO: compute p_j in preprocessing for all SNPs and only look up when
-    //  needed?
-    //    float p_j = get_observed_allelefreq(gtype, metadata);
-
-    for (int k = 0; k < metadata.ncol; k++) {
+  for (int k = 0; k < metadata.ncol; k++) {
       unsigned char c = gtype[k];
       unsigned char mask = metadata.mask;
       extract_plink_genotypes(y, c, mask);
@@ -138,15 +148,12 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
       for (int l = 0; l < lmax; l++) {
         int j = j0 + l;
         int val = encoding_to_allelecount(y[l]);
-        // impute missing genotype
+        // set missing genotype to major allele
         val = (val == -1)
-                  ? 2 //impute_genotype(get_observed_allelefreq(gtype, metadata))
+                  ? 2
                   : val;
-        encode_genotypes(genotype_block, j, val);
+        genotype_matrix(j, 0) = val;
       }
-    }
-
-    genotype_block.block_size++;
   }
   delete[] gtype;
 }
@@ -181,53 +188,4 @@ int encoding_to_allelecount(const int &value) {
     // Handle invalid input
     return -1; // or any other default value you prefer
   }
-}
-
-void read_masked_genotype_block(std::istream &ifs, const int &block_size,
-                                genotype &genotype_block, const int &n_samples,
-                                int &global_snp_index, const metaData &metadata,
-                                const std::vector<int> &snp_indices) {
-  char magic[3];
-
-  unsigned char *gtype;
-  gtype = new unsigned char[metadata.ncol];
-
-  if (global_snp_index < 0) {
-    binary_read(ifs, magic);
-  }
-  int y[4];
-
-  // sort genotype_mask
-        std::vector<int> sorted_indices = snp_indices;
-        std::sort(sorted_indices.begin(), sorted_indices.end());
-
-  for (int snp : sorted_indices) {
-    // while global_snp_index < snp
-    for (int i = global_snp_index; i < snp; i++) {
-      global_snp_index++;
-      ifs.read(reinterpret_cast<char *>(gtype),
-               metadata.ncol * sizeof(unsigned char));
-    }
-    for (int k = 0; k < metadata.ncol; k++) {
-      unsigned char c = gtype[k];
-      unsigned char mask = metadata.mask;
-      extract_plink_genotypes(y, c, mask);
-      int j0 = k * metadata.unitsperword;
-      int ncol = metadata.ncol;
-      int lmax = get_sample_block_size(n_samples, k, ncol);
-      for (int l = 0; l < lmax; l++) {
-        int j = j0 + l;
-        int val = encoding_to_allelecount(y[l]);
-        // impute missing genotype
-        val = (val == -1)
-                  ? 2 //impute_genotype(get_observed_allelefreq(gtype, metadata))
-                  : val;
-
-        encode_genotypes(genotype_block, j, val);
-      }
-    }
-
-    genotype_block.block_size++;
-  }
-  delete[] gtype;
 }
