@@ -340,11 +340,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   //  seconds."
   //            << std::endl;
 
-  return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
-                            Rcpp::Named("vc_se") = SE,
-                            Rcpp::Named("S") = debug_S,
-                            Rcpp::Named("q") = debug_q
-                            );
+  return Rcpp::List::create(
+      Rcpp::Named("vc_estimate") = VC, Rcpp::Named("vc_se") = SE,
+      Rcpp::Named("S") = debug_S, Rcpp::Named("q") = debug_q);
 }
 
 void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,

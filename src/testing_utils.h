@@ -6,7 +6,7 @@
 #include "allocate_memory.h"
 #include "computation.h"
 #include "compute_block_stats.h"
-# include "compute_covariance_q.h"
+#include "compute_covariance_q.h"
 #include "compute_mom_components.h"
 #include "fame.h"
 #include "genotype.h"
