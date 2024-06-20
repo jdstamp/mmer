@@ -69,12 +69,12 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr GxGz;
   MatrixXdr yXXy;
   MatrixXdr yGxGy;
+  MatrixXdr collect_XXy;
+  MatrixXdr collect_XXUy;
 
   MatrixXdr random_vectors;
   MatrixXdr gxg_random_vectors;
 
-  MatrixXdr collect_XXy;
-  MatrixXdr collect_XXUy;
   genotype grm_genotype_block;
   std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
 
@@ -132,6 +132,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   random_vectors = initialize_random_vectors(n_randvecs, rand_seed, pheno_mask,
                                              random_vectors, n_samples);
 
+  collect_XXUy =
+      MatrixXdr::Zero(n_samples, (n_variance_components + 1) *
+                                     (n_variance_components + 1) * n_gxg_idx);
+
   metaData metadata = set_metadata(n_samples, n_snps);
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   int global_snp_index = -1;
@@ -181,8 +185,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     yXXy = MatrixXdr::Zero(1, 1);
 
     collect_XXy = MatrixXdr::Zero(n_samples, n_variance_components + 1);
-    collect_XXUy = MatrixXdr::Zero(n_samples, (n_variance_components + 1) *
-                                                  (n_variance_components + 1));
+    //    collect_XXUy = MatrixXdr::Zero(n_samples, (n_variance_components + 1)
+    //    *
+    //                                                  (n_variance_components +
+    //                                                  1));
 
     bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
     global_snp_index = -1;
@@ -329,7 +335,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
               grm_genotype_block, yint_m, y_m, block_size, yint_e, y_e,
               partialsums, focal_snp_local_index, false);
 
-          collect_XXUy.col(i) += temp_XXUy / n_snps_variance_component[0];
+          collect_XXUy.col(i + (n_variance_components + 1) *
+                                   (n_variance_components + 1) *
+                                   process_count) +=
+              temp_XXUy / n_snps_variance_component[0];
         }
         deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
                           grm_genotype_block);
@@ -348,7 +357,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                           yint_m, y_m, gxg_snps_in_block, yint_e, y_e,
                           partialsums, focal_snp_local_index, false);
           temp_GUy = temp_GUy.array() * focal_snp_gtype.col(0).array();
-          collect_XXUy.col(((n_variance_components + 1)) + i) +=
+          collect_XXUy.col(((n_variance_components + 1)) + i +
+                           (n_variance_components + 1) *
+                               (n_variance_components + 1) * process_count) +=
               temp_GUy / n_snps_variance_component[1];
         }
         deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
@@ -357,19 +368,25 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     }
 
     for (int i = 0; i < (n_variance_components + 1); i++) {
-      collect_XXUy.col((n_variance_components * (n_variance_components + 1)) +
-                       i) = collect_XXy.col(i);
+      collect_XXUy.col(
+          (n_variance_components * (n_variance_components + 1)) + i +
+          (n_variance_components + 1) * (n_variance_components + 1) *
+              process_count) = collect_XXy.col(i);
     }
-    //  }
-    //  for (int process_count = 0; process_count < n_gxg_idx; process_count++)
-    //  {
-    //    vector<int> n_snps_variance_component = {n_snps,
-    //    n_mask_gxg[process_count]};
+  }
+
+  for (int process_count = 0; process_count < n_gxg_idx; process_count++) {
+    vector<int> n_snps_variance_component = {n_snps, n_mask_gxg[process_count]};
 
     int n_samples_mask = pheno_mask.sum();
 
     MatrixXdr GxG =
         GxGz.block(0, process_count * n_randvecs, n_samples, n_randvecs);
+    MatrixXdr XXUy = collect_XXUy.block(
+        0,
+        +(n_variance_components + 1) * (n_variance_components + 1) *
+            process_count,
+        n_samples, +(n_variance_components + 1) * (n_variance_components + 1));
 
     // naming from eq. (5) in mvMAPIT paper
     MatrixXdr S(n_variance_components + 1, n_variance_components + 1);
@@ -382,7 +399,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     MatrixXdr point_est = S.colPivHouseholderQr().solve(q);
 
     MatrixXdr cov_q;
-    compute_covariance_q(n_variance_components, collect_XXUy, point_est, cov_q);
+    compute_covariance_q(n_variance_components, XXUy, point_est, cov_q);
 
     MatrixXdr invS = S.inverse();
 
