@@ -7,7 +7,8 @@
 void compute_mom_components(int n_randvecs, int n_variance_components,
                             const MatrixXdr &pheno,
                             const MatrixXdr &random_vectors, MatrixXdr &XXz,
-                            MatrixXdr &GxGz, const MatrixXdr &yXXy,
+                            MatrixXdr &GxGz, const double &yXXy,
+                            const double &yGxGy,
                             const std::vector<int> &n_snps_variance_component,
                             int n_samples_mask, MatrixXdr &S, MatrixXdr &q) {
   std::vector<MatrixXdr *> random_trace_components;
@@ -17,8 +18,12 @@ void compute_mom_components(int n_randvecs, int n_variance_components,
   MatrixXdr b_trk(n_variance_components, 1);
   MatrixXdr c_yky(n_variance_components, 1);
 
+  MatrixXdr yVy = MatrixXdr::Zero(2, 1);
+  yVy(0, 0) = yXXy;
+  yVy(1, 0) = yGxGy;
+
   for (int i = 0; i < n_variance_components; i++) {
-    c_yky(i, 0) = yXXy(i, 0) / n_snps_variance_component[i];
+    c_yky(i, 0) = yVy(i, 0) / n_snps_variance_component[i];
 
     for (int j = i; j < n_variance_components; j++) {
       MatrixXdr B1 = *random_trace_components[i];

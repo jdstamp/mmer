@@ -238,7 +238,7 @@ context("C++ test mqs method is implemented correctly") {
     MatrixXdr S_observed(n_variance_components + 1, n_variance_components + 1);
     MatrixXdr q_observed(n_variance_components + 1, 1);
     compute_mom_components(n_randvecs, n_variance_components, pheno,
-                           random_vectors, XXz, GxGz, yXXy,
+                           random_vectors, XXz, GxGz, yXXy(0, 0), yXXy(1, 0),
                            n_snps_variance_component, n_samples_mask,
                            S_observed, q_observed);
 
@@ -456,7 +456,7 @@ context("C++ test variance of mqs method is implemented correctly") {
     MatrixXdr S_observed(n_variance_components + 1, n_variance_components + 1);
     MatrixXdr q_observed(n_variance_components + 1, 1);
     compute_mom_components(n_randvecs, n_variance_components, pheno,
-                           random_vectors, XXz, GxGz, yXXy,
+                           random_vectors, XXz, GxGz, yXXy(0, 0), yXXy(1, 0),
                            n_snps_variance_component, n_samples_mask,
                            S_observed, q_observed);
 

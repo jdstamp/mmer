@@ -114,13 +114,17 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
   for (int i = 0; i < block_size; i++) {
     MatrixXdr genotype_matrix = MatrixXdr::Zero(n_samples, 1);
     read_snp(ifs, n_samples, global_snp_index, metadata, genotype_matrix);
-
-    for (int j = 0; j < n_samples; j++) {
-      encode_genotypes(genotype_block, j, genotype_matrix(j, 0));
-    }
-
-    genotype_block.block_size++;
+    encode_snp(genotype_block, genotype_matrix);
   }
+}
+
+void encode_snp(genotype &genotype_block, const MatrixXdr &genotype_matrix) {
+  int n_samples = genotype_matrix.rows();
+  for (int j = 0; j < n_samples; j++) {
+    encode_genotypes(genotype_block, j, genotype_matrix(j, 0));
+  }
+
+  genotype_block.block_size++;
 }
 void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
               const metaData &metadata, MatrixXdr &genotype_matrix) {

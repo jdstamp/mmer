@@ -42,7 +42,6 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
   res.resize(num_snp, Nz);
   multiply_y_pre_fast(Z_b, Nz, res, false, sum_op, genotype_block, yint_m, y_m,
                       p, partialsums);
-
   MatrixXdr zb_sum = Z_b.colwise().sum();
 
   for (int j = 0; j < num_snp; j++)

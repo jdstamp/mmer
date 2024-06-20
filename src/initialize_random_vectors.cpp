@@ -7,6 +7,8 @@
 MatrixXdr &initialize_random_vectors(int n_randvecs, int rand_seed,
                                      const MatrixXdr &pheno_mask,
                                      MatrixXdr &random_vectors, int n_samples) {
+  // TODO: signature should either return matrix or pass it by reference...
+  //  clean this up!
   random_vectors = MatrixXdr::Zero(n_samples, n_randvecs);
 
   boost::mt19937 seedr;
