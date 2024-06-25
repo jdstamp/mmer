@@ -144,53 +144,26 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   int global_snp_index = -1;
 
   // TODO: parallel loop starts here?
-  for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
-       parallel_idx++) { //  parallel loop old
-    XXz = MatrixXdr::Zero(n_samples, n_randvecs);
-    yXXy = MatrixXdr::Zero(1, 1);
-    collect_XXy = MatrixXdr::Zero(n_samples, 1);
-    MatrixXdr temp_grm;
+  //  for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+  //       parallel_idx++) { //  parallel loop old
+  XXz = MatrixXdr::Zero(n_samples, n_randvecs);
+  yXXy = MatrixXdr::Zero(1, 1);
+  collect_XXy = MatrixXdr::Zero(n_samples, 1);
+  MatrixXdr temp_grm;
 
-    random_vectors = initialize_random_vectors(
-        n_randvecs, rand_seed, pheno_mask, random_vectors, n_samples);
+  random_vectors = initialize_random_vectors(n_randvecs, rand_seed, pheno_mask,
+                                             random_vectors, n_samples);
 
-    //    MatrixXdr genotype_mask;
-    //    int n_gxg_snps;
-    //    MatrixXdr focal_snp_gtype;
-    //    MatrixXdr gxg_allelecount_means;
-    //    MatrixXdr gxg_allelecount_stds;
-    //    // read mask file into genotype_mask and n_gxg_snps
-    //    int gxg_i = gxg_indices[parallel_idx];
-    //    read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
-    //                       genotype_mask, n_gxg_snps);
-    //    n_mask_gxg[parallel_idx] = n_gxg_snps;
-    //    vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
-    //
-    //    focal_snp_gtype.resize(n_samples, 1);
-    //    global_snp_index = -1;
-    //    read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps,
-    //                   global_snp_index);
-    //    normalize_genotype(focal_snp_gtype, n_samples);
-    //
-    //    int focal_snp_block = std::min(gxg_i / step_size, n_blocks - 1);
-    //    int focal_snp_local_index = gxg_i - (step_size * focal_snp_block);
-    //
-    //    gxg_random_vectors =
-    //        random_vectors.array().colwise() * focal_snp_gtype.col(0).array();
-    //    MatrixXdr temp_gxg;
+  bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+  global_snp_index = -1;
 
-    bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
-    global_snp_index = -1;
+  for (int block_index = 0; block_index < n_blocks; block_index++) {
 
-    for (int block_index = 0; block_index < n_blocks; block_index++) {
-
-      int block_size = block_sizes[block_index];
-      MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
-      MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
-      set_block_parameters(grm_genotype_block, n_samples, block_size);
-
-      //        for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
-      //        parallel_idx++) { // parallel loop 0
+    int block_size = block_sizes[block_index];
+    MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+    MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
+    set_block_parameters(grm_genotype_block, n_samples, block_size);
+    for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
       // initialize gxg_mask
       int n_gxg_snps;
       MatrixXdr genotype_mask;
@@ -202,44 +175,56 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       int gxg_snps_in_block = gxg_mask.sum();
       set_block_parameters(gxg_genotype_blocks[parallel_idx], n_samples,
                            gxg_snps_in_block);
-      for (int i = 0; i < block_size; i++) {
-        read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
-        encode_snp(grm_genotype_block, snp_matrix);
+    }
+
+    for (int i = 0; i < block_size; i++) {
+      read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+      encode_snp(grm_genotype_block, snp_matrix);
+      for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+           parallel_idx++) { // parallel loop 0
+        // initialize gxg_mask
+        int n_gxg_snps;
+        MatrixXdr genotype_mask;
+        int gxg_i = gxg_indices[parallel_idx];
+        read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
+                           genotype_mask, n_gxg_snps);
+        MatrixXdr gxg_mask =
+            genotype_mask.block(block_index * block_size, 0, block_size, 1);
+        int gxg_snps_in_block = gxg_mask.sum();
         if (gxg_mask(i, 0) == 1) {
           encode_snp(gxg_genotype_blocks[parallel_idx], snp_matrix);
         }
+      } // end of parallel loop 0
+    }
+
+    if (block_size != 0) {
+      compute_block_stats(grm_genotype_block, allelecount_means,
+                          allelecount_stds, n_samples, block_size);
+
+      allocate_memory(n_randvecs, grm_genotype_block, partialsums, sum_op,
+                      yint_e, yint_m, y_e, y_m);
+      temp_grm = compute_XXz(block_size, random_vectors, allelecount_means,
+                             allelecount_stds, pheno_mask, grm_mask, n_randvecs,
+                             n_samples, sum_op, grm_genotype_block, yint_m, y_m,
+                             block_size, yint_e, y_e, partialsums, 0, false);
+
+      for (int z_index = 0; z_index < n_randvecs; z_index++) {
+        XXz.col(z_index) += temp_grm.col(z_index);
       }
-      //        } end of parallel loop 0
 
-      if (block_size != 0) {
-        compute_block_stats(grm_genotype_block, allelecount_means,
-                            allelecount_stds, n_samples, block_size);
+      yXXy(0, 0) +=
+          compute_yXXy(block_size, pheno, allelecount_means, allelecount_stds,
+                       0, sum_op, grm_genotype_block, grm_mask, yint_m, y_m,
+                       block_size, partialsums, false);
+      collect_XXy.col(0) += compute_XXz(
+          block_size, pheno, allelecount_means, allelecount_stds, pheno_mask,
+          grm_mask, 1, n_samples, sum_op, grm_genotype_block, yint_m, y_m,
+          block_size, yint_e, y_e, partialsums, 0, false);
+      deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
+                        grm_genotype_block);
 
-        allocate_memory(n_randvecs, grm_genotype_block, partialsums, sum_op,
-                        yint_e, yint_m, y_e, y_m);
-        temp_grm =
-            compute_XXz(block_size, random_vectors, allelecount_means,
-                        allelecount_stds, pheno_mask, grm_mask, n_randvecs,
-                        n_samples, sum_op, grm_genotype_block, yint_m, y_m,
-                        block_size, yint_e, y_e, partialsums, 0, false);
-
-        for (int z_index = 0; z_index < n_randvecs; z_index++) {
-          XXz.col(z_index) += temp_grm.col(z_index);
-        }
-
-        yXXy(0, 0) +=
-            compute_yXXy(block_size, pheno, allelecount_means, allelecount_stds,
-                         0, sum_op, grm_genotype_block, grm_mask, yint_m, y_m,
-                         block_size, partialsums, false);
-        collect_XXy.col(0) += compute_XXz(
-            block_size, pheno, allelecount_means, allelecount_stds, pheno_mask,
-            grm_mask, 1, n_samples, sum_op, grm_genotype_block, yint_m, y_m,
-            block_size, yint_e, y_e, partialsums, 0, false);
-        deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
-                          grm_genotype_block);
-
-        //        for (int parallel_idx = 0; parallel_idx < n_gxg_idx;  //
-        //        parallel_idx++) { // parallel loop 1
+      for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+           parallel_idx++) { // parallel loop 1
         MatrixXdr focal_snp_gtype;
         MatrixXdr gxg_allelecount_means;
         MatrixXdr gxg_allelecount_stds;
@@ -249,6 +234,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         int gxg_i = gxg_indices[parallel_idx];
         read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
                            genotype_mask, n_gxg_snps);
+        MatrixXdr gxg_mask =
+            genotype_mask.block(block_index * block_size, 0, block_size, 1);
+        int gxg_snps_in_block = gxg_mask.sum();
         n_mask_gxg[parallel_idx] = n_gxg_snps;
         vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
 
@@ -304,31 +292,29 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                          y_m, gxg_snps_in_block, partialsums, in_gxg_block);
         deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
                           gxg_genotype_blocks[parallel_idx]);
-        //      } // end of parallel loop 1
-      }
+      } // end of parallel loop 1
     }
+  }
 
-    collect_XXy = collect_XXy / n_snps;
+  collect_XXy = collect_XXy / n_snps;
 
-    // TODO: enable this when loop is in block
-    //    for (int i = 0; i < n_gxg_idx; i++) {
-    //      collect_Gy.col(i) = collect_Gy.col(i) / n_mask_gxg[i];
-    //    }
-    collect_Gy.col(parallel_idx) =
-        collect_Gy.col(parallel_idx) / n_mask_gxg[parallel_idx];
+  // TODO: enable this when loop is in block
+  for (int i = 0; i < n_gxg_idx; i++) {
+    collect_Gy.col(i) = collect_Gy.col(i) / n_mask_gxg[i];
+  }
+  //    collect_Gy.col(parallel_idx) =
+  //        collect_Gy.col(parallel_idx) / n_mask_gxg[parallel_idx];
 
-    bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
-    global_snp_index = -1;
+  bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+  global_snp_index = -1;
 
-    for (int block_index = 0; block_index < n_blocks; block_index++) {
+  for (int block_index = 0; block_index < n_blocks; block_index++) {
 
-      int block_size = block_sizes[block_index];
-      MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
-      MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
-      set_block_parameters(grm_genotype_block, n_samples, block_size);
-
-      //        for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
-      //        parallel_idx++) { // parallel loop 0
+    int block_size = block_sizes[block_index];
+    MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+    MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
+    set_block_parameters(grm_genotype_block, n_samples, block_size);
+    for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
       // initialize gxg_mask
       int n_gxg_snps;
       MatrixXdr genotype_mask;
@@ -340,36 +326,43 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       int gxg_snps_in_block = gxg_mask.sum();
       set_block_parameters(gxg_genotype_blocks[parallel_idx], n_samples,
                            gxg_snps_in_block);
-      for (int i = 0; i < block_size; i++) {
-        read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
-        encode_snp(grm_genotype_block, snp_matrix);
+    }
+
+    for (int i = 0; i < block_size; i++) {
+      read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+      encode_snp(grm_genotype_block, snp_matrix);
+      for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+           parallel_idx++) { // parallel loop 0
+        // initialize gxg_mask
+        int n_gxg_snps;
+        MatrixXdr genotype_mask;
+        int gxg_i = gxg_indices[parallel_idx];
+        read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
+                           genotype_mask, n_gxg_snps);
+        MatrixXdr gxg_mask =
+            genotype_mask.block(block_index * block_size, 0, block_size, 1);
+        int gxg_snps_in_block = gxg_mask.sum();
         if (gxg_mask(i, 0) == 1) {
           encode_snp(gxg_genotype_blocks[parallel_idx], snp_matrix);
         }
-      }
-      //        } end of parallel loop 0
+      } // end of parallel loop 0
+    }
 
-      if (block_size != 0) {
-        compute_block_stats(grm_genotype_block, allelecount_means,
-                            allelecount_stds, n_samples, block_size);
+    if (block_size != 0) {
+      compute_block_stats(grm_genotype_block, allelecount_means,
+                          allelecount_stds, n_samples, block_size);
 
-        allocate_memory(n_randvecs, grm_genotype_block, partialsums, sum_op,
-                        yint_e, yint_m, y_e, y_m);
-        MatrixXdr temp_XXy =
-            MatrixXdr::Zero(n_samples, n_variance_components + 1);
-        //        temp_XXy.col(0) = collect_XXy.col(0);
-        //        temp_XXy.col(1) = collect_Gy.col(parallel_idx);
-        //        temp_XXy.col(2) = pheno;
-        //
-        MatrixXdr temp_XXXXy =
-            compute_XXz(block_size, collect_XXy.col(0), allelecount_means,
-                        allelecount_stds, pheno_mask, grm_mask, 1, n_samples,
-                        sum_op, grm_genotype_block, yint_m, y_m, block_size,
-                        yint_e, y_e, partialsums, 0, false) /
-            n_snps;
-        ////        for (int i = 0; i < (n_variance_components + 1); i++) {
-        ////          for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
-        ///parallel_idx++) { // parallel loop 3
+      allocate_memory(n_randvecs, grm_genotype_block, partialsums, sum_op,
+                      yint_e, yint_m, y_e, y_m);
+
+      MatrixXdr temp_XXXXy =
+          compute_XXz(block_size, collect_XXy.col(0), allelecount_means,
+                      allelecount_stds, pheno_mask, grm_mask, 1, n_samples,
+                      sum_op, grm_genotype_block, yint_m, y_m, block_size,
+                      yint_e, y_e, partialsums, 0, false) /
+          n_snps;
+      for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+           parallel_idx++) { // parallel loop 3
         MatrixXdr temp_XXUy = compute_XXz(
             block_size, collect_Gy.col(parallel_idx), allelecount_means,
             allelecount_stds, pheno_mask, grm_mask, 1, n_samples, sum_op,
@@ -383,17 +376,18 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                                  (n_variance_components + 1) * parallel_idx) +=
             temp_XXUy / n_snps; // n_snps_variance_component[0];
 
-        //        }
-        //          } // end of parallel loop 3
-        deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
-                          grm_genotype_block);
-        for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
-             parallel_idx++) { // parallel loop 4
-          collect_XXUy.col(2 + (n_variance_components + 1) *
-                                   (n_variance_components + 1) * parallel_idx) =
-              collect_XXy.col(0);
-        } // end loop 4
+      } // end of parallel loop 3
+      deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
+                        grm_genotype_block);
+      for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+           parallel_idx++) { // parallel loop 4
+        collect_XXUy.col(2 + (n_variance_components + 1) *
+                                 (n_variance_components + 1) * parallel_idx) =
+            collect_XXy.col(0);
+      } // end loop 4
 
+      for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+           parallel_idx++) { // parallel loop 5
         // insert GXG
         MatrixXdr genotype_mask;
         int n_gxg_snps;
@@ -404,6 +398,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         int gxg_i = gxg_indices[parallel_idx];
         read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
                            genotype_mask, n_gxg_snps);
+        MatrixXdr gxg_mask =
+            genotype_mask.block(block_index * block_size, 0, block_size, 1);
+        int gxg_snps_in_block = gxg_mask.sum();
         n_mask_gxg[parallel_idx] = n_gxg_snps;
         vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
 
@@ -428,8 +425,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         allocate_memory(n_randvecs, gxg_genotype_blocks[parallel_idx],
                         partialsums, sum_op, yint_e, yint_m, y_e, y_m);
 
-        //        MatrixXdr temp_XXy = MatrixXdr::Zero(n_samples,
-        //        n_variance_components + 1);
+        MatrixXdr temp_XXy =
+            MatrixXdr::Zero(n_samples, n_variance_components + 1);
         temp_XXy.col(0) = collect_XXy.col(0);
         temp_XXy.col(1) = collect_Gy.col(parallel_idx);
         temp_XXy.col(2) = pheno;
@@ -451,10 +448,12 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         }
         deallocate_memory(partialsums, sum_op, yint_e, yint_m, y_e, y_m,
                           gxg_genotype_blocks[parallel_idx]);
-      }
+      } // end of parallel loop 5
     }
+  }
 
-    //    for (int i = 0; i < (n_variance_components + 1); i++) {
+  for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
+       parallel_idx++) { // parallel loop 6
     collect_XXUy.col((n_variance_components * (n_variance_components + 1)) + 0 +
                      (n_variance_components + 1) * (n_variance_components + 1) *
                          parallel_idx) = collect_XXy.col(0);
@@ -464,8 +463,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     collect_XXUy.col((n_variance_components * (n_variance_components + 1)) + 2 +
                      (n_variance_components + 1) * (n_variance_components + 1) *
                          parallel_idx) = pheno;
-    //    }
-  } // end of parallel loop old
+  } // end of parallel loop 6
+  //  } // end of parallel loop old
 
   for (int paralle_idx = 0; paralle_idx < n_gxg_idx; paralle_idx++) {
     vector<int> n_snps_variance_component = {n_snps, n_mask_gxg[paralle_idx]};
