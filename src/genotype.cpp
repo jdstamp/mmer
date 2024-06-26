@@ -47,3 +47,9 @@ double genotype::get_col_std(int snpindex) const {
   double temp = sqrt(p_i * (1 - (0.5 * p_i)));
   return temp;
 }
+
+void genotype::clear_block() {
+  std::vector<std::vector<int>>().swap(p);
+  columnsum.clear();
+  columnmeans.clear();
+}

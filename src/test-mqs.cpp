@@ -140,16 +140,14 @@ context("C++ test mqs method is implemented correctly") {
     MatrixXdr yXXy;
     yXXy = MatrixXdr::Zero(n_variance_components, 1);
     yXXy(0, 0) += compute_yXXy(block_size, pheno, fame_means, fame_stds,
-                               focal_snp_local_index, sum_op, genotype_block,
-                               genotype_mask_matrix, yint_m, y_m, block_size,
-                               partialsums, false);
+                               focal_snp_local_index, genotype_block,
+                               genotype_mask_matrix, block_size, false);
 
     MatrixXdr gxg_pheno;
     gxg_pheno = pheno.array() * focal_snp.col(0).array();
     yXXy(1, 0) += compute_yXXy(block_size, gxg_pheno, fame_means, fame_stds,
-                               focal_snp_local_index, sum_op, genotype_block,
-                               genotype_mask_matrix, yint_m, y_m, block_size,
-                               partialsums, true);
+                               focal_snp_local_index, genotype_block,
+                               genotype_mask_matrix, block_size, true);
 
     MatrixXdr random_vectors;
     MatrixXdr gxg_random_vectors;
@@ -174,32 +172,30 @@ context("C++ test mqs method is implemented correctly") {
 
     temp_grm = compute_XXz(block_size, random_vectors, fame_means, fame_stds,
                            pheno_mask, genotype_mask_matrix, n_randvecs,
-                           n_samples, sum_op, genotype_block, yint_m, y_m,
-                           block_size, yint_e, y_e, partialsums, 0, false);
+                           n_samples, genotype_block, block_size, 0, false);
 
     for (int z_index = 0; z_index < n_randvecs; z_index++) {
       XXz.col(z_index) += temp_grm.col(z_index);
     }
     bool in_gxg_block = true;
-    temp_gxg =
-        compute_XXz(block_size, gxg_random_vectors, fame_means, fame_stds,
-                    pheno_mask, genotype_mask_matrix, n_randvecs, n_samples,
-                    sum_op, genotype_block, yint_m, y_m, block_size, yint_e,
-                    y_e, partialsums, focal_snp_local_index, in_gxg_block);
+    temp_gxg = compute_XXz(block_size, gxg_random_vectors, fame_means,
+                           fame_stds, pheno_mask, genotype_mask_matrix,
+                           n_randvecs, n_samples, genotype_block, block_size,
+                           focal_snp_local_index, in_gxg_block);
     temp_gxg = temp_gxg.array().colwise() * focal_snp.col(0).array();
 
     for (int z_index = 0; z_index < n_randvecs; z_index++) {
       GxGz.col(z_index) += temp_gxg.col(z_index);
     }
-    collect_XXy.col(0) += compute_XXz(
-        block_size, pheno, fame_means, fame_stds, pheno_mask,
-        genotype_mask_matrix, 1, n_samples, sum_op, genotype_block, yint_m, y_m,
-        block_size, yint_e, y_e, partialsums, focal_snp_local_index, false);
+    collect_XXy.col(0) +=
+        compute_XXz(block_size, pheno, fame_means, fame_stds, pheno_mask,
+                    genotype_mask_matrix, 1, n_samples, genotype_block,
+                    block_size, focal_snp_local_index, false);
 
-    MatrixXdr temp_Gy = compute_XXz(
-        block_size, gxg_pheno, fame_means, fame_stds, pheno_mask,
-        genotype_mask_matrix, 1, n_samples, sum_op, genotype_block, yint_m, y_m,
-        block_size, yint_e, y_e, partialsums, focal_snp_local_index, true);
+    MatrixXdr temp_Gy =
+        compute_XXz(block_size, gxg_pheno, fame_means, fame_stds, pheno_mask,
+                    genotype_mask_matrix, 1, n_samples, genotype_block,
+                    block_size, focal_snp_local_index, true);
     temp_Gy = temp_Gy.array() * focal_snp.col(0).array();
     collect_XXy.col(1) += temp_Gy;
 
@@ -212,16 +208,14 @@ context("C++ test mqs method is implemented correctly") {
     for (int i = 0; i < (n_variance_components + 1); i++) {
       MatrixXdr temp_XXUy =
           compute_XXz(block_size, collect_XXy.col(i), fame_means, fame_stds,
-                      pheno_mask, genotype_mask_matrix, 1, n_samples, sum_op,
-                      genotype_block, yint_m, y_m, block_size, yint_e, y_e,
-                      partialsums, focal_snp_local_index, false);
+                      pheno_mask, genotype_mask_matrix, 1, n_samples,
+                      genotype_block, block_size, focal_snp_local_index, false);
 
       scaled_vec = collect_XXy.col(i).array() * focal_snp.col(0).array();
       MatrixXdr temp_GUy =
           compute_XXz(block_size, scaled_vec, fame_means, fame_stds, pheno_mask,
-                      genotype_mask_matrix, 1, n_samples, sum_op,
-                      genotype_block, yint_m, y_m, block_size, yint_e, y_e,
-                      partialsums, focal_snp_local_index, false);
+                      genotype_mask_matrix, 1, n_samples, genotype_block,
+                      block_size, focal_snp_local_index, false);
       temp_GUy = temp_GUy.array() * focal_snp.col(0).array();
 
       collect_XXUy.col(i) += temp_XXUy / block_size;
@@ -358,16 +352,14 @@ context("C++ test variance of mqs method is implemented correctly") {
     MatrixXdr yXXy;
     yXXy = MatrixXdr::Zero(n_variance_components, 1);
     yXXy(0, 0) += compute_yXXy(block_size, pheno, fame_means, fame_stds,
-                               focal_snp_local_index, sum_op, genotype_block,
-                               genotype_mask_matrix, yint_m, y_m, block_size,
-                               partialsums, false);
+                               focal_snp_local_index, genotype_block,
+                               genotype_mask_matrix, block_size, false);
 
     MatrixXdr gxg_pheno;
     gxg_pheno = pheno.array() * focal_snp.col(0).array();
     yXXy(1, 0) += compute_yXXy(block_size, gxg_pheno, fame_means, fame_stds,
-                               focal_snp_local_index, sum_op, genotype_block,
-                               genotype_mask_matrix, yint_m, y_m, block_size,
-                               partialsums, true);
+                               focal_snp_local_index, genotype_block,
+                               genotype_mask_matrix, block_size, true);
 
     MatrixXdr random_vectors;
     MatrixXdr gxg_random_vectors;
@@ -392,32 +384,30 @@ context("C++ test variance of mqs method is implemented correctly") {
 
     temp_grm = compute_XXz(block_size, random_vectors, fame_means, fame_stds,
                            pheno_mask, genotype_mask_matrix, n_randvecs,
-                           n_samples, sum_op, genotype_block, yint_m, y_m,
-                           block_size, yint_e, y_e, partialsums, 0, false);
+                           n_samples, genotype_block, block_size, 0, false);
 
     for (int z_index = 0; z_index < n_randvecs; z_index++) {
       XXz.col(z_index) += temp_grm.col(z_index);
     }
     bool in_gxg_block = true;
-    temp_gxg =
-        compute_XXz(block_size, gxg_random_vectors, fame_means, fame_stds,
-                    pheno_mask, genotype_mask_matrix, n_randvecs, n_samples,
-                    sum_op, genotype_block, yint_m, y_m, block_size, yint_e,
-                    y_e, partialsums, focal_snp_local_index, in_gxg_block);
+    temp_gxg = compute_XXz(block_size, gxg_random_vectors, fame_means,
+                           fame_stds, pheno_mask, genotype_mask_matrix,
+                           n_randvecs, n_samples, genotype_block, block_size,
+                           focal_snp_local_index, in_gxg_block);
     temp_gxg = temp_gxg.array().colwise() * focal_snp.col(0).array();
 
     for (int z_index = 0; z_index < n_randvecs; z_index++) {
       GxGz.col(z_index) += temp_gxg.col(z_index);
     }
-    collect_XXy.col(0) += compute_XXz(
-        block_size, pheno, fame_means, fame_stds, pheno_mask,
-        genotype_mask_matrix, 1, n_samples, sum_op, genotype_block, yint_m, y_m,
-        block_size, yint_e, y_e, partialsums, focal_snp_local_index, false);
+    collect_XXy.col(0) +=
+        compute_XXz(block_size, pheno, fame_means, fame_stds, pheno_mask,
+                    genotype_mask_matrix, 1, n_samples, genotype_block,
+                    block_size, focal_snp_local_index, false);
 
-    MatrixXdr temp_Gy = compute_XXz(
-        block_size, gxg_pheno, fame_means, fame_stds, pheno_mask,
-        genotype_mask_matrix, 1, n_samples, sum_op, genotype_block, yint_m, y_m,
-        block_size, yint_e, y_e, partialsums, focal_snp_local_index, true);
+    MatrixXdr temp_Gy =
+        compute_XXz(block_size, gxg_pheno, fame_means, fame_stds, pheno_mask,
+                    genotype_mask_matrix, 1, n_samples, genotype_block,
+                    block_size, focal_snp_local_index, true);
     temp_Gy = temp_Gy.array() * focal_snp.col(0).array();
     collect_XXy.col(1) += temp_Gy;
 
@@ -430,16 +420,14 @@ context("C++ test variance of mqs method is implemented correctly") {
     for (int i = 0; i < (n_variance_components + 1); i++) {
       MatrixXdr temp_XXUy =
           compute_XXz(block_size, collect_XXy.col(i), fame_means, fame_stds,
-                      pheno_mask, genotype_mask_matrix, 1, n_samples, sum_op,
-                      genotype_block, yint_m, y_m, block_size, yint_e, y_e,
-                      partialsums, focal_snp_local_index, false);
+                      pheno_mask, genotype_mask_matrix, 1, n_samples,
+                      genotype_block, block_size, focal_snp_local_index, false);
 
       scaled_vec = collect_XXy.col(i).array() * focal_snp.col(0).array();
       MatrixXdr temp_GUy =
           compute_XXz(block_size, scaled_vec, fame_means, fame_stds, pheno_mask,
-                      genotype_mask_matrix, 1, n_samples, sum_op,
-                      genotype_block, yint_m, y_m, block_size, yint_e, y_e,
-                      partialsums, focal_snp_local_index, false);
+                      genotype_mask_matrix, 1, n_samples, genotype_block,
+                      block_size, focal_snp_local_index, false);
       temp_GUy = temp_GUy.array() * focal_snp.col(0).array();
 
       collect_XXUy.col(i) += temp_XXUy / block_size;

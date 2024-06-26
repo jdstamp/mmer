@@ -15,6 +15,7 @@ public:
 
   double get_col_mean(int snpindex) const;
   double get_col_std(int snpindex) const;
+  void clear_block();
 };
 
 #endif

@@ -27,21 +27,30 @@
  */
 
 #include "computation.h"
+#include "allocate_memory.h"
 #include "mailman.h"
 
 MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
                       const MatrixXdr &means, const MatrixXdr &stds,
                       const MatrixXdr &phenotype_mask,
                       const MatrixXdr &genotype_mask, const int &Nz,
-                      const int &Nindv, double *&sum_op,
-                      const genotype &genotype_block, double *&yint_m,
-                      double **&y_m, int p, double *&yint_e, double **&y_e,
-                      double *&partialsums, const int &sel_snp_local_index,
-                      bool exclude_sel_snp) {
+                      const int &Nindv, genotype &genotype_block, int p,
+                      const int &sel_snp_local_index, bool exclude_sel_snp) {
+
+  double *partialsums2 = new double[0];
+  double *sum_op2;
+  double *yint_e2;
+  double *yint_m2;
+  double **y_e2;
+  double **y_m2;
+
+  allocate_memory(Nz, genotype_block, partialsums2, sum_op2, yint_e2, yint_m2,
+                  y_e2, y_m2);
+
   MatrixXdr res;
   res.resize(num_snp, Nz);
-  multiply_y_pre_fast(Z_b, Nz, res, false, sum_op, genotype_block, yint_m, y_m,
-                      p, partialsums);
+  multiply_y_pre_fast(Z_b, Nz, res, false, sum_op2, genotype_block, yint_m2,
+                      y_m2, p, partialsums2);
   MatrixXdr zb_sum = Z_b.colwise().sum();
 
   for (int j = 0; j < num_snp; j++)
@@ -69,8 +78,8 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
   MatrixXdr new_zb = inter_zb.transpose();
   MatrixXdr new_res(Nz, Nindv);
 
-  multiply_y_post_fast(new_zb, Nz, new_res, false, p, genotype_block, yint_e,
-                       y_e, Nindv);
+  multiply_y_post_fast(new_zb, Nz, new_res, false, p, genotype_block, yint_e2,
+                       y_e2, Nindv);
 
   MatrixXdr new_resid(1, Nindv);
   MatrixXdr zb_scale_sum = new_zb * means;
@@ -85,6 +94,49 @@ MatrixXdr compute_XXz(const int &num_snp, const MatrixXdr &Z_b,
       temp(i, j) = temp(i, j) * phenotype_mask(j, 0);
 
   return temp.transpose();
+}
+
+double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
+                    const MatrixXdr &means, const MatrixXdr &stds,
+                    const int &sel_snp_local_index, genotype &genotype_block,
+                    const MatrixXdr &genotype_mask, const int &p,
+                    const bool &exclude_sel_snp) {
+  double *partialsums2 = new double[0];
+  double *sum_op2;
+  double *yint_e2;
+  double *yint_m2;
+  double **y_e2;
+  double **y_m2;
+  int Nz = 1;
+
+  allocate_memory(Nz, genotype_block, partialsums2, sum_op2, yint_e2, yint_m2,
+                  y_e2, y_m2);
+
+  MatrixXdr res;
+  res.resize(num_snp, 1);
+
+  multiply_y_pre_fast(y_vec, 1, res, false, sum_op2, genotype_block, yint_m2,
+                      y_m2, p, partialsums2);
+
+  res = res.cwiseProduct(stds);
+  MatrixXdr resid(num_snp, 1);
+  resid = means.cwiseProduct(stds);
+  resid = resid * y_vec.sum();
+  for (int j = 0; j < num_snp; j++)
+    resid(j, 0) = resid(j, 0) * genotype_mask(j, 0);
+  MatrixXdr Xy(num_snp, 1);
+  Xy = res - resid;
+
+  // GxG case
+  if (exclude_sel_snp == true)
+    Xy(sel_snp_local_index, 0) = 0;
+
+  for (int j = 0; j < num_snp; j++)
+    Xy(j, 0) = Xy(j, 0) * genotype_mask(j, 0);
+
+  double yXXy = (Xy.array() * Xy.array()).sum();
+
+  return yXXy;
 }
 
 void multiply_y_pre_fast(const MatrixXdr &op, const int &Ncol_op,
@@ -191,38 +243,4 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
     for (int n_iter = 0; n_iter < n; n_iter++)
       res(k_iter, n_iter) = res(k_iter, n_iter) - sums_elements[k_iter];
   }
-}
-
-double compute_yXXy(const int &num_snp, const MatrixXdr &y_vec,
-                    const MatrixXdr &means, const MatrixXdr &stds,
-                    const int &sel_snp_local_index, double *&sum_op,
-                    const genotype &genotype_block,
-                    const MatrixXdr &genotype_mask, double *&yint_m,
-                    double **&y_m, const int &p, double *&partialsums,
-                    const bool &exclude_sel_snp) {
-  MatrixXdr res;
-  res.resize(num_snp, 1);
-
-  multiply_y_pre_fast(y_vec, 1, res, false, sum_op, genotype_block, yint_m, y_m,
-                      p, partialsums);
-
-  res = res.cwiseProduct(stds);
-  MatrixXdr resid(num_snp, 1);
-  resid = means.cwiseProduct(stds);
-  resid = resid * y_vec.sum();
-  for (int j = 0; j < num_snp; j++)
-    resid(j, 0) = resid(j, 0) * genotype_mask(j, 0);
-  MatrixXdr Xy(num_snp, 1);
-  Xy = res - resid;
-
-  // GxG case
-  if (exclude_sel_snp == true)
-    Xy(sel_snp_local_index, 0) = 0;
-
-  for (int j = 0; j < num_snp; j++)
-    Xy(j, 0) = Xy(j, 0) * genotype_mask(j, 0);
-
-  double yXXy = (Xy.array() * Xy.array()).sum();
-
-  return yXXy;
 }
