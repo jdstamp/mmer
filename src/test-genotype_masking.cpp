@@ -66,21 +66,13 @@ context("C++ test yXXy with masking") {
     yXXy_expected(0, 0) = (Xy.array() * Xy.array()).sum();
 
     // when
-    // memory setup for mailman
-    double *sum_op = new double[block_size];
-    double *yint_m = new double[block_size];
-    double **y_m = new double *[block_size];
-    for (int i = 0; i < block_size; i++) {
-      y_m[i] = new double[block_size];
-    }
-    double *partialsums = new double[block_size];
     bool exclude_sel_snp = false;
 
     MatrixXdr yXXy_observed;
     yXXy_observed = MatrixXdr::Zero(n_variance_components, 1);
     yXXy_observed(0, 0) += compute_yXXy(
         block_size, pheno, fame_means, fame_stds, focal_snp_local_index,
-        genotype_block, genotype_mask_matrix, block_size, exclude_sel_snp);
+        genotype_block, block_size, exclude_sel_snp);
 
     // then
     expect_true(std::abs(yXXy_expected(0, 0) - yXXy_observed(0, 0)) <
@@ -101,11 +93,17 @@ context("C++ test yXXy with masking") {
     }
     int mask_size = genotype_mask_matrix.sum();
 
-    set_block_parameters(genotype_block, n_samples, block_size);
+    set_block_parameters(genotype_block, n_samples, mask_size);
     std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     int global_snp_index = -1;
-    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
-                        global_snp_index, metadata);
+
+    MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+for (int i = 0; i < block_size; i++) {
+read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+if (genotype_mask_matrix(i, 0) == 1) {
+encode_snp(genotype_block, snp_matrix);
+}
+}
 
     MatrixXdr data = readCSVToMatrixXdr(test_csv);
     MatrixXdr matrix_block = data.block(0, 0, n_samples, block_size);
@@ -118,10 +116,10 @@ context("C++ test yXXy with masking") {
       }
     }
 
-    MatrixXdr fame_means(block_size, 1);
-    MatrixXdr fame_stds(block_size, 1);
+    MatrixXdr fame_means(mask_size, 1);
+    MatrixXdr fame_stds(mask_size, 1);
     compute_block_stats(genotype_block, fame_means, fame_stds, n_samples,
-                        block_size);
+            mask_size);
 
     MatrixXdr TWO = MatrixXdr::Ones(n_samples, mask_size) * 2;
     masked_matrix_block = TWO - masked_matrix_block;
@@ -148,21 +146,13 @@ context("C++ test yXXy with masking") {
     yXXy_expected(0, 0) = (Xy.array() * Xy.array()).sum();
 
     // when
-    // memory setup for mailman
-    double *sum_op = new double[block_size];
-    double *yint_m = new double[block_size];
-    double **y_m = new double *[block_size];
-    for (int i = 0; i < block_size; i++) {
-      y_m[i] = new double[block_size];
-    }
-    double *partialsums = new double[block_size];
     bool exclude_sel_snp = false;
 
     MatrixXdr yXXy_observed;
     yXXy_observed = MatrixXdr::Zero(n_variance_components, 1);
     yXXy_observed(0, 0) += compute_yXXy(
-        block_size, pheno, fame_means, fame_stds, focal_snp_local_index,
-        genotype_block, genotype_mask_matrix, block_size, exclude_sel_snp);
+        mask_size, pheno, fame_means, fame_stds, focal_snp_local_index,
+        genotype_block, mask_size, exclude_sel_snp);
 
     // then
     expect_true(std::abs(yXXy_expected(0, 0) - yXXy_observed(0, 0)) <
@@ -290,7 +280,7 @@ context("C++ test XXz with masking") {
 
     MatrixXdr XXz_observed;
     XXz_observed = compute_XXz(block_size, pheno, fame_means, fame_stds,
-                               pheno_mask, genotype_mask_matrix, n_randvecs,
+                               pheno_mask, n_randvecs,
                                n_samples, genotype_block, block_size, 0, false);
 
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
@@ -313,11 +303,17 @@ context("C++ test XXz with masking") {
     }
     int mask_size = genotype_mask_matrix.sum();
 
-    set_block_parameters(genotype_block, n_samples, block_size);
+    set_block_parameters(genotype_block, n_samples, mask_size);
     std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     int global_snp_index = -1;
-    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
-                        global_snp_index, metadata);
+
+MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+for (int i = 0; i < block_size; i++) {
+read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+if (genotype_mask_matrix(i, 0) == 1) {
+encode_snp(genotype_block, snp_matrix);
+}
+}
 
     MatrixXdr data = readCSVToMatrixXdr(test_csv);
     MatrixXdr matrix_block = data.block(0, 0, n_samples, block_size);
@@ -330,10 +326,10 @@ context("C++ test XXz with masking") {
       }
     }
 
-    MatrixXdr fame_means(block_size, 1);
-    MatrixXdr fame_stds(block_size, 1);
+    MatrixXdr fame_means(mask_size, 1);
+    MatrixXdr fame_stds(mask_size, 1);
     compute_block_stats(genotype_block, fame_means, fame_stds, n_samples,
-                        block_size);
+            mask_size);
 
     MatrixXdr TWO = MatrixXdr::Ones(n_samples, mask_size) * 2;
     masked_matrix_block = TWO - masked_matrix_block;
@@ -360,22 +356,13 @@ context("C++ test XXz with masking") {
     XXz_expected = masked_matrix_block * Xz;
 
     // when
-    // memory setup for mailman
-    double *partialsums = new double[0];
-    double *sum_op;
-    double *yint_e;
-    double *yint_m;
-    double **y_e;
-    double **y_m;
-    allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
-                    yint_m, y_e, y_m);
 
     bool exclude_sel_snp = false;
 
     MatrixXdr XXz_observed = MatrixXdr::Zero(n_samples, 1);
-    XXz_observed = compute_XXz(block_size, pheno, fame_means, fame_stds,
-                               pheno_mask, genotype_mask_matrix, n_randvecs,
-                               n_samples, genotype_block, block_size, 0, false);
+    XXz_observed = compute_XXz(mask_size, pheno, fame_means, fame_stds,
+                               pheno_mask, n_randvecs,
+                               n_samples, genotype_block, mask_size, 0, false);
 
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
 
@@ -451,7 +438,7 @@ context("C++ test XXy with masking") {
 
     XXy_observed.col(0) +=
         compute_XXz(block_size, pheno, fame_means, fame_stds, pheno_mask,
-                    genotype_mask_matrix, n_randvecs, n_samples, genotype_block,
+                    n_randvecs, n_samples, genotype_block,
                     block_size, focal_snp_local_index, false);
 
     double abs_error = (XXy_expected - XXy_observed).array().abs().sum();
@@ -474,11 +461,20 @@ context("C++ test XXy with masking") {
     }
     int mask_size = genotype_mask_matrix.sum();
 
-    set_block_parameters(genotype_block, n_samples, block_size);
+    set_block_parameters(genotype_block, n_samples, mask_size);
     std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     int global_snp_index = -1;
-    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
-                        global_snp_index, metadata);
+//    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
+//                        global_snp_index, metadata);
+
+MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+for (int i = 0; i < block_size; i++) {
+read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+if (genotype_mask_matrix(i, 0) == 1) {
+encode_snp(genotype_block, snp_matrix);
+}
+}
+
 
     MatrixXdr data = readCSVToMatrixXdr(test_csv);
     MatrixXdr matrix_block = data.block(0, 0, n_samples, block_size);
@@ -494,7 +490,7 @@ context("C++ test XXy with masking") {
     MatrixXdr fame_means(block_size, 1);
     MatrixXdr fame_stds(block_size, 1);
     compute_block_stats(genotype_block, fame_means, fame_stds, n_samples,
-                        block_size);
+            mask_size);
 
     MatrixXdr TWO = MatrixXdr::Ones(n_samples, mask_size) * 2;
     masked_matrix_block = TWO - masked_matrix_block;
@@ -521,22 +517,13 @@ context("C++ test XXy with masking") {
     XXy_expected = masked_matrix_block * Xy;
 
     // when
-    // memory setup for mailman
-    double *partialsums = new double[0];
-    double *sum_op;
-    double *yint_e;
-    double *yint_m;
-    double **y_e;
-    double **y_m;
-    allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
-                    yint_m, y_e, y_m);
 
     MatrixXdr XXy_observed = MatrixXdr::Zero(n_samples, 1);
 
     XXy_observed.col(0) +=
-        compute_XXz(block_size, pheno, fame_means, fame_stds, pheno_mask,
-                    genotype_mask_matrix, n_randvecs, n_samples, genotype_block,
-                    block_size, focal_snp_local_index, false);
+        compute_XXz(mask_size, pheno, fame_means, fame_stds, pheno_mask,
+                    n_randvecs, n_samples, genotype_block,
+                mask_size, focal_snp_local_index, false);
 
     double abs_error = (XXy_expected - XXy_observed).array().abs().sum();
 
@@ -618,7 +605,7 @@ context("C++ test focal SNP exclusion") {
     bool exclude_sel_snp = true;
     XXy_observed.col(0) +=
         compute_XXz(block_size, pheno, fame_means, fame_stds, pheno_mask,
-                    genotype_mask_matrix, n_randvecs, n_samples, genotype_block,
+                    n_randvecs, n_samples, genotype_block,
                     block_size, focal_snp_local_index, exclude_sel_snp);
 
     double abs_error = (XXy_expected - XXy_observed).array().abs().sum();
@@ -694,7 +681,7 @@ context("C++ test focal SNP exclusion") {
     yXXy_observed = MatrixXdr::Zero(n_variance_components, 1);
     yXXy_observed(0, 0) += compute_yXXy(
         block_size, pheno, fame_means, fame_stds, focal_snp_local_index,
-        genotype_block, genotype_mask_matrix, block_size, exclude_sel_snp);
+        genotype_block, block_size, exclude_sel_snp);
 
     double abs_error = (yXXy_expected - yXXy_observed).array().abs().sum();
 
