@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include <vector>
 
-//#include <stdio.h>
-//#include <omp.h>
+// #include <stdio.h>
+// #include <omp.h>
 //// [[Rcpp::plugins(openmp)]]
 
 #include "boost/random.hpp"
