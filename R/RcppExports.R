@@ -13,8 +13,8 @@ count_snps_bim <- function(filename) {
     .Call('_famer_count_snps_bim', PACKAGE = 'famer', filename)
 }
 
-fame_cpp <- function(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file) {
-    .Call('_famer_fame_cpp', PACKAGE = 'famer', plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file)
+fame_cpp <- function(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads) {
+    .Call('_famer_fame_cpp', PACKAGE = 'famer', plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads)
 }
 
 fame_traits_cpp <- function(plink_file, additive_variance_component, gxg_variance_component, focal_snp, gxg_indices, additive_indices) {

@@ -7,6 +7,7 @@ test_that("fame end-to-end no covariates no mask", {
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
+  n_threads <- 1
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
 
@@ -60,6 +61,7 @@ test_that("fame end-to-end no covariates no mask", {
                  snp_indices,
                  n_randvecs,
                  n_blocks,
+                 n_threads,
                  rand_seed)
   observed_est <- result$vc_estimate
   observed_se <- result$vc_se
@@ -78,6 +80,7 @@ test_that("fame end-to-end with covariate file no mask", {
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
+  n_threads <- 1
 
   snp_indices <- c(13, 18, 29, 34, 37, 74, 82, 88, 94, 96)
   expected <- matrix(
@@ -111,6 +114,7 @@ test_that("fame end-to-end with covariate file no mask", {
                  snp_indices,
                  n_randvecs,
                  n_blocks,
+                 n_threads,
                  rand_seed)
   observed <- result$vc_estimate
 
@@ -127,6 +131,7 @@ test_that("fame end-to-end no covariates but with mask", {
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
+  n_threads <- 1
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
 
@@ -181,6 +186,7 @@ test_that("fame end-to-end no covariates but with mask", {
                  snp_indices,
                  n_randvecs,
                  n_blocks,
+                 n_threads,
                  rand_seed)
   observed_est <- result$vc_estimate
   observed_se <- result$vc_se

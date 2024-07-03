@@ -27,6 +27,7 @@ fame <-
            gxg_indices = NULL,
            n_randvecs = 10,
            n_blocks = 100,
+           n_threads = 1,
            rand_seed = -1,
            log_level = "WARNING") {
     logging::logReset()
@@ -63,7 +64,8 @@ fame <-
         rand_seed,
         gxg_indices - 1,
         # R is 1-indexed, C++ is 0-indexed
-        mask_file
+        mask_file,
+        n_threads
       )
 
     z_score <- abs(result$vc_estimate / result$vc_se)
