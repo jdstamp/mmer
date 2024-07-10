@@ -22,9 +22,12 @@
 
 // this should come from one configuration file
 extern std::string testdata_dir;
+extern std::string checkdata_dir;
 extern std::string test_bed;
 extern std::string test_csv;
 extern std::string test_pheno;
+
+extern bool is_test;
 
 extern double tolerance;
 extern int n_samples;
@@ -32,3 +35,7 @@ extern int block_size;
 extern metaData metadata;
 
 MatrixXdr readCSVToMatrixXdr(const std::string &filename);
+
+bool fileExists(const std::string& path);
+
+void correctTestFiles(std::string& test_csv, std::string& test_bed, std::string& test_pheno);

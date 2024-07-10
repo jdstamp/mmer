@@ -45,10 +45,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 //
 #ifdef _OPENMP
   omp_set_num_threads(n_threads);
-  std::cout << "omp is enabled" << std::endl;
+  Rcpp::Rcout << "omp is enabled" << std::endl;
 
   int n = Eigen::nbThreads();
-  std::cout << "Eigen is using " << n << " threads" << std::endl;
+  Rcpp::Rcout << "Eigen is using " << n << " threads" << std::endl;
 #endif
   //  #pragma omp parallel for schedule(dynamic)
   //  1. try oscar because linux
@@ -191,7 +191,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
            parallel_idx++) { // parallel loop 1
-        std::cout << "block index: " << block_index
+        Rcpp::Rcout << "block index: " << block_index
                   << "loop 1 parallel index: " << parallel_idx << std::endl;
 
         MatrixXdr gxg_mask =
@@ -226,9 +226,9 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
         // parallel loop 2
-        // print to cout the parallel index
-        std::cout << "block index: " << block_index
-                  << "loop 2 parallel index: " << parallel_idx << std::endl;
+        Rcpp::Rcout << "block index: " << block_index
+                    << "loop 2 parallel index: " << parallel_idx << std::endl;
+
         MatrixXdr focal_snp_gtype;
         MatrixXdr gxg_allelecount_means;
         MatrixXdr gxg_allelecount_stds;
@@ -309,7 +309,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
     for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
       // parallel loop 3
-      std::cout << "block index: " << block_index
+      Rcpp::Rcout << "block index: " << block_index
                 << "loop 3 parallel index: " << parallel_idx << std::endl;
       // initialize gxg_mask
       int n_gxg_snps;
@@ -331,7 +331,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
            parallel_idx++) { // parallel loop 4
-        std::cout << "block index: " << block_index
+        Rcpp::Rcout << "block index: " << block_index
                   << "loop 4 parallel index: " << parallel_idx << std::endl;
         // initialize gxg_mask
         int n_gxg_snps;
@@ -358,7 +358,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
            parallel_idx++) { // parallel loop 5
-        std::cout << "block index: " << block_index
+        Rcpp::Rcout << "block index: " << block_index
                   << "loop 5 parallel index: " << parallel_idx << std::endl;
         MatrixXdr temp_XXUy = compute_XXz(
             collect_Gy.col(parallel_idx), allelecount_means, allelecount_stds,
@@ -378,7 +378,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
            parallel_idx++) { // parallel loop 6
-        std::cout << "block index: " << block_index
+        Rcpp::Rcout << "block index: " << block_index
                   << "loop 6 parallel index: " << parallel_idx << std::endl;
         collect_XXUy.col(2 + (n_variance_components + 1) *
                                  (n_variance_components + 1) * parallel_idx) =
@@ -388,7 +388,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
            parallel_idx++) { // parallel loop 7
-        std::cout << "block index: " << block_index
+        Rcpp::Rcout << "block index: " << block_index
                   << "loop 7 parallel index: " << parallel_idx << std::endl;
         // insert GXG
         MatrixXdr genotype_mask;
@@ -449,7 +449,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
   for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
        parallel_idx++) { // parallel loop 8
-    std::cout << "loop 8 parallel index: " << parallel_idx << std::endl;
+    Rcpp::Rcout << "loop 8 parallel index: " << parallel_idx << std::endl;
     collect_XXUy.col((n_variance_components * (n_variance_components + 1)) + 0 +
                      (n_variance_components + 1) * (n_variance_components + 1) *
                          parallel_idx) = collect_XXy.col(0);
@@ -464,7 +464,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
   for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
     // parallel loop 9
-    std::cout << "loop 9 parallel index: " << parallel_idx << std::endl;
+    Rcpp::Rcout << "loop 9 parallel index: " << parallel_idx << std::endl;
     vector<int> n_snps_variance_component = {n_snps, n_mask_gxg[parallel_idx]};
 
     int n_samples_mask = pheno_mask.sum();
@@ -497,7 +497,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
     SE.row(parallel_idx) = cov_sigma.diagonal().array().sqrt().transpose();
   } // end of parallel loop 9
 
-  std::cout << "Famer completed" << std::endl;
+  Rcpp::Rcout << "Famer completed" << std::endl;
   return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
                             Rcpp::Named("vc_se") = SE);
 }

@@ -12,6 +12,7 @@ fame(
   gxg_indices = NULL,
   n_randvecs = 10,
   n_blocks = 100,
+  n_threads = 1,
   rand_seed = -1,
   log_level = "WARNING"
 )
@@ -30,6 +31,8 @@ fame(
 \item{n_randvecs}{Integer. Number of random vectors.}
 
 \item{n_blocks}{Integer representing the number of blocks the SNPs will be read in.}
+
+\item{n_threads}{Integer representing the number of threads that are setup for OMP.}
 
 \item{rand_seed}{Integer to seed generation of random vectors. Only positive values are considered.}
 

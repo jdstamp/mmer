@@ -55,6 +55,7 @@ void centerAndStandardize2(MatrixXdr &mat) {
 
 context("C++ test mqs method is implemented correctly") {
   test_that("test compute_mom_components") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     MatrixXdr data = readCSVToMatrixXdr(test_csv);
     MatrixXdr matrix_block = data.block(0, 0, n_samples, block_size);
@@ -255,6 +256,7 @@ context("C++ test mqs method is implemented correctly") {
 
 context("C++ test variance of mqs method is implemented correctly") {
   test_that("test compute_covariance_q") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     MatrixXdr data = readCSVToMatrixXdr(test_csv);
     MatrixXdr matrix_block = data.block(0, 0, n_samples, block_size);

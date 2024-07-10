@@ -15,6 +15,7 @@
 
 context("C++ test yXXy with masking") {
   test_that("mailman algorithm reproduces naive implementation for yXXy") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;
@@ -80,6 +81,7 @@ context("C++ test yXXy with masking") {
   }
 
   test_that("masking gives the expected result for yXXy") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;
@@ -163,6 +165,7 @@ context("C++ test yXXy with masking") {
 context("C++ test major or minor allele count encoding gives same result") {
   test_that("Standard deviation and mean are equivalent for major or minor "
             "allele count encoding") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     genotype genotype_block;
 
@@ -215,6 +218,7 @@ context("C++ test major or minor allele count encoding gives same result") {
 
 context("C++ test XXz with masking") {
   test_that("mailman algorithm reproduces naive implementation for XXz") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;
@@ -289,6 +293,7 @@ context("C++ test XXz with masking") {
   }
 
   test_that("masking gives the expected result for XXz") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;
@@ -371,6 +376,7 @@ context("C++ test XXz with masking") {
 
 context("C++ test XXy with masking") {
   test_that("mailman algorithm reproduces naive implementation for XXy") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;
@@ -445,6 +451,7 @@ context("C++ test XXy with masking") {
   }
 
   test_that("masking gives the expected result for XXy") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;
@@ -529,6 +536,7 @@ context("C++ test XXy with masking") {
 
 context("C++ test focal SNP exclusion") {
   test_that("excluding focal SNP gives the expected result for XXz") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;
@@ -609,6 +617,7 @@ context("C++ test focal SNP exclusion") {
   }
 
   test_that("excluding focal SNP gives the expected result for yXXy") {
+    correctTestFiles(test_csv, test_bed, test_pheno);
     // given
     int n_variance_components = 1;
     int focal_snp_local_index = 0;

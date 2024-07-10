@@ -7,6 +7,7 @@
 #' @param gxg_indices List of indices for the focal variants.
 #' @param n_randvecs Integer. Number of random vectors.
 #' @param n_blocks Integer representing the number of blocks the SNPs will be read in.
+#' @param n_threads Integer representing the number of threads that are setup for OMP.
 #' @param rand_seed Integer to seed generation of random vectors. Only positive values are considered.
 #' @param log_level Log level.
 #'
