@@ -51,7 +51,7 @@ rsconnect/
 
 
 .idea/
-./vscode/
+.vscode/
 
 .DS_Store
 docs
