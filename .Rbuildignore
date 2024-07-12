@@ -2,10 +2,13 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^Makefile$
-.idea
 ^README\.Rmd$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
 ^src/compile-runner.sh$
 ^src/runner$
+^inst/profiling
+^inst/logo
+.idea
+./vscode
