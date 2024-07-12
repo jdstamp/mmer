@@ -11,4 +11,4 @@
 ^inst/profiling
 ^inst/logo
 .idea
-./vscode
+.vscode
