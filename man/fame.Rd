@@ -10,6 +10,7 @@ fame(
   covariate_file,
   mask_file = NULL,
   gxg_indices = NULL,
+  chunksize = NULL,
   n_randvecs = 10,
   n_blocks = 100,
   n_threads = 1,
@@ -27,6 +28,8 @@ fame(
 \item{mask_file}{File path for gxg mask data.}
 
 \item{gxg_indices}{List of indices for the focal variants.}
+
+\item{chunksize}{Integer representing the number of SNPs analyzed with the same set of random vectors.}
 
 \item{n_randvecs}{Integer. Number of random vectors.}
 

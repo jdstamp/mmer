@@ -4,10 +4,12 @@ test_that("fame end-to-end no covariates no mask", {
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file = ""
   mask_file <- ""
+  chunksize <- 3
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
   n_threads <- 1
+  log_level <- "DEBUG"
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
 
@@ -59,10 +61,12 @@ test_that("fame end-to-end no covariates no mask", {
                  covariate_file,
                  mask_file,
                  snp_indices,
+                 chunksize,
                  n_randvecs,
                  n_blocks,
                  n_threads,
-                 rand_seed)
+                 rand_seed,
+                 log_level)
   observed_est <- result$vc_estimate
   observed_se <- result$vc_se
 
@@ -77,6 +81,7 @@ test_that("fame end-to-end with covariate file no mask", {
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file <- system.file("testdata", "test.cov", package="famer")
   mask_file <- system.file("testdata", "test.h5", package="famer")
+  chunksize <- 3
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
@@ -112,6 +117,7 @@ test_that("fame end-to-end with covariate file no mask", {
                  covariate_file,
                  mask_file,
                  snp_indices,
+                 chunksize,
                  n_randvecs,
                  n_blocks,
                  n_threads,
@@ -128,6 +134,7 @@ test_that("fame end-to-end no covariates but with mask", {
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file = ""
   mask_file <- system.file("testdata", "test.h5", package="famer")
+  chunksize <- 3
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
@@ -184,6 +191,7 @@ test_that("fame end-to-end no covariates but with mask", {
                  covariate_file,
                  mask_file,
                  snp_indices,
+                 chunksize,
                  n_randvecs,
                  n_blocks,
                  n_threads,

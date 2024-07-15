@@ -5,6 +5,7 @@
 #' @param covariate_file File path for covariates data.
 #' @param mask_file File path for gxg mask data.
 #' @param gxg_indices List of indices for the focal variants.
+#' @param chunksize Integer representing the number of SNPs analyzed with the same set of random vectors.
 #' @param n_randvecs Integer. Number of random vectors.
 #' @param n_blocks Integer representing the number of blocks the SNPs will be read in.
 #' @param n_threads Integer representing the number of threads that are setup for OMP.
@@ -26,6 +27,7 @@ fame <-
            covariate_file,
            mask_file = NULL,
            gxg_indices = NULL,
+           chunksize = NULL,
            n_randvecs = 10,
            n_blocks = 100,
            n_threads = 1,
@@ -55,19 +57,47 @@ fame <-
       gxg_indices <- c(1:n_snps)
     }
 
-    result <-
-      fame_cpp(
-        plink_file,
-        pheno_file,
-        covariate_file,
-        n_randvecs,
-        n_blocks,
-        rand_seed,
-        gxg_indices - 1,
-        # R is 1-indexed, C++ is 0-indexed
-        mask_file,
-        n_threads
-      )
+    if (is.null(chunksize)) {
+      n_chunks <- ceiling(length(gxg_indices) / n_threads)
+      log$debug("No chunksize specified. Using %d chunks.", n_chunks)
+    } else {
+      n_chunks <- ceiling(length(gxg_indices) / chunksize)
+      log$debug("Chunksize set to %d. Using %d chunks.", chunksize, n_chunks)
+  }
+
+    shuffled_gxg_indices <- sample(gxg_indices)
+    chunks <- split(shuffled_gxg_indices, cut(seq_along(shuffled_gxg_indices), n_chunks, labels = FALSE))
+
+    VC <- NULL
+    SE <- NULL
+
+    for (i in seq_along(chunks)) {
+      chunk <- chunks[[i]]
+        log$info("Processing chunk %d of %d containing %d SNPs.", i, n_chunks,
+        length
+        (chunk))
+        log$debug("chunk SNP IDs: %s", chunk)
+        result <-
+          fame_cpp(
+            plink_file,
+            pheno_file,
+            covariate_file,
+            n_randvecs,
+            n_blocks,
+            rand_seed,
+            chunk - 1,
+            # R is 1-indexed, C++ is 0-indexed
+            mask_file,
+            n_threads
+          )
+          VC <- rbind(VC, result$vc_estimate)
+          SE <- rbind(SE, result$vc_se)
+    }
+
+    # undo the shuffling of the indices on the rows of VC and SE
+    reorder_indices <- order(shuffled_gxg_indices)
+    result$vc_estimate <- VC[reorder_indices, ]
+    result$vc_se <- SE[reorder_indices, ]
 
     z_score <- abs(result$vc_estimate / result$vc_se)
     p_values <- 2 * (1 - pnorm(z_score))

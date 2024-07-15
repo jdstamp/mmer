@@ -10,7 +10,17 @@ int main() {
   int focal_snp_index = 1;
   int n_blocks = 100;
   int rand_seed = 123;
-  std::vector<int> index_vector = {focal_snp_index};
+    std::vector<int> index_vector = {
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10};
   Rcpp::List results = fame_cpp(plink_file, pheno_file, covariate_file,
                                 n_randvecs, n_blocks, rand_seed, index_vector,
                                 mask_file);
