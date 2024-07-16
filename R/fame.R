@@ -71,8 +71,12 @@ fame <-
     }
 
     shuffled_gxg_indices <- sample(gxg_indices)
-    chunks <- split(shuffled_gxg_indices,
-                    cut(seq_along(shuffled_gxg_indices), n_chunks, labels = FALSE))
+    if (n_chunks > 1) {
+      chunks <- split(shuffled_gxg_indices,
+                      cut(seq_along(shuffled_gxg_indices), n_chunks, labels = FALSE))
+    } else {
+      chunks <- list(`1` = gxg_indices)
+    }
 
     VC <- NULL
     SE <- NULL
