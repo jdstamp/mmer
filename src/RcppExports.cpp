@@ -11,6 +11,16 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// check_openmp
+bool check_openmp();
+RcppExport SEXP _famer_check_openmp() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(check_openmp());
+    return rcpp_result_gen;
+END_RCPP
+}
 // count_samples
 int count_samples(std::string filename);
 RcppExport SEXP _famer_count_samples(SEXP filenameSEXP) {
@@ -139,6 +149,7 @@ END_RCPP
 RcppExport SEXP run_testthat_tests(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_famer_check_openmp", (DL_FUNC) &_famer_check_openmp, 0},
     {"_famer_count_samples", (DL_FUNC) &_famer_count_samples, 1},
     {"_famer_count_fam", (DL_FUNC) &_famer_count_fam, 1},
     {"_famer_count_snps_bim", (DL_FUNC) &_famer_count_snps_bim, 1},
