@@ -36,6 +36,7 @@ extern metaData metadata;
 
 MatrixXdr readCSVToMatrixXdr(const std::string &filename);
 
-bool fileExists(const std::string& path);
+bool fileExists(const std::string &path);
 
-void correctTestFiles(std::string& test_csv, std::string& test_bed, std::string& test_pheno);
+void correctTestFiles(std::string &test_csv, std::string &test_bed,
+                      std::string &test_pheno);

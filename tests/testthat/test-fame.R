@@ -8,7 +8,7 @@ test_that("fame end-to-end no covariates no mask", {
   n_randvecs = 10
   n_blocks = 10
   rand_seed = 123
-  n_threads <- 1
+  n_threads <- 3
   log_level <- "DEBUG"
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)

@@ -4,13 +4,11 @@
 std::string testdata_dir = "../../inst/testdata/";
 std::string checkdata_dir = "../../famer/testdata/";
 
-
 std::string test_bed = testdata_dir + "test.bed";
 std::string test_csv = testdata_dir + "test.csv";
 std::string test_pheno = testdata_dir + "test_h2_0.5.pheno";
 
 bool is_test = true;
-
 
 double tolerance = 1e-6;
 int n_samples = 200;
@@ -55,12 +53,13 @@ MatrixXdr readCSVToMatrixXdr(const std::string &filename) {
   return mat;
 }
 
-bool fileExists(const std::string& path) {
+bool fileExists(const std::string &path) {
   std::ifstream file(path);
   return file.good();
 }
 
-void correctTestFiles(std::string& test_csv, std::string& test_bed, std::string& test_pheno) {
+void correctTestFiles(std::string &test_csv, std::string &test_bed,
+                      std::string &test_pheno) {
   is_test = fileExists(test_csv);
   if (!is_test) {
     test_bed = checkdata_dir + "test.bed";

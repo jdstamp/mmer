@@ -12,7 +12,6 @@
 
 #include "boost/random.hpp"
 #include "genotype.h"
-#include "log_task.h"
 
 #if SSE_SUPPORT == 1
 #define fastmultiply fastmultiply_sse

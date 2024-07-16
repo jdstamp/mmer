@@ -6,7 +6,7 @@ int main() {
   std::string pheno_file = "/Users/jds/data/ukbb/c12_100k-samples_010k-snps.phen";
   std::string covariate_file = "";
   std::string mask_file = ""; // "/Users/jds/Downloads/test100k/hdf5_mask.h5"
-  int n_randvecs = 100;
+  int n_randvecs = 10;
   int focal_snp_index = 1;
   int n_blocks = 100;
   int rand_seed = 123;
@@ -26,3 +26,7 @@ int main() {
                                 mask_file);
   return 0;
 }
+// 5 threads:
+// - 5 snps 93 sec 18 / snp
+// - 10 snps 154 sec - 15 / snp
+// - 15 snps 227 sec - 15 / snp

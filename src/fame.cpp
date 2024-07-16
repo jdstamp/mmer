@@ -43,12 +43,10 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                     int rand_seed, std::vector<int> gxg_indices,
                     std::string genotype_mask_file, int n_threads) {
 
-auto start = std::chrono::high_resolution_clock::now();
+  auto start = std::chrono::high_resolution_clock::now();
 
 #ifdef _OPENMP
   omp_set_num_threads(n_threads);
-  std::cout << "openMP is enabled." << std::endl;
-  std::cout << "using " << n_threads << " thread(s) for " << gxg_indices.size() << " gxg indices." << std::endl;
 #endif
   //  #pragma omp parallel for schedule(dynamic)
   //  1. try oscar because linux
@@ -162,9 +160,7 @@ auto start = std::chrono::high_resolution_clock::now();
   bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
   global_snp_index = -1;
 
-  std::cout << "processing blockwise 1 of 2." << std::endl;
   for (int block_index = 0; block_index < n_blocks; block_index++) {
-      log_block_index(block_index, n_blocks);
 
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
@@ -297,9 +293,7 @@ auto start = std::chrono::high_resolution_clock::now();
   bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
   global_snp_index = -1;
 
-    std::cout << "processing blockwise 2 of 2." << std::endl;
-    for (int block_index = 0; block_index < n_blocks; block_index++) {
-        log_block_index(block_index, n_blocks);
+  for (int block_index = 0; block_index < n_blocks; block_index++) {
 
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
@@ -487,11 +481,10 @@ auto start = std::chrono::high_resolution_clock::now();
   } // end of parallel loop 9
 
   auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << "completed chunk in " << elapsed.count() << " seconds" <<
-    std::endl;
+  std::chrono::duration<double> elapsed = end - start;
   return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
-                            Rcpp::Named("vc_se") = SE);
+                            Rcpp::Named("vc_se") = SE,
+                            Rcpp::Named("duration") = elapsed.count());
 }
 
 void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,

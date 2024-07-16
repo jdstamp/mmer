@@ -21,6 +21,10 @@ fame_traits_cpp <- function(plink_file, additive_variance_component, gxg_varianc
     .Call('_famer_fame_traits_cpp', PACKAGE = 'famer', plink_file, additive_variance_component, gxg_variance_component, focal_snp, gxg_indices, additive_indices)
 }
 
+check_openmp <- function() {
+    .Call('_famer_check_openmp', PACKAGE = 'famer')
+}
+
 simulate_a_trait_cpp <- function(plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2) {
     .Call('_famer_simulate_a_trait_cpp', PACKAGE = 'famer', plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2)
 }
