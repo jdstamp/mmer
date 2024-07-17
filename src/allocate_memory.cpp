@@ -43,8 +43,4 @@ void deallocate_memory(double *partialsums, double *sum_op, double *yint_e,
   for (int i = 0; i < genotype_block.n_samples; i++)
     delete[] y_e[i];
   delete[] y_e;
-
-  std::vector<std::vector<int>>().swap(genotype_block.p);
-  genotype_block.columnsum.clear();
-  genotype_block.columnmeans.clear();
 }

@@ -1,18 +1,20 @@
 library(famer)
 
-plink_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed";
-pheno_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed.phen";
-covariate_file <- "";
-mask_file <- ""; # "/Users/jds/Downloads/test100k/hdf5_mask.h5"
-n_randvecs <- 30
+plink_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed"
+pheno_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed.phen"
+# plink_file <- "/users/jstamp1/data/jstamp1/ukbb/c12_100k-samples_010k-snps_imputed"
+# pheno_file <- "/users/jstamp1/data/jstamp1/ukbb/c12_100k-samples_010k-snps_imputed.phen"
+covariate_file <- ""
+mask_file <- "" # "/Users/jds/Downloads/test100k/hdf5_mask.h5"
+n_randvecs <- 10
 n_blocks <- 100
 rand_seed <- 123
 
-chunksize <- 5
-n_threads <- 5
+chunksize <- 30
+n_threads <- 10
 log_level <- "DEBUG"
 
-snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
+snp_indices <- 1:1000
 
 Rprof(memory.profiling = TRUE)
 
@@ -31,3 +33,4 @@ result <- fame(plink_file,
 Rprof(NULL)
 # Summarize the profiling results
 summaryRprof(memory = "both")
+

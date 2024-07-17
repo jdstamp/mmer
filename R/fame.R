@@ -55,8 +55,8 @@ fame <-
       stop("Number of samples in fam file and pheno file do not match.")
     }
 
-    mem_req <- approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs)
-    log$debug("Estimated memory requirement: %.2f GB per block.", mem_req)
+    mem_req <- approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize)
+    log$debug("Estimated memory requirement: %.2f GB", mem_req)
 
     if (is.null(gxg_indices)) {
       gxg_indices <- c(1:n_snps)

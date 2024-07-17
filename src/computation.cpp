@@ -35,7 +35,7 @@ MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &means,
                       const int &Nz, const int &Nindv, genotype &genotype_block,
                       const int &sel_snp_local_index, bool exclude_sel_snp) {
 
-  double *partialsums2 = new double[0];
+  double *partialsums2;
   double *sum_op2;
   double *yint_e2;
   double *yint_m2;
@@ -90,13 +90,16 @@ MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &means,
     for (int j = 0; j < Nindv; j++)
       temp(i, j) = temp(i, j) * phenotype_mask(j, 0);
 
+    deallocate_memory(partialsums2, sum_op2, yint_e2, yint_m2, y_e2, y_m2,
+                      genotype_block);
+
   return temp.transpose();
 }
 
 double compute_yXXy(const MatrixXdr &y_vec, const MatrixXdr &means,
                     const MatrixXdr &stds, const int &sel_snp_local_index,
                     genotype &genotype_block, const bool &exclude_sel_snp) {
-  double *partialsums2 = new double[0];
+  double *partialsums2;
   double *sum_op2;
   double *yint_e2;
   double *yint_m2;
@@ -126,6 +129,9 @@ double compute_yXXy(const MatrixXdr &y_vec, const MatrixXdr &means,
     Xy(sel_snp_local_index, 0) = 0;
 
   double yXXy = (Xy.array() * Xy.array()).sum();
+
+    deallocate_memory(partialsums2, sum_op2, yint_e2, yint_m2, y_e2, y_m2,
+                      genotype_block);
 
   return yXXy;
 }
