@@ -161,7 +161,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
-
+    Rcpp::checkUserInterrupt();
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
@@ -294,7 +294,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
-
+    Rcpp::checkUserInterrupt();
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
