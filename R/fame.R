@@ -109,7 +109,10 @@ fame <-
       TIME <- c(TIME, result$duration)
       pb$tick()
     }
-    average_duration <- sum(TIME) / n_gxg_indices
+    total_duration <- sum(TIME)
+    average_duration <- total_duration / n_gxg_indices
+    log$debug("Total computation time: %f seconds",
+                  total_duration)
     log$debug("Average computation time per SNP: %f seconds",
               average_duration)
 

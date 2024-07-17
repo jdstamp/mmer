@@ -482,7 +482,6 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = end - start;
-    std::cout << "Elapsed time: " << elapsed.count() << std::endl;
   return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
                             Rcpp::Named("vc_se") = SE,
                             Rcpp::Named("duration") = elapsed.count());

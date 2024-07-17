@@ -10,11 +10,11 @@ n_randvecs <- 10
 n_blocks <- 100
 rand_seed <- 123
 
-chunksize <- 30
+chunksize <- 20
 n_threads <- 10
 log_level <- "DEBUG"
 
-snp_indices <- 1:1000
+snp_indices <- 1:100
 
 Rprof(memory.profiling = TRUE)
 
