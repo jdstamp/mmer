@@ -1,8 +1,8 @@
 #pragma once
 #ifndef GENOTYPE_H
 #define GENOTYPE_H
-#include <bits/stdc++.h>
 #include "fame.h"
+#include <bits/stdc++.h>
 #include <istream>
 
 class genotype {

@@ -10,7 +10,8 @@ void allocate_memory(int n_randvecs, const genotype &genotype_block,
   int hsegsize = genotype_block.segment_size_hori;
   int hsize = pow(3, hsegsize); // = log_3(n)
 
-  partialsums = new double[n_randvecs](); // value initialization with () to value 0
+  partialsums =
+      new double[n_randvecs](); // value initialization with () to value 0
   sum_op = new double[n_randvecs]();
   yint_e = new double[hsize * n_randvecs];
   yint_m = new double[hsize * n_randvecs];

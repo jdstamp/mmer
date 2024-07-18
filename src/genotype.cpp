@@ -54,33 +54,29 @@ void genotype::clear_block() {
   columnmeans.clear();
 }
 
-void genotype::set_block_parameters(const int &n, const int
-&b) {
-    segment_size_hori =
-            floor(log(n) / log(3)) - 2; // object of the mailman
-    // TODO: the above line introduces a minimum size limit. Investigate the
-    //  limitations
-    n_segments_hori =
-            ceil(b * 1.0 / (segment_size_hori * 1.0));
-    p.resize(n_segments_hori,
-                            std::vector<int>(n));
-    block_size = 0; // will be updated in encode
-    n_snps = b;
-    n_samples = n;
+void genotype::set_block_parameters(const int &n, const int &b) {
+  segment_size_hori = floor(log(n) / log(3)) - 2; // object of the mailman
+  // TODO: the above line introduces a minimum size limit. Investigate the
+  //  limitations
+  n_segments_hori = ceil(b * 1.0 / (segment_size_hori * 1.0));
+  p.resize(n_segments_hori, std::vector<int>(n));
+  block_size = 0; // will be updated in encode
+  n_snps = b;
+  n_samples = n;
 
-    columnsum.resize(b, 1);
-    for (int index_temp = 0; index_temp < b; index_temp++) {
-        columnsum[index_temp] = 0;
-    }
+  columnsum.resize(b, 1);
+  for (int index_temp = 0; index_temp < b; index_temp++) {
+    columnsum[index_temp] = 0;
+  }
 }
 
 void genotype::compute_block_stats() {
-        allelecount_stds.resize(block_size, 1);
-        allelecount_means.resize(block_size, 1);
-        for (int i = 0; i < block_size; i++) {
-            allelecount_means(i, 0) = (double)columnsum[i] / n_samples;
-            allelecount_stds(i, 0) =
-                    1 /
-                    sqrt((allelecount_means(i, 0) * (1 - (0.5 * allelecount_means(i, 0)))));
-        }
+  allelecount_stds.resize(block_size, 1);
+  allelecount_means.resize(block_size, 1);
+  for (int i = 0; i < block_size; i++) {
+    allelecount_means(i, 0) = (double)columnsum[i] / n_samples;
+    allelecount_stds(i, 0) =
+        1 /
+        sqrt((allelecount_means(i, 0) * (1 - (0.5 * allelecount_means(i, 0)))));
+  }
 }
