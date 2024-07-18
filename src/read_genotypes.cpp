@@ -123,7 +123,6 @@ void encode_snp(genotype &genotype_block, const MatrixXdr &genotype_matrix) {
   for (int j = 0; j < n_samples; j++) {
     encode_genotypes(genotype_block, j, genotype_matrix(j, 0));
   }
-
   genotype_block.block_size++;
 }
 void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,

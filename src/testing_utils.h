@@ -5,7 +5,6 @@
 
 #include "allocate_memory.h"
 #include "computation.h"
-#include "compute_block_stats.h"
 #include "compute_covariance_q.h"
 #include "compute_mom_components.h"
 #include "fame.h"
@@ -13,7 +12,6 @@
 #include "initialize_random_vectors.h"
 #include "read_genotypes.h"
 #include "read_phenotypes.h"
-#include "set_block_parameters.h"
 #include "set_metadata.h"
 
 #include <fstream>

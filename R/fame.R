@@ -83,12 +83,12 @@ fame <-
     TIME <- NULL
 
     pb <- progress_bar$new(
-      format = "processing chunks [:bar] :percent remaining: :eta",
+      format = "processing chunks [:bar] :percent elapsed: :elapsed eta: :eta",
       total = n_chunks,
       clear = FALSE,
       width = 60
     )
-
+    pb$tick(0)
     for (i in seq_along(chunks)) {
       chunk <- chunks[[i]]
       result <-

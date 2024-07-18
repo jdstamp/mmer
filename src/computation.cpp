@@ -30,9 +30,8 @@
 #include "allocate_memory.h"
 #include "mailman.h"
 
-MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &means,
-                      const MatrixXdr &stds, const MatrixXdr &phenotype_mask,
-                      const int &Nz, const int &Nindv, genotype &genotype_block,
+MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &phenotype_mask,
+                      const int &n_randvecs, const genotype &genotype_block,
                       const int &sel_snp_local_index, bool exclude_sel_snp) {
 
   double *partialsums2;
@@ -41,63 +40,66 @@ MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &means,
   double *yint_m2;
   double **y_e2;
   double **y_m2;
+  const MatrixXdr &means = genotype_block.allelecount_means;
+  const MatrixXdr &stds = genotype_block.allelecount_stds;
+  const int &n_samples = genotype_block.n_samples;
 
-  allocate_memory(Nz, genotype_block, partialsums2, sum_op2, yint_e2, yint_m2,
+  allocate_memory(n_randvecs, genotype_block, partialsums2, sum_op2, yint_e2, yint_m2,
                   y_e2, y_m2);
 
   MatrixXdr res;
-  res.resize(genotype_block.block_size, Nz);
-  multiply_y_pre_fast(Z_b, Nz, res, false, sum_op2, genotype_block, yint_m2,
+  res.resize(genotype_block.block_size, n_randvecs);
+  multiply_y_pre_fast(Z_b, n_randvecs, res, false, sum_op2, genotype_block, yint_m2,
                       y_m2, genotype_block.block_size, partialsums2);
   MatrixXdr zb_sum = Z_b.colwise().sum();
 
   for (int j = 0; j < genotype_block.block_size; j++)
-    for (int k = 0; k < Nz; k++) {
+    for (int k = 0; k < n_randvecs; k++) {
       res(j, k) = res(j, k) * stds(j, 0);
     }
 
-  MatrixXdr resid(genotype_block.block_size, Nz);
+  MatrixXdr resid(genotype_block.block_size, n_randvecs);
   MatrixXdr inter = means.cwiseProduct(stds);
   resid = inter * zb_sum;
   MatrixXdr inter_zb = res - resid;
 
   // GxG case
   if (exclude_sel_snp == true)
-    for (int k = 0; k < Nz; k++)
+    for (int k = 0; k < n_randvecs; k++)
       inter_zb(sel_snp_local_index, k) = 0;
 
   // masking
   for (int j = 0; j < genotype_block.block_size; j++)
-    for (int k = 0; k < Nz; k++) {
+    for (int k = 0; k < n_randvecs; k++) {
       inter_zb(j, k) = inter_zb(j, k) * stds(j, 0);
     }
 
   MatrixXdr new_zb = inter_zb.transpose();
-  MatrixXdr new_res(Nz, Nindv);
+  MatrixXdr new_res(n_randvecs, n_samples);
 
-  multiply_y_post_fast(new_zb, Nz, new_res, false, genotype_block.block_size,
-                       genotype_block, yint_e2, y_e2, Nindv);
+  multiply_y_post_fast(new_zb, n_randvecs, new_res, false, genotype_block.block_size,
+                       genotype_block, yint_e2, y_e2, n_samples);
 
-  MatrixXdr new_resid(1, Nindv);
+  MatrixXdr new_resid(1, n_samples);
   MatrixXdr zb_scale_sum = new_zb * means;
 
-  new_resid = zb_scale_sum * MatrixXdr::Constant(1, Nindv, 1);
+  new_resid = zb_scale_sum * MatrixXdr::Constant(1, n_samples, 1);
 
   /// new zb
   MatrixXdr temp = new_res - new_resid;
 
-  for (int i = 0; i < Nz; i++)
-    for (int j = 0; j < Nindv; j++)
+  for (int i = 0; i < n_randvecs; i++)
+    for (int j = 0; j < n_samples; j++)
       temp(i, j) = temp(i, j) * phenotype_mask(j, 0);
 
     deallocate_memory(partialsums2, sum_op2, yint_e2, yint_m2, y_e2, y_m2,
                       genotype_block);
 
+//  MatrixXdr temp = MatrixXdr::Zero(Nz, n_samples);
   return temp.transpose();
 }
 
-double compute_yXXy(const MatrixXdr &y_vec, const MatrixXdr &means,
-                    const MatrixXdr &stds, const int &sel_snp_local_index,
+double compute_yXXy(const MatrixXdr &y_vec, const int &sel_snp_local_index,
                     genotype &genotype_block, const bool &exclude_sel_snp) {
   double *partialsums2;
   double *sum_op2;
@@ -106,6 +108,8 @@ double compute_yXXy(const MatrixXdr &y_vec, const MatrixXdr &means,
   double **y_e2;
   double **y_m2;
   int Nz = 1;
+  const MatrixXdr &means = genotype_block.allelecount_means;
+    const MatrixXdr &stds = genotype_block.allelecount_stds;
 
   allocate_memory(Nz, genotype_block, partialsums2, sum_op2, yint_e2, yint_m2,
                   y_e2, y_m2);
@@ -227,8 +231,11 @@ void multiply_y_post_fast(MatrixXdr &op_orig, int Nrows_op, MatrixXdr &res,
   if (!subtract_means)
     return;
 
-  double *sums_elements = new double[Ncol_op];
-  memset(sums_elements, 0, Nrows_op * sizeof(int));
+//  double *sums_elements = new double[Ncol_op];
+//  memset(sums_elements, 0, Nrows_op * sizeof(int));
+double *sums_elements = new double[Ncol_op];
+std::fill(sums_elements, sums_elements + Ncol_op, 0.0);
+
 
   for (int k_iter = 0; k_iter < Ncol_op; k_iter++) {
     double sum_to_calc = 0.0;
