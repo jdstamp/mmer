@@ -30,13 +30,11 @@
 
 using namespace std;
 
-template <typename T>
-static std::istream &binary_read(std::istream &stream, T &value) {
-  return stream.read(reinterpret_cast<char *>(&value), sizeof(T));
-}
 
 double genotype::get_col_mean(int snpindex) const {
-  double temp = columnmeans[snpindex];
+//  double temp = columnmeans[snpindex];
+  double temp = allelecount_means(snpindex, 0); // replaced above return
+  // but did not seem to change the results
   return temp;
 }
 
@@ -60,7 +58,7 @@ void genotype::set_block_parameters(const int &n, const int &b) {
   //  limitations
   n_segments_hori = ceil(b * 1.0 / (segment_size_hori * 1.0));
   p.resize(n_segments_hori, std::vector<int>(n));
-  block_size = 0; // will be updated in encode
+  n_encoded = 0; // will be updated in encode
   n_snps = b;
   n_samples = n;
 
@@ -71,12 +69,24 @@ void genotype::set_block_parameters(const int &n, const int &b) {
 }
 
 void genotype::compute_block_stats() {
-  allelecount_stds.resize(block_size, 1);
-  allelecount_means.resize(block_size, 1);
-  for (int i = 0; i < block_size; i++) {
+  allelecount_stds.resize(n_encoded, 1);
+  allelecount_means.resize(n_encoded, 1);
+  for (int i = 0; i < n_encoded; i++) {
     allelecount_means(i, 0) = (double)columnsum[i] / n_samples;
     allelecount_stds(i, 0) =
         1 /
         sqrt((allelecount_means(i, 0) * (1 - (0.5 * allelecount_means(i, 0)))));
   }
+}
+
+void genotype::encode_snp(const MatrixXdr &snp_matrix) {
+    for (int j = 0; j < n_samples; j++) {
+        int val = snp_matrix(j, 0);
+        int horiz_seg_no = n_encoded / segment_size_hori;
+        p[horiz_seg_no][j] =
+                3 * p[horiz_seg_no][j] + val;
+        // computing sum for every snp to compute mean
+        columnsum[n_encoded] += val;
+    }
+    n_encoded++;
 }

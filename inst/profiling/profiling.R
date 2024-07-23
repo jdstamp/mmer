@@ -6,9 +6,9 @@ pheno_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed.phen"
 # pheno_file <- "/users/jstamp1/data/jstamp1/ukbb/c12_100k-samples_010k-snps_imputed.phen"
 covariate_file <- ""
 mask_file <- ""
-mask_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_masksize500.h5"
+# mask_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_masksize500.h5"
 log_level <- "DEBUG"
-n_blocks <- 10
+n_blocks <- 100
 rand_seed <- 123
 
 snp_indices <- 1:90

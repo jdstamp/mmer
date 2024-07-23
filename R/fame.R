@@ -46,6 +46,10 @@ fame <-
     n_samples <- count_samples(pheno_file)
     n_fam_lines <- count_fam(fam_file)
 
+    log$debug("Dataset: %s", plink_file)
+    log$debug("Number of samples: %d", n_samples)
+    log$debug("Number of SNPs: %d", n_snps)
+
     if (check_openmp()) {
       log$info("openMP is enabled")
       log$info("Number of requested threads: %d", n_threads)

@@ -21,10 +21,10 @@ approximate_memory_requirements <- function(n_samples,
   quadratic_forms <- n_samples * 10 * (9 + 3)
 
   # dynamic memory of streaming blocks
-  block_size <- ceiling(n_snps / n_blocks)
-  genotype_blocks <- n_samples * block_size
+  n_encoded <- ceiling(n_snps / n_blocks)
+  genotype_blocks <- n_samples * n_encoded
   rand_vectors <- n_samples * n_randvecs
-  block_stats <- 2 * block_size
+  block_stats <- 2 * n_encoded
   phenotype <- n_samples
   vc_estimate <- 2 * n_snps * 3 # point estimate and se for each component
   total <- genotype_blocks + rand_vectors + trace_estimates + quadratic_forms +

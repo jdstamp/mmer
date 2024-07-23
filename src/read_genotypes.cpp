@@ -19,7 +19,7 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
     global_snp_index++;
     ifs.read(reinterpret_cast<char *>(gtype),
              metadata.ncol * sizeof(unsigned char));
-    // skip to the block_size of interest
+    // skip to the n_encoded of interest
     if (i == (focal_snp_index)) {
       float p_j = get_observed_allelefreq(gtype, metadata);
       for (int k = 0; k < metadata.ncol; k++) {
@@ -123,7 +123,7 @@ void encode_snp(genotype &genotype_block, const MatrixXdr &genotype_matrix) {
   for (int j = 0; j < n_samples; j++) {
     encode_genotypes(genotype_block, j, genotype_matrix(j, 0));
   }
-  genotype_block.block_size++;
+  genotype_block.n_encoded++;
 }
 void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
               const metaData &metadata, MatrixXdr &genotype_matrix) {
@@ -158,7 +158,7 @@ void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
 
 void encode_genotypes(genotype &genotype_block, int j, int val) {
   int snp_index;
-  snp_index = genotype_block.block_size;
+  snp_index = genotype_block.n_encoded;
   int horiz_seg_no = snp_index / genotype_block.segment_size_hori;
   genotype_block.p[horiz_seg_no][j] =
       3 * genotype_block.p[horiz_seg_no][j] + val;

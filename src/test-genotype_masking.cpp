@@ -101,7 +101,7 @@ context("C++ test yXXy with masking") {
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
       if (genotype_mask_matrix(i, 0) == 1) {
-        encode_snp(genotype_block, snp_matrix);
+        genotype_block.encode_snp(snp_matrix);
       }
     }
 
@@ -302,7 +302,7 @@ context("C++ test XXz with masking") {
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
       if (genotype_mask_matrix(i, 0) == 1) {
-        encode_snp(genotype_block, snp_matrix);
+        genotype_block.encode_snp(snp_matrix);
       }
     }
 
@@ -443,14 +443,14 @@ context("C++ test XXy with masking") {
     genotype_block.set_block_parameters(n_samples, mask_size);
     std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     int global_snp_index = -1;
-    //    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
+    //    read_genotype_block(bed_ifs, n_encoded, genotype_block, n_samples,
     //                        global_snp_index, metadata);
 
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
       if (genotype_mask_matrix(i, 0) == 1) {
-        encode_snp(genotype_block, snp_matrix);
+        genotype_block.encode_snp(snp_matrix);
       }
     }
 
