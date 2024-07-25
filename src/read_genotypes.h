@@ -14,11 +14,6 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
 template <typename T>
 static std::istream &binary_read(std::istream &stream, T &value);
 
-float get_observed_allelefreq(const unsigned char *line,
-                              const metaData &metadata);
-
-int impute_genotype(const float &p_j);
-
 void read_genotype_block(std::istream &ifs, const int &block_size,
                          genotype &genotype_block, const int &n_samples,
                          int &global_snp_index, const metaData &metadata);

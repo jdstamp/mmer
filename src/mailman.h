@@ -64,10 +64,10 @@ void fastmultiply_normal(
 }
 
 void fastmultiply_pre_normal(
-        int m, int n, int k, int start, const std::vector<int> &p,
-        const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+    int m, int n, int k, int start, const std::vector<int> &p,
+    const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         &x,
-        double *yint, double *c, double **y) {
+    double *yint, double *c, double **y) {
   int size1 = pow(3., m);
   memset(yint, 0, size1 * sizeof(double));
 

@@ -4,7 +4,9 @@
  */
 
 // [[Rcpp::plugins(openmp)]]
+#include <algorithm>
 #include <omp.h>
+#include <random>
 
 #include "computation.h"
 #include "compute_covariance_q.h"
@@ -14,25 +16,9 @@
 #include "fit_covariates.h"
 #include "initialize_random_vectors.h"
 #include "read_covariates.h"
+#include "read_genotype_mask.h"
 #include "read_genotypes.h"
 #include "read_phenotypes.h"
-#include <algorithm>
-#include <highfive/H5Easy.hpp>
-#include <random>
-
-void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,
-                        int gxg_i, const string &gxg_h5_dataset,
-                        MatrixXdr &genotype_mask, int &n_gxg_snps);
-
-MatrixXdr indices_to_binary(const std::vector<int> &indices, int length) {
-  MatrixXdr binaryVec = MatrixXdr::Zero(length, 1);
-  for (int index : indices) {
-    if (index >= 0 && index < length) {
-      binaryVec(index, 0) = 1;
-    }
-  }
-  return binaryVec;
-}
 
 // [[Rcpp::export]]
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
@@ -79,7 +65,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr random_vectors;
 
   genotype grm_genotype_block;
-  std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
+  //  std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
 
   MatrixXdr allelecount_means;
   MatrixXdr allelecount_stds;
@@ -157,7 +143,8 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
-//        Rcpp::checkUserInterrupt();
+    //    Rcpp::checkUserInterrupt();
+    std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
@@ -165,7 +152,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
       int n_gxg_snps;
-      MatrixXdr genotype_mask;
+      MatrixXdr genotype_mask = MatrixXdr::Zero(n_snps, 1);
       int gxg_i = gxg_indices[parallel_idx];
       read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
                          genotype_mask, n_gxg_snps);
@@ -180,7 +167,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
-        grm_genotype_block.encode_snp(snp_matrix);
+      grm_genotype_block.encode_snp(snp_matrix);
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
@@ -189,9 +176,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
             binary_gxg_mask.col(parallel_idx)
                 .block(block_index * block_size, 0, block_size, 1);
         if (gxg_mask(i, 0) == 1) {
-            gxg_genotype_blocks[parallel_idx].encode_snp(snp_matrix);
-        } else {
-            std::cout << "skipping snp: " << gxg_genotype_blocks[parallel_idx].n_encoded << std::endl;
+          gxg_genotype_blocks[parallel_idx].encode_snp(snp_matrix);
         }
       } // end of parallel loop 1
     }
@@ -281,6 +266,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
     //    Rcpp::checkUserInterrupt();
+    std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
@@ -300,7 +286,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
-        grm_genotype_block.encode_snp(snp_matrix);
+      grm_genotype_block.encode_snp(snp_matrix);
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
@@ -310,9 +296,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
             binary_gxg_mask.col(parallel_idx)
                 .block(block_index * block_size, 0, block_size, 1);
         if (gxg_mask(i, 0) == 1) {
-            gxg_genotype_blocks[parallel_idx].encode_snp(snp_matrix);
-        } else {
-            std::cout << "skipping snp: " << gxg_genotype_blocks[parallel_idx].n_encoded << std::endl;
+          gxg_genotype_blocks[parallel_idx].encode_snp(snp_matrix);
         }
       } // end of parallel loop 4
     }
@@ -354,7 +338,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
            parallel_idx++) { // parallel loop 7
 
-        if (gxg_genotype_blocks[parallel_idx].p.size() == 0) {
+        if (gxg_genotype_blocks[parallel_idx].n_encoded == 0) {
           gxg_genotype_blocks[parallel_idx].clear_block();
           continue;
         }
@@ -458,20 +442,4 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
   return Rcpp::List::create(Rcpp::Named("vc_estimate") = VC,
                             Rcpp::Named("vc_se") = SE,
                             Rcpp::Named("duration") = elapsed.count());
-}
-
-void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,
-                        int gxg_i, const string &gxg_h5_dataset,
-                        MatrixXdr &genotype_mask, int &n_gxg_snps) {
-  std::vector<int> genotype_mask_indices;
-  if (genotype_mask_file != "") {
-    H5Easy::File file(genotype_mask_file, H5Easy::File::ReadOnly);
-    genotype_mask_indices = H5Easy::load<std::vector<int>>(
-        file, gxg_h5_dataset + "/" + std::to_string(gxg_i));
-    genotype_mask = indices_to_binary(genotype_mask_indices, n_snps);
-    n_gxg_snps = genotype_mask_indices.size();
-  } else {
-    genotype_mask = MatrixXdr::Ones(n_snps, 1);
-    n_gxg_snps = n_snps - 1;
-  }
 }

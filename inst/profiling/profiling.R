@@ -1,4 +1,5 @@
 library(famer)
+library(tidyr)
 
 plink_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed"
 pheno_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed.phen"
@@ -6,7 +7,7 @@ pheno_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_imputed.phen"
 # pheno_file <- "/users/jstamp1/data/jstamp1/ukbb/c12_100k-samples_010k-snps_imputed.phen"
 covariate_file <- ""
 mask_file <- ""
-# mask_file <- "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_masksize500.h5"
+mask_files <- c("", "/Users/jds/data/ukbb/c12_100k-samples_010k-snps_masksize500.h5")
 log_level <- "DEBUG"
 n_blocks <- 100
 rand_seed <- 123
@@ -15,22 +16,24 @@ snp_indices <- 1:90
 
 chunksize <- c(30)
 n_threads <- c(10)
-n_randvecs <- c(100)
+n_randvecs <- c(10)
 
-parameter_grid <- expand.grid(chunksize = chunksize,
+parameter_grid <- crossing(chunksize = chunksize,
                               n_threads = n_threads,
-                              n_randvecs = n_randvecs)
+                              n_randvecs = n_randvecs,
+                              mask_file = mask_files)
 
 duration <- parameter_grid
 duration$average_duration <- rep(0, nrow(parameter_grid))
 
 # Rprof(memory.profiling = TRUE)
 
-for (i in 1:nrow(parameter_grid)) {
+# for (i in 1:nrow(parameter_grid)) {
+ i <- 2
   result <- fame(plink_file,
                  pheno_file,
                  covariate_file,
-                 mask_file,
+                 parameter_grid$mask_file[i],
                  snp_indices,
                  parameter_grid$chunksize[i],
                  parameter_grid$n_randvecs[i],
@@ -39,7 +42,7 @@ for (i in 1:nrow(parameter_grid)) {
                  rand_seed,
                  log_level)
   duration$average_duration[i] <- result$average_duration
-}
+# }
 
 print(duration)
 

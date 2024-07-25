@@ -30,9 +30,7 @@
 
 using namespace std;
 
-
 double genotype::get_col_mean(int snpindex) const {
-//  double temp = columnmeans[snpindex];
   double temp = allelecount_means(snpindex, 0); // replaced above return
   // but did not seem to change the results
   return temp;
@@ -48,8 +46,10 @@ double genotype::get_col_std(int snpindex) const {
 
 void genotype::clear_block() {
   std::vector<std::vector<int>>().swap(p);
-  columnsum.clear();
-  columnmeans.clear();
+  n_encoded = 0;
+  columnsum.resize(1, 0);
+  allelecount_means.resize(1, 1);
+  allelecount_stds.resize(1, 1);
 }
 
 void genotype::set_block_parameters(const int &n, const int &b) {
@@ -57,7 +57,7 @@ void genotype::set_block_parameters(const int &n, const int &b) {
   // TODO: the above line introduces a minimum size limit. Investigate the
   //  limitations
   n_segments_hori = ceil(b * 1.0 / (segment_size_hori * 1.0));
-  p.resize(n_segments_hori, std::vector<int>(n));
+  p.resize(n_segments_hori, std::vector<int>(n, 0));
   n_encoded = 0; // will be updated in encode
   n_snps = b;
   n_samples = n;
@@ -80,13 +80,12 @@ void genotype::compute_block_stats() {
 }
 
 void genotype::encode_snp(const MatrixXdr &snp_matrix) {
-    for (int j = 0; j < n_samples; j++) {
-        int val = snp_matrix(j, 0);
-        int horiz_seg_no = n_encoded / segment_size_hori;
-        p[horiz_seg_no][j] =
-                3 * p[horiz_seg_no][j] + val;
-        // computing sum for every snp to compute mean
-        columnsum[n_encoded] += val;
-    }
-    n_encoded++;
+  int horiz_seg_no = n_encoded / segment_size_hori;
+  for (int j = 0; j < n_samples; j++) {
+    int val = snp_matrix(j, 0);
+    p[horiz_seg_no][j] = 3 * p[horiz_seg_no][j] + val;
+    // computing sum for every snp to compute mean
+    columnsum[n_encoded] += val;
+  }
+  n_encoded++;
 }

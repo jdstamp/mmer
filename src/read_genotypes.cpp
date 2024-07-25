@@ -21,7 +21,6 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
              metadata.ncol * sizeof(unsigned char));
     // skip to the n_encoded of interest
     if (i == (focal_snp_index)) {
-      float p_j = get_observed_allelefreq(gtype, metadata);
       for (int k = 0; k < metadata.ncol; k++) {
         unsigned char c = gtype[k];
         unsigned char mask = metadata.mask;
@@ -33,7 +32,7 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
           int j = j0 + l;
           int val = encoding_to_allelecount(y[l]);
           // impute missing genotype
-          val = (val == -1) ? impute_genotype(p_j) : val;
+          val = (val == -1) ? 0 : val;
           focal_genotype(j, 0) = val;
         }
       }
@@ -65,27 +64,6 @@ static std::istream &binary_read(std::istream &stream, T &value) {
   return stream.read(reinterpret_cast<char *>(&value), sizeof(T));
 }
 
-float get_observed_allelefreq(const unsigned char *line,
-                              const metaData &metadata) {
-  int y[4];
-  int observed_sum = 0;
-  int observed_ct = 0;
-  for (int k = 0; k < metadata.ncol; k++) {
-    unsigned char c = line[k];
-    unsigned char mask = metadata.mask;
-    extract_plink_genotypes(y, c, mask);
-    int lmax = get_sample_block_size(metadata.n_samples, k, metadata.ncol);
-    for (int l = 0; l < lmax; l++) {
-      int val = encoding_to_allelecount(y[l]);
-      if (val > -1) {
-        observed_sum += val;
-        observed_ct++;
-      }
-    }
-  }
-  return observed_sum * 0.5 / observed_ct;
-}
-
 void extract_plink_genotypes(int *y, const unsigned char &c,
                              const unsigned char &mask) {
   // Extract PLINK genotypes
@@ -93,18 +71,6 @@ void extract_plink_genotypes(int *y, const unsigned char &c,
   y[1] = (c >> 2) & mask;
   y[2] = (c >> 4) & mask;
   y[3] = (c >> 6) & mask;
-}
-
-int impute_genotype(const float &p_j) {
-  Rcpp::NumericVector rand_unif = Rcpp::runif(1, 0.0, 1.0);
-  float rval = rand_unif[0];
-  float dist_pj[3] = {(1 - p_j) * (1 - p_j), 2 * p_j * (1 - p_j), p_j * p_j};
-  if (rval < dist_pj[0])
-    return 0;
-  else if (rval >= dist_pj[0] && rval < (dist_pj[0] + dist_pj[1]))
-    return 1;
-  else
-    return 2;
 }
 
 void read_genotype_block(std::istream &ifs, const int &block_size,
@@ -149,7 +115,7 @@ void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
       int j = j0 + l;
       int val = encoding_to_allelecount(y[l]);
       // set missing genotype to major allele
-      val = (val == -1) ? 2 : val;
+      val = (val == -1) ? 0 : val;
       genotype_matrix(j, 0) = val;
     }
   }
@@ -173,10 +139,14 @@ int encoding_to_allelecount(const int &value) {
   // 01->missing
   // 10->1
   // 11->2
+  std::string missing_message =
+      "Missing genotype in PLINK file. This method requires fully genotyped "
+      "data. Please impute missing genotypes.";
   switch (value) {
   case 0:
     return 0;
   case 1:
+    Rcpp::stop(missing_message);
     return -1;
   case 2:
     return 1;
@@ -184,6 +154,7 @@ int encoding_to_allelecount(const int &value) {
     return 2;
   default:
     // Handle invalid input
+    Rcpp::stop(missing_message);
     return -1; // or any other default value you prefer
   }
 }

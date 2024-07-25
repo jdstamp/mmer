@@ -47,10 +47,9 @@ MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &phenotype_mask,
   allocate_memory(n_randvecs, genotype_block, partialsums, sum_op, yint_e,
                   yint_m, y_e, y_m);
 
-  MatrixXdr res = MatrixXdr::Zero(genotype_block.n_encoded,
-                                           n_randvecs);
-    multiply_y_pre_fast(genotype_block, Z_b, res, false, sum_op,
-                        yint_m, y_m, partialsums);
+  MatrixXdr res = MatrixXdr::Zero(genotype_block.n_encoded, n_randvecs);
+  multiply_y_pre_fast(genotype_block, Z_b, res, false, sum_op, yint_m, y_m,
+                      partialsums);
   MatrixXdr zb_sum = Z_b.colwise().sum();
 
   for (int j = 0; j < genotype_block.n_encoded; j++)
@@ -73,14 +72,13 @@ MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &phenotype_mask,
       inter_zb(j, k) = inter_zb(j, k) * stds(j, 0);
     }
 
-    MatrixXdr new_zb = inter_zb.transpose();
+  MatrixXdr new_zb = inter_zb.transpose();
   MatrixXdr new_res = MatrixXdr::Zero(n_randvecs, n_samples);
 
-    multiply_y_post_fast(genotype_block, new_zb, new_res, false,
-                         yint_e, y_e,
-                         n_samples);
-    MatrixXdr zb_scale_sum = new_zb * means;
-    MatrixXdr new_resid = zb_scale_sum * MatrixXdr::Ones(1, n_samples);
+  multiply_y_post_fast(genotype_block, new_zb, new_res, false, yint_e, y_e,
+                       n_samples);
+  MatrixXdr zb_scale_sum = new_zb * means;
+  MatrixXdr new_resid = zb_scale_sum * MatrixXdr::Ones(1, n_samples);
 
   // new zb
   MatrixXdr temp = new_res - new_resid; // does it apply it to every column?
@@ -107,13 +105,13 @@ double compute_yXXy(const MatrixXdr &y_vec, const int &sel_snp_local_index,
   const MatrixXdr &means = genotype_block.allelecount_means;
   const MatrixXdr &stds = genotype_block.allelecount_stds;
 
-  allocate_memory(Nz, genotype_block, partialsums, sum_op, yint_e, yint_m,
-                  y_e, y_m);
+  allocate_memory(Nz, genotype_block, partialsums, sum_op, yint_e, yint_m, y_e,
+                  y_m);
 
   MatrixXdr res = MatrixXdr::Zero(genotype_block.n_encoded, 1);
 
-    multiply_y_pre_fast(genotype_block, y_vec, res, false, sum_op, yint_m,
-                        y_m, partialsums);
+  multiply_y_pre_fast(genotype_block, y_vec, res, false, sum_op, yint_m, y_m,
+                      partialsums);
 
   res = res.cwiseProduct(stds);
   MatrixXdr resid = MatrixXdr::Zero(genotype_block.n_encoded, 1);
@@ -135,10 +133,9 @@ double compute_yXXy(const MatrixXdr &y_vec, const int &sel_snp_local_index,
   return yXXy;
 }
 
-void
-multiply_y_pre_fast(const genotype &g, const MatrixXdr &op, MatrixXdr &res,
-                    const bool &subtract_means, double *&sum_op,
-                    double *&yint_m, double **&y_m, double *&partialsums) {
+void multiply_y_pre_fast(const genotype &g, const MatrixXdr &op, MatrixXdr &res,
+                         const bool &subtract_means, double *&sum_op,
+                         double *&yint_m, double **&y_m, double *&partialsums) {
   bool var_normalize = false;
   int Ncol_op = op.cols();
 
@@ -186,31 +183,29 @@ multiply_y_pre_fast(const genotype &g, const MatrixXdr &op, MatrixXdr &res,
   }
 }
 
-void
-multiply_y_post_fast(const genotype g, const MatrixXdr &op, MatrixXdr &res,
-                     bool subtract_means, double *&yint_e, double **&y_e,
-                     int n) {
+void multiply_y_post_fast(const genotype g, const MatrixXdr &op, MatrixXdr &res,
+                          bool subtract_means, double *&yint_e, double **&y_e,
+                          int n) {
   bool var_normalize = false;
   double *partialsums = new double[0];
 
   MatrixXdr op_t;
-    op_t = op.transpose();
+  op_t = op.transpose();
 
-    int Ncol_op = op_t.cols();
+  int Ncol_op = op_t.cols();
 
   if (var_normalize && subtract_means) {
     for (int p_iter = 0; p_iter < g.n_encoded; p_iter++) {
       for (int k_iter = 0; k_iter < Ncol_op; k_iter++)
-          op_t(p_iter, k_iter) = op_t(p_iter, k_iter) / (g.get_col_std(p_iter));
+        op_t(p_iter, k_iter) = op_t(p_iter, k_iter) / (g.get_col_std(p_iter));
     }
   }
-
 
   int seg_iter;
   for (seg_iter = 0; seg_iter < g.n_segments_hori - 1; seg_iter++) {
     mailman::fastmultiply_pre(g.segment_size_hori, g.n_samples, Ncol_op,
-                              seg_iter * g.segment_size_hori, g.p[seg_iter], op_t,
-                              yint_e, partialsums, y_e);
+                              seg_iter * g.segment_size_hori, g.p[seg_iter],
+                              op_t, yint_e, partialsums, y_e);
   }
   int last_seg_size = (g.n_snps % g.segment_size_hori != 0)
                           ? g.n_snps % g.segment_size_hori
@@ -218,7 +213,7 @@ multiply_y_post_fast(const genotype g, const MatrixXdr &op, MatrixXdr &res,
   mailman::fastmultiply_pre(last_seg_size, g.n_samples, Ncol_op,
                             seg_iter * g.segment_size_hori, g.p[seg_iter], op_t,
                             yint_e, partialsums, y_e);
-  delete [] partialsums;
+  delete[] partialsums;
   for (int n_iter = 0; n_iter < n; n_iter++) {
     for (int k_iter = 0; k_iter < Ncol_op; k_iter++) {
       res(k_iter, n_iter) = y_e[n_iter][k_iter];
@@ -242,5 +237,5 @@ multiply_y_post_fast(const genotype g, const MatrixXdr &op, MatrixXdr &res,
     for (int n_iter = 0; n_iter < n; n_iter++)
       res(k_iter, n_iter) = res(k_iter, n_iter) - sums_elements[k_iter];
   }
-  delete [] sums_elements;
+  delete[] sums_elements;
 }

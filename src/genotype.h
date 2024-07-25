@@ -9,7 +9,6 @@ class genotype {
 
 public:
   std::vector<int> columnsum;
-  std::vector<double> columnmeans; // ?
   MatrixXdr allelecount_means;
   MatrixXdr allelecount_stds;
 
@@ -20,18 +19,11 @@ public:
   int segment_size_hori;
   std::vector<std::vector<int>> p;
 
-    // Constructor to initialize all members
-    genotype()
-            : columnsum(),
-              columnmeans(),
-              allelecount_means(MatrixXdr::Zero(1, 1)),
-              allelecount_stds(MatrixXdr::Zero(1, 1)),
-              n_encoded(0),
-              n_snps(0),
-              n_samples(0),
-              n_segments_hori(0),
-              segment_size_hori(0),
-              p() {}
+  // Constructor to initialize all members
+  genotype()
+      : columnsum(), allelecount_means(MatrixXdr::Zero(1, 1)),
+        allelecount_stds(MatrixXdr::Zero(1, 1)), n_encoded(0), n_snps(0),
+        n_samples(0), n_segments_hori(0), segment_size_hori(0), p() {}
 
   double get_col_mean(int snpindex) const;
   double get_col_std(int snpindex) const;
