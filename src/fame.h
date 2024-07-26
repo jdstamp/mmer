@@ -1,3 +1,5 @@
+#define EIGEN_DONT_PARALLELIZE
+
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::depends(BH)]]
@@ -25,4 +27,4 @@ typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
 Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
                     std::string covariate_file, int n_randvecs, int n_blocks,
                     int rand_seed, std::vector<int> gxg_indices,
-                    std::string genotype_mask_file);
+                    std::string genotype_mask_file, int n_threads);

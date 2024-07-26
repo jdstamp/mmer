@@ -64,7 +64,7 @@ void fastmultiply_normal(
 }
 
 void fastmultiply_pre_normal(
-    int m, int n, int k, int start, std::vector<int> &p,
+    int m, int n, int k, int start, const std::vector<int> &p,
     const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         &x,
     double *yint, double *c, double **y) {

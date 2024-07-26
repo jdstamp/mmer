@@ -3,20 +3,20 @@
 // [[Rcpp::depends(BH)]]
 #include <Rcpp.h>
 #include <RcppEigen.h>
+#include <algorithm>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 #include <vector>
-#include <random>
-#include <algorithm>
 
 #include "boost/random.hpp"
-#include "genotype.h"
 #include "count_data.h"
+#include "genotype.h"
 #include "read_genotypes.h"
 #ifndef FAMER_SIMULATE_TRAITS_H
 #define FAMER_SIMULATE_TRAITS_H
 
-#endif //FAMER_SIMULATE_TRAITS_H
+#endif // FAMER_SIMULATE_TRAITS_H
 
 std::vector<int> draw_random_ints(std::vector<int> numbers, int x);
 

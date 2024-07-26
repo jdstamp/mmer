@@ -11,6 +11,16 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// check_openmp
+bool check_openmp();
+RcppExport SEXP _famer_check_openmp() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(check_openmp());
+    return rcpp_result_gen;
+END_RCPP
+}
 // count_samples
 int count_samples(std::string filename);
 RcppExport SEXP _famer_count_samples(SEXP filenameSEXP) {
@@ -45,8 +55,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fame_cpp
-Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, std::string genotype_mask_file);
-RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP genotype_mask_fileSEXP) {
+Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, std::string genotype_mask_file, int n_threads);
+RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP genotype_mask_fileSEXP, SEXP n_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -58,7 +68,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type rand_seed(rand_seedSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type gxg_indices(gxg_indicesSEXP);
     Rcpp::traits::input_parameter< std::string >::type genotype_mask_file(genotype_mask_fileSEXP);
-    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file));
+    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -138,10 +149,11 @@ END_RCPP
 RcppExport SEXP run_testthat_tests(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_famer_check_openmp", (DL_FUNC) &_famer_check_openmp, 0},
     {"_famer_count_samples", (DL_FUNC) &_famer_count_samples, 1},
     {"_famer_count_fam", (DL_FUNC) &_famer_count_fam, 1},
     {"_famer_count_snps_bim", (DL_FUNC) &_famer_count_snps_bim, 1},
-    {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 8},
+    {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 9},
     {"_famer_fame_traits_cpp", (DL_FUNC) &_famer_fame_traits_cpp, 6},
     {"_famer_simulate_a_trait_cpp", (DL_FUNC) &_famer_simulate_a_trait_cpp, 6},
     {"_famer_readH5File", (DL_FUNC) &_famer_readH5File, 2},

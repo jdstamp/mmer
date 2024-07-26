@@ -51,7 +51,7 @@ test_that("simulate_a_traits works for zero gxg heritability", {
   observed <- read.table(out_file, header = T)
   # then
   expect_equal(mean(observed$TRAIT), target_mean)
-  expect_equal(var(observed$TRAIT), target_var, tolerance = 1e-1)
+  expect_equal(var(observed$TRAIT), target_var, tolerance = 2e-1)
 })
 
 

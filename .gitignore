@@ -51,6 +51,13 @@ rsconnect/
 
 
 .idea/
+.vscode/
 
 .DS_Store
 docs
+
+# Profiling files
+src/runner
+src/runner.cpp
+src/compile-runner.sh
+Rprof.out

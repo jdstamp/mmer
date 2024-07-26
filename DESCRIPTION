@@ -20,6 +20,7 @@ Imports:
     dplyr,
     genio,
     logging,
+    progress,
     Rcpp,
     RcppEigen,
     tidyr

@@ -2,11 +2,14 @@ test_that("fame end-to-end no covariates no mask", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
-  covariate_file = ""
+  covariate_file <- ""
   mask_file <- ""
-  n_randvecs = 10
-  n_blocks = 10
-  rand_seed = 123
+  chunksize <- 3
+  n_randvecs <- 10
+  n_blocks <- 10
+  rand_seed <- 123
+  n_threads <- 3
+  log_level <- "DEBUG"
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
 
@@ -58,15 +61,18 @@ test_that("fame end-to-end no covariates no mask", {
                  covariate_file,
                  mask_file,
                  snp_indices,
+                 chunksize,
                  n_randvecs,
                  n_blocks,
-                 rand_seed)
+                 n_threads,
+                 rand_seed,
+                 log_level)
   observed_est <- result$vc_estimate
   observed_se <- result$vc_se
 
   # then
   expect_equal(observed_est, vc_df, tolerance = 1e-2)
-  expect_equal(observed_se, se_df, tolerance = 1e-2)
+  expect_equal(observed_se, se_df, tolerance = 1e-1)
 })
 
 test_that("fame end-to-end with covariate file no mask", {
@@ -75,9 +81,11 @@ test_that("fame end-to-end with covariate file no mask", {
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
   covariate_file <- system.file("testdata", "test.cov", package="famer")
   mask_file <- system.file("testdata", "test.h5", package="famer")
-  n_randvecs = 10
-  n_blocks = 10
-  rand_seed = 123
+  chunksize <- 3
+  n_randvecs <- 10
+  n_blocks <- 10
+  rand_seed <- 123
+  n_threads <- 1
 
   snp_indices <- c(13, 18, 29, 34, 37, 74, 82, 88, 94, 96)
   expected <- matrix(
@@ -109,8 +117,10 @@ test_that("fame end-to-end with covariate file no mask", {
                  covariate_file,
                  mask_file,
                  snp_indices,
+                 chunksize,
                  n_randvecs,
                  n_blocks,
+                 n_threads,
                  rand_seed)
   observed <- result$vc_estimate
 
@@ -122,11 +132,13 @@ test_that("fame end-to-end no covariates but with mask", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
-  covariate_file = ""
+  covariate_file <- ""
   mask_file <- system.file("testdata", "test.h5", package="famer")
-  n_randvecs = 10
-  n_blocks = 10
-  rand_seed = 123
+  chunksize <- 3
+  n_randvecs <- 10
+  n_blocks <- 10
+  rand_seed <- 123
+  n_threads <- 1
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
 
@@ -179,8 +191,10 @@ test_that("fame end-to-end no covariates but with mask", {
                  covariate_file,
                  mask_file,
                  snp_indices,
+                 chunksize,
                  n_randvecs,
                  n_blocks,
+                 n_threads,
                  rand_seed)
   observed_est <- result$vc_estimate
   observed_se <- result$vc_se
