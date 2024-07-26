@@ -31,8 +31,7 @@
 #include "mailman.h"
 
 MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &phenotype_mask,
-                      const int &n_randvecs, const genotype &genotype_block,
-                      const int &sel_snp_local_index, bool exclude_sel_snp) {
+                      const int &n_randvecs, const genotype &genotype_block) {
 
   double *partialsums;
   double *sum_op;
@@ -60,12 +59,8 @@ MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &phenotype_mask,
   MatrixXdr resid = MatrixXdr::Zero(genotype_block.n_encoded, n_randvecs);
   MatrixXdr inter = means.cwiseProduct(stds);
   resid = inter * zb_sum;
-  MatrixXdr inter_zb = res - resid;
-
-  // GxG case
-  if (exclude_sel_snp == true)
-    for (int k = 0; k < n_randvecs; k++)
-      inter_zb(sel_snp_local_index, k) = 0;
+  MatrixXdr inter_zb = MatrixXdr::Zero(genotype_block.n_encoded, n_randvecs);
+  inter_zb = res - resid;
 
   for (int j = 0; j < genotype_block.n_encoded; j++)
     for (int k = 0; k < n_randvecs; k++) {
@@ -93,8 +88,7 @@ MatrixXdr compute_XXz(const MatrixXdr &Z_b, const MatrixXdr &phenotype_mask,
   return temp.transpose();
 }
 
-double compute_yXXy(const MatrixXdr &y_vec, const int &sel_snp_local_index,
-                    genotype &genotype_block, const bool &exclude_sel_snp) {
+double compute_yXXy(genotype &genotype_block, const MatrixXdr &y_vec) {
   double *partialsums;
   double *sum_op;
   double *yint_e;
@@ -120,10 +114,6 @@ double compute_yXXy(const MatrixXdr &y_vec, const int &sel_snp_local_index,
 
   MatrixXdr Xy = MatrixXdr::Zero(genotype_block.n_encoded, 1);
   Xy = res - resid;
-
-  // GxG case
-  if (exclude_sel_snp == true)
-    Xy(sel_snp_local_index, 0) = 0;
 
   double yXXy = (Xy.array() * Xy.array()).sum();
 

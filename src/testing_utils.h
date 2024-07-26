@@ -33,6 +33,7 @@ extern double tolerance;
 extern int n_samples;
 extern int block_size;
 extern metaData metadata;
+extern metaData metadata2;
 
 MatrixXdr readCSVToMatrixXdr(const std::string &filename);
 

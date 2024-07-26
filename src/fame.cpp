@@ -156,6 +156,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       int gxg_i = gxg_indices[parallel_idx];
       read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
                          genotype_mask, n_gxg_snps);
+      genotype_mask(gxg_i, 0) = 0;
       MatrixXdr gxg_mask =
           genotype_mask.block(block_index * block_size, 0, block_size, 1);
       int gxg_snps_in_block = gxg_mask.sum();
@@ -185,23 +186,23 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       grm_genotype_block.compute_block_stats();
 
       temp_grm = compute_XXz(random_vectors, pheno_mask, n_randvecs,
-                             grm_genotype_block, 0, false);
+                             grm_genotype_block);
 
       for (int z_index = 0; z_index < n_randvecs; z_index++) {
         XXz.col(z_index) += temp_grm.col(z_index);
       }
-
-      yXXy(0, 0) += compute_yXXy(pheno, 0, grm_genotype_block, false);
+      bool gxg_block = false;
+      yXXy(0, 0) += compute_yXXy(grm_genotype_block, pheno);
       collect_XXy.col(0) +=
-          compute_XXz(pheno, pheno_mask, 1, grm_genotype_block, 0, false);
+              compute_XXz(pheno, pheno_mask, 1, grm_genotype_block);
 
       grm_genotype_block.clear_block();
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
         // parallel loop 2
-        if (gxg_genotype_blocks[parallel_idx].p.size() == 0) {
-          gxg_genotype_blocks[parallel_idx].clear_block();
+        if (gxg_genotype_blocks[parallel_idx].n_encoded == 0) {
+//          gxg_genotype_blocks[parallel_idx].clear_block();
           continue;
         }
 
@@ -229,8 +230,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
         bool in_gxg_block = (focal_snp_block == block_index);
         temp_gxg = compute_XXz(gxg_random_vectors, pheno_mask, n_randvecs,
-                               gxg_genotype_blocks[parallel_idx],
-                               focal_snp_local_index, in_gxg_block);
+                               gxg_genotype_blocks[parallel_idx]);
         temp_gxg = temp_gxg.array().colwise() * focal_snp_gtype.col(0).array();
 
         for (int z_index = 0; z_index < n_randvecs; z_index++) {
@@ -241,15 +241,14 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
         MatrixXdr gxg_pheno;
         gxg_pheno = pheno.array() * focal_snp_gtype.col(0).array();
         MatrixXdr temp_Gy = compute_XXz(gxg_pheno, pheno_mask, 1,
-                                        gxg_genotype_blocks[parallel_idx],
-                                        focal_snp_local_index, in_gxg_block);
+                                        gxg_genotype_blocks[parallel_idx]);
         temp_Gy = temp_Gy.array() * focal_snp_gtype.col(0).array();
         collect_Gy.col(parallel_idx) += temp_Gy;
 
         yGxGy(parallel_idx, 0) +=
-            compute_yXXy(gxg_pheno, focal_snp_local_index,
-                         gxg_genotype_blocks[parallel_idx], in_gxg_block);
-        gxg_genotype_blocks[parallel_idx].clear_block();
+                compute_yXXy(
+                        gxg_genotype_blocks[parallel_idx], gxg_pheno);
+//        gxg_genotype_blocks[parallel_idx].clear_block();
       } // end of parallel loop 2
     }
   }
@@ -305,15 +304,15 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
       grm_genotype_block.compute_block_stats();
 
       MatrixXdr temp_XXXXy = compute_XXz(collect_XXy.col(0), pheno_mask, 1,
-                                         grm_genotype_block, 0, false) /
+                                         grm_genotype_block) /
                              n_snps;
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
            parallel_idx++) { // parallel loop 5
         MatrixXdr temp_XXUy =
-            compute_XXz(collect_Gy.col(parallel_idx), pheno_mask, 1,
-                        grm_genotype_block, 0, false);
+                compute_XXz(collect_Gy.col(parallel_idx), pheno_mask, 1,
+                            grm_genotype_block);
 
         collect_XXUy.col(0 + (n_variance_components + 1) *
                                  (n_variance_components + 1) * parallel_idx) +=
@@ -339,7 +338,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
            parallel_idx++) { // parallel loop 7
 
         if (gxg_genotype_blocks[parallel_idx].n_encoded == 0) {
-          gxg_genotype_blocks[parallel_idx].clear_block();
+//          gxg_genotype_blocks[parallel_idx].clear_block();
           continue;
         }
 
@@ -373,8 +372,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
 
           scaled_vec = temp_XXy.col(i).array() * focal_snp_gtype.col(0).array();
           MatrixXdr temp_GUy = compute_XXz(scaled_vec, pheno_mask, 1,
-                                           gxg_genotype_blocks[parallel_idx],
-                                           focal_snp_local_index, false);
+                                           gxg_genotype_blocks[parallel_idx]);
           temp_GUy = temp_GUy.array() * focal_snp_gtype.col(0).array();
           collect_XXUy.col(((n_variance_components + 1)) + i +
                            (n_variance_components + 1) *
@@ -382,7 +380,7 @@ Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
               temp_GUy / n_snps_variance_component[1];
         }
 
-        gxg_genotype_blocks[parallel_idx].clear_block();
+//        gxg_genotype_blocks[parallel_idx].clear_block();
       } // end of parallel loop 7
     }
   }

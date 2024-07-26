@@ -70,8 +70,7 @@ context("C++ test yXXy with masking") {
 
     MatrixXdr yXXy_observed;
     yXXy_observed = MatrixXdr::Zero(n_variance_components, 1);
-    yXXy_observed(0, 0) += compute_yXXy(pheno, focal_snp_local_index,
-                                        genotype_block, exclude_sel_snp);
+    yXXy_observed(0, 0) += compute_yXXy(genotype_block, pheno);
 
     // then
     expect_true(std::abs(yXXy_expected(0, 0) - yXXy_observed(0, 0)) <
@@ -149,8 +148,7 @@ context("C++ test yXXy with masking") {
 
     MatrixXdr yXXy_observed;
     yXXy_observed = MatrixXdr::Zero(n_variance_components, 1);
-    yXXy_observed(0, 0) += compute_yXXy(pheno, focal_snp_local_index,
-                                        genotype_block, exclude_sel_snp);
+    yXXy_observed(0, 0) += compute_yXXy(genotype_block, pheno);
 
     // then
     expect_true(std::abs(yXXy_expected(0, 0) - yXXy_observed(0, 0)) <
@@ -271,7 +269,7 @@ context("C++ test XXz with masking") {
 
     MatrixXdr XXz_observed;
     XXz_observed =
-        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block, 0, false);
+    compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
 
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
 
@@ -351,7 +349,7 @@ context("C++ test XXz with masking") {
 
     MatrixXdr XXz_observed = MatrixXdr::Zero(n_samples, 1);
     XXz_observed =
-        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block, 0, false);
+    compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
 
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
 
@@ -416,8 +414,7 @@ context("C++ test XXy with masking") {
     MatrixXdr XXy_observed = MatrixXdr::Zero(n_samples, 1);
 
     XXy_observed.col(0) +=
-        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block,
-                    focal_snp_local_index, false);
+        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
 
     double abs_error = (XXy_expected - XXy_observed).array().abs().sum();
 
@@ -498,8 +495,7 @@ context("C++ test XXy with masking") {
     MatrixXdr XXy_observed = MatrixXdr::Zero(n_samples, 1);
 
     XXy_observed.col(0) +=
-        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block,
-                    focal_snp_local_index, false);
+        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
 
     double abs_error = (XXy_expected - XXy_observed).array().abs().sum();
 
@@ -517,18 +513,23 @@ context("C++ test focal SNP exclusion") {
     int n_randvecs = 1;
     genotype genotype_block;
 
-    std::vector<int> genotype_mask = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    int mask_size = genotype_mask.size();
+    std::vector<int> genotype_mask = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int mask_size = block_size - 1;
     MatrixXdr genotype_mask_matrix = MatrixXdr::Zero(block_size, 1);
     for (int i = 0; i < block_size; i++) {
       genotype_mask_matrix(i, 0) = genotype_mask[i];
     }
 
-    genotype_block.set_block_parameters(n_samples, block_size);
+    genotype_block.set_block_parameters(n_samples, mask_size);
     std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     int global_snp_index = -1;
-    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
-                        global_snp_index, metadata);
+
+    for (int i = 0; i < block_size; i++) {
+      MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+      read_snp(bed_ifs, n_samples, global_snp_index, metadata2, snp_matrix);
+      if (genotype_mask[i] == 1)
+        genotype_block.encode_snp(snp_matrix);
+    }
 
     MatrixXdr data = readCSVToMatrixXdr(test_csv);
 
@@ -565,8 +566,7 @@ context("C++ test focal SNP exclusion") {
     MatrixXdr XXy_observed = MatrixXdr::Zero(n_samples, 1);
     bool exclude_sel_snp = true;
     XXy_observed.col(0) +=
-        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block,
-                    focal_snp_local_index, exclude_sel_snp);
+        compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
 
     double abs_error = (XXy_expected - XXy_observed).array().abs().sum();
 
@@ -582,18 +582,23 @@ context("C++ test focal SNP exclusion") {
     int n_randvecs = 1;
     genotype genotype_block;
 
-    std::vector<int> genotype_mask = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    int mask_size = genotype_mask.size();
+    std::vector<int> genotype_mask = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int mask_size = block_size - 1;
     MatrixXdr genotype_mask_matrix = MatrixXdr::Zero(block_size, 1);
     for (int i = 0; i < block_size; i++) {
       genotype_mask_matrix(i, 0) = genotype_mask[i];
     }
 
-    genotype_block.set_block_parameters(n_samples, block_size);
+    genotype_block.set_block_parameters(n_samples, mask_size);
     std::ifstream bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     int global_snp_index = -1;
-    read_genotype_block(bed_ifs, block_size, genotype_block, n_samples,
-                        global_snp_index, metadata);
+
+    for (int i = 0; i < block_size; i++) {
+      MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+      read_snp(bed_ifs, n_samples, global_snp_index, metadata2, snp_matrix);
+      if (genotype_mask[i] == 1)
+        genotype_block.encode_snp(snp_matrix);
+    }
 
     MatrixXdr data = readCSVToMatrixXdr(test_csv);
 
@@ -627,15 +632,14 @@ context("C++ test focal SNP exclusion") {
     Xy = matrix_block.transpose() * pheno;
     yXXy_expected(0, 0) = (Xy.array() * Xy.array()).sum();
 
-    bool exclude_sel_snp = true;
+    // bool exclude_sel_snp = true;
     MatrixXdr yXXy_observed;
     yXXy_observed = MatrixXdr::Zero(n_variance_components, 1);
-    yXXy_observed(0, 0) += compute_yXXy(pheno, focal_snp_local_index,
-                                        genotype_block, exclude_sel_snp);
-
+    yXXy_observed(0, 0) += compute_yXXy(genotype_block, pheno);
+    //
     double abs_error = (yXXy_expected - yXXy_observed).array().abs().sum();
-
-    // then
+    //
+    // // then
     expect_true(abs_error < tolerance);
   }
 }
