@@ -268,8 +268,7 @@ context("C++ test XXz with masking") {
     bool exclude_sel_snp = false;
 
     MatrixXdr XXz_observed;
-    XXz_observed =
-    compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
+    XXz_observed = compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
 
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
 
@@ -348,8 +347,7 @@ context("C++ test XXz with masking") {
     bool exclude_sel_snp = false;
 
     MatrixXdr XXz_observed = MatrixXdr::Zero(n_samples, 1);
-    XXz_observed =
-    compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
+    XXz_observed = compute_XXz(pheno, pheno_mask, n_randvecs, genotype_block);
 
     double abs_error = (XXz_expected - XXz_observed).array().abs().sum();
 

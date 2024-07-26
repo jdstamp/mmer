@@ -146,7 +146,7 @@ int encoding_to_allelecount(const int &value) {
   case 0:
     return 0;
   case 1:
-    Rcpp::stop(missing_message);
+    Rcpp::warning(missing_message);
     return -1;
   case 2:
     return 1;
@@ -154,7 +154,7 @@ int encoding_to_allelecount(const int &value) {
     return 2;
   default:
     // Handle invalid input
-    Rcpp::stop(missing_message);
+    Rcpp::warning(missing_message);
     return -1; // or any other default value you prefer
   }
 }
