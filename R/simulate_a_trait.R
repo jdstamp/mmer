@@ -10,7 +10,7 @@
 #' @param log_level Log level.
 #'
 #' @return None
-#' @useDynLib famer
+#' @useDynLib mmer
 #' @export
 #' @import genio
 #' @import dplyr
@@ -30,7 +30,7 @@ simulate_a_trait <- function(plink_file,
      stop("Heritabilities should be positive")
    }
   logging::basicConfig(level = log_level)
-  log <- logging::getLogger("famer::simulate_a_trait")
+  log <- logging::getLogger("mmer::simulate_a_trait")
   sim <- simulate_a_trait_cpp(plink_file,
                              additive_heritability,
                              gxg_heritability,

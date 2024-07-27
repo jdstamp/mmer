@@ -1,21 +1,21 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# famer <a href="https://jdstamp.github.io/famer"><img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:150px; width: 30%;" /></a>
+# mmer <a href="https://jdstamp.github.io/mmer"><img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:550px; width: 30%;" /></a>
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of famer is to …
+The goal of mmer is to …
 
 ## Installation
 
-You can install the development version of famer from
+You can install the development version of mmer from
 [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("jdstamp/famer")
+devtools::install_github("jdstamp/mmer")
 ```
 
 ## Example
@@ -23,7 +23,7 @@ devtools::install_github("jdstamp/famer")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(famer)
+library(mmer)
 ## basic example code
 ```
 

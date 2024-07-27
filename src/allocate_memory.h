@@ -5,7 +5,7 @@
 #ifndef FAMER_ALLOCATE_MEMORY_H
 #define FAMER_ALLOCATE_MEMORY_H
 
-#include "fame.h"
+#include "mme.h"
 #include "genotype.h"
 
 void allocate_memory(int n_randvecs, const genotype &genotype_block,

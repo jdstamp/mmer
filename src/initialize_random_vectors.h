@@ -1,7 +1,7 @@
 //
 // Created by Julian Stamp on 3/29/24.
 //
-#include "fame.h"
+#include "mme.h"
 
 #ifndef FAMER_INITIALIZE_RANDOM_VECTORS_H
 #define FAMER_INITIALIZE_RANDOM_VECTORS_H

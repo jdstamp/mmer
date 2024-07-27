@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(famer)
+library(mmer)
 
-test_check("famer")
+test_check("mmer")

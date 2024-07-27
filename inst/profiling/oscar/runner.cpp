@@ -1,4 +1,4 @@
-#include "fame.h"
+#include "mme.h"
 #include <string>
 
 int main() {
@@ -31,7 +31,7 @@ int main() {
             //                                   15,
     };
     Rcpp::List results =
-            fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks,
+            mme_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks,
                      rand_seed, index_vector, mask_file, n_threads);
     return 0;
 }

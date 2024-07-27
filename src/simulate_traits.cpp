@@ -1,5 +1,5 @@
 #include "simulate_traits.h"
-#include "fame.h"
+#include "mme.h"
 #include <highfive/H5Easy.hpp>
 
 std::vector<int> draw_random_ints(std::vector<int> numbers, int x) {

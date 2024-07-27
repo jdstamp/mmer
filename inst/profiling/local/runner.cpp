@@ -1,4 +1,4 @@
-#include "../../../famer.Rcheck/00_pkg_src/famer/src/fame.h"
+#include "../../../mmer.Rcheck/00_pkg_src/mmer/src/mme.h"
 #include <string>
 
 int main() {
@@ -23,7 +23,7 @@ int main() {
             8,
             9,
             10};
-  Rcpp::List results = fame_cpp(plink_file, pheno_file, covariate_file,
+  Rcpp::List results = mme_cpp(plink_file, pheno_file, covariate_file,
                                 n_randvecs, n_blocks, rand_seed, index_vector,
                                 mask_file);
   return 0;

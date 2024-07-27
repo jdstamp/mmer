@@ -1,7 +1,7 @@
 test_that("simulate_a_traits works", {
   # given
   plink_file <-
-    gsub("\\.bed", "", system.file("testdata", "test.bed", package = "famer"))
+    gsub("\\.bed", "", system.file("testdata", "test.bed", package = "mmer"))
   out_file <- tempfile()
   additive_heritability <- 0.3
   gxg_heritability <- 0.1
@@ -29,7 +29,7 @@ test_that("simulate_a_traits works", {
 test_that("simulate_a_traits works for zero gxg heritability", {
   # given
   plink_file <-
-    gsub("\\.bed", "", system.file("testdata", "test.bed", package = "famer"))
+    gsub("\\.bed", "", system.file("testdata", "test.bed", package = "mmer"))
   out_file <- tempfile()
   additive_heritability <- 0.3
   gxg_heritability <- 0.0
@@ -83,7 +83,7 @@ test_that("simulate_a_traits works for zero gxg heritability", {
 #   expect_equal(mean(observed$TRAIT), target_mean)
 #   expect_equal(var(observed$TRAIT), target_var, tolerance = 1e-1)
 #
-#   result <- fame(plink_file,
+#   result <- mme(plink_file,
 #                  out_file,
 #                  "",
 #                  "",

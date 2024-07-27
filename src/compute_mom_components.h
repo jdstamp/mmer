@@ -4,7 +4,7 @@
 
 #ifndef FAMER_COMPUTE_MOM_COMPONENTS_H
 #define FAMER_COMPUTE_MOM_COMPONENTS_H
-#include "fame.h"
+#include "mme.h"
 #include <vector>
 
 void compute_mom_components(int n_randvecs, int n_variance_components,

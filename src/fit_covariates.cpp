@@ -27,7 +27,7 @@
  */
 
 #include "fit_covariates.h"
-#include "fame.h"
+#include "mme.h"
 #include <Rcpp.h>
 #include <RcppEigen.h>
 

@@ -1,7 +1,7 @@
-test_that("fame end-to-end no covariates no mask", {
+test_that("mme end-to-end no covariates no mask", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
-  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   covariate_file <- ""
   mask_file <- ""
   chunksize <- 3
@@ -56,7 +56,7 @@ test_that("fame end-to-end no covariates no mask", {
                         "vc_se",
                         vc_names[2:4])
   # when
-  result <- fame(plink_file,
+  result <- mme(plink_file,
                  pheno_file,
                  covariate_file,
                  mask_file,
@@ -75,12 +75,12 @@ test_that("fame end-to-end no covariates no mask", {
   expect_equal(observed_se, se_df, tolerance = 1e-1)
 })
 
-test_that("fame end-to-end with covariate file no mask", {
+test_that("mme end-to-end with covariate file no mask", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
-  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
-  covariate_file <- system.file("testdata", "test.cov", package="famer")
-  mask_file <- system.file("testdata", "test.h5", package="famer")
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
+  covariate_file <- system.file("testdata", "test.cov", package="mmer")
+  mask_file <- system.file("testdata", "test.h5", package="mmer")
   chunksize <- 3
   n_randvecs <- 10
   n_blocks <- 10
@@ -112,7 +112,7 @@ test_that("fame end-to-end with covariate file no mask", {
                         vc_names[2:4])
 
   # when
-  result <- fame(plink_file,
+  result <- mme(plink_file,
                  pheno_file,
                  covariate_file,
                  mask_file,
@@ -128,12 +128,12 @@ test_that("fame end-to-end with covariate file no mask", {
   expect_equal(observed, vc_df, tolerance = 1e-1)
 })
 
-test_that("fame end-to-end no covariates but with mask", {
+test_that("mme end-to-end no covariates but with mask", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
-  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   covariate_file <- ""
-  mask_file <- system.file("testdata", "test.h5", package="famer")
+  mask_file <- system.file("testdata", "test.h5", package="mmer")
   chunksize <- 3
   n_randvecs <- 10
   n_blocks <- 10
@@ -186,7 +186,7 @@ test_that("fame end-to-end no covariates but with mask", {
                         "vc_se",
                         vc_names[2:4])
   # when
-  result <- fame(plink_file,
+  result <- mme(plink_file,
                  pheno_file,
                  covariate_file,
                  mask_file,

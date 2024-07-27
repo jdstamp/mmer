@@ -1,4 +1,4 @@
-/*  famer: An R Package implementation of the Fast Marginal Epistasis test
+/*  mmer: An R Package implementation of the Multimodal Marginal Epistasis test with Rcpp
  *  Copyright (C) 2024  Julian Stamp
  *  This code is licensed under MIT license (see LICENSE.md for details)
  */
@@ -12,7 +12,7 @@
 #include "compute_covariance_q.h"
 #include "compute_mom_components.h"
 #include "count_data.h"
-#include "fame.h"
+#include "mme.h"
 #include "fit_covariates.h"
 #include "initialize_random_vectors.h"
 #include "read_covariates.h"
@@ -21,7 +21,7 @@
 #include "read_phenotypes.h"
 
 // [[Rcpp::export]]
-Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file,
+Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
                     std::string covariate_file, int n_randvecs, int n_blocks,
                     int rand_seed, std::vector<int> gxg_indices,
                     std::string genotype_mask_file, int n_threads) {

@@ -1,7 +1,7 @@
 #pragma once
 #ifndef GENOTYPE_H
 #define GENOTYPE_H
-#include "fame.h"
+#include "mme.h"
 #include <bits/stdc++.h>
 #include <istream>
 
