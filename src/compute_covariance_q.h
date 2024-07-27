@@ -5,7 +5,7 @@
 #ifndef FAMER_COMPUTE_COVARIANCE_Q_H
 #define FAMER_COMPUTE_COVARIANCE_Q_H
 
-#include "fame.h"
+#include "mme.h"
 
 void compute_covariance_q(int n_variance_components,
                           const MatrixXdr &collect_UVy,

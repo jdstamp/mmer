@@ -9,7 +9,7 @@
 #' @param additive_indices Vector of SNP indices that are chosen to have additive effects
 #'
 #' @return None
-#' @useDynLib famer
+#' @useDynLib mmer
 #' @export
 #' @import genio
 #' @import dplyr

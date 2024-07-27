@@ -1,4 +1,4 @@
-library(famer)
+library(mmer)
 library(tidyr)
 
 plink_file <- "/Users/jds/data/ukbb/c12_100k-samples_020k-snps"
@@ -12,11 +12,11 @@ log_level <- "DEBUG"
 n_blocks <- 100
 rand_seed <- 123
 
-snp_indices <- 1:30
+snp_indices <- 1:90
 
-chunksize <- c(30)
+chunksize <- c(90)
 n_threads <- c(10)
-n_randvecs <- c(10)
+n_randvecs <- c(5)
 
 parameter_grid <- crossing(chunksize = chunksize,
                               n_threads = n_threads,
@@ -29,7 +29,7 @@ duration$average_duration <- rep(0, nrow(parameter_grid))
 
 for (i in 1:nrow(parameter_grid)) {
   # i <- 2
-  result <- fame(plink_file,
+  result <- mme(plink_file,
                  pheno_file,
                  covariate_file,
                  parameter_grid$mask_file[i],

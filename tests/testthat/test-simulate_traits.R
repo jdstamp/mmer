@@ -1,7 +1,7 @@
 test_that("simulate_traits works", {
   # given
   plink_file <-
-    gsub("\\.bed", "", system.file("testdata", "test.bed", package = "famer"))
+    gsub("\\.bed", "", system.file("testdata", "test.bed", package = "mmer"))
   temp_dir <- tempdir(check=TRUE)
   out_file <- paste0(temp_dir, "/test.phen")
   heritability <- 0.3

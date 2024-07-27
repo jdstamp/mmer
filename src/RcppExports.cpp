@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // check_openmp
 bool check_openmp();
-RcppExport SEXP _famer_check_openmp() {
+RcppExport SEXP _mmer_check_openmp() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,7 +23,7 @@ END_RCPP
 }
 // count_samples
 int count_samples(std::string filename);
-RcppExport SEXP _famer_count_samples(SEXP filenameSEXP) {
+RcppExport SEXP _mmer_count_samples(SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,7 +34,7 @@ END_RCPP
 }
 // count_fam
 int count_fam(std::string filename);
-RcppExport SEXP _famer_count_fam(SEXP filenameSEXP) {
+RcppExport SEXP _mmer_count_fam(SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -45,7 +45,7 @@ END_RCPP
 }
 // count_snps_bim
 int count_snps_bim(std::string filename);
-RcppExport SEXP _famer_count_snps_bim(SEXP filenameSEXP) {
+RcppExport SEXP _mmer_count_snps_bim(SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -54,28 +54,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fame_cpp
-Rcpp::List fame_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, std::string genotype_mask_file, int n_threads);
-RcppExport SEXP _famer_fame_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP genotype_mask_fileSEXP, SEXP n_threadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string >::type plink_file(plink_fileSEXP);
-    Rcpp::traits::input_parameter< std::string >::type pheno_file(pheno_fileSEXP);
-    Rcpp::traits::input_parameter< std::string >::type covariate_file(covariate_fileSEXP);
-    Rcpp::traits::input_parameter< int >::type n_randvecs(n_randvecsSEXP);
-    Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
-    Rcpp::traits::input_parameter< int >::type rand_seed(rand_seedSEXP);
-    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_indices(gxg_indicesSEXP);
-    Rcpp::traits::input_parameter< std::string >::type genotype_mask_file(genotype_mask_fileSEXP);
-    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(fame_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads));
-    return rcpp_result_gen;
-END_RCPP
-}
 // fame_traits_cpp
 Rcpp::List fame_traits_cpp(std::string plink_file, float additive_variance_component, float gxg_variance_component, int focal_snp, std::vector<int> gxg_indices, std::vector<int> additive_indices);
-RcppExport SEXP _famer_fame_traits_cpp(SEXP plink_fileSEXP, SEXP additive_variance_componentSEXP, SEXP gxg_variance_componentSEXP, SEXP focal_snpSEXP, SEXP gxg_indicesSEXP, SEXP additive_indicesSEXP) {
+RcppExport SEXP _mmer_fame_traits_cpp(SEXP plink_fileSEXP, SEXP additive_variance_componentSEXP, SEXP gxg_variance_componentSEXP, SEXP focal_snpSEXP, SEXP gxg_indicesSEXP, SEXP additive_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -89,9 +70,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mme_cpp
+Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file, std::string covariate_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, std::string genotype_mask_file, int n_threads);
+RcppExport SEXP _mmer_mme_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP covariate_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP genotype_mask_fileSEXP, SEXP n_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type plink_file(plink_fileSEXP);
+    Rcpp::traits::input_parameter< std::string >::type pheno_file(pheno_fileSEXP);
+    Rcpp::traits::input_parameter< std::string >::type covariate_file(covariate_fileSEXP);
+    Rcpp::traits::input_parameter< int >::type n_randvecs(n_randvecsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
+    Rcpp::traits::input_parameter< int >::type rand_seed(rand_seedSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type gxg_indices(gxg_indicesSEXP);
+    Rcpp::traits::input_parameter< std::string >::type genotype_mask_file(genotype_mask_fileSEXP);
+    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(mme_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // simulate_a_trait_cpp
 Rcpp::List simulate_a_trait_cpp(std::string plink_file, float additive_heritability, float gxg_heritability, std::vector<int> additive_snps, std::vector<int> gxg_group_1, std::vector<int> gxg_group_2);
-RcppExport SEXP _famer_simulate_a_trait_cpp(SEXP plink_fileSEXP, SEXP additive_heritabilitySEXP, SEXP gxg_heritabilitySEXP, SEXP additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
+RcppExport SEXP _mmer_simulate_a_trait_cpp(SEXP plink_fileSEXP, SEXP additive_heritabilitySEXP, SEXP gxg_heritabilitySEXP, SEXP additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -107,7 +107,7 @@ END_RCPP
 }
 // readH5File
 std::vector<int> readH5File(const std::string& filename, const std::string& datasetName);
-RcppExport SEXP _famer_readH5File(SEXP filenameSEXP, SEXP datasetNameSEXP) {
+RcppExport SEXP _mmer_readH5File(SEXP filenameSEXP, SEXP datasetNameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -119,7 +119,7 @@ END_RCPP
 }
 // replaceH5Dataset
 void replaceH5Dataset(const std::string& filename, const std::string& datasetName, const std::vector<int>& newData);
-RcppExport SEXP _famer_replaceH5Dataset(SEXP filenameSEXP, SEXP datasetNameSEXP, SEXP newDataSEXP) {
+RcppExport SEXP _mmer_replaceH5Dataset(SEXP filenameSEXP, SEXP datasetNameSEXP, SEXP newDataSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::string& >::type filename(filenameSEXP);
@@ -131,7 +131,7 @@ END_RCPP
 }
 // simulate_traits_cpp
 Rcpp::List simulate_traits_cpp(std::string plink_file, float additive_heritability, float gxg_heritability, int n_additive_snps, std::vector<int> gxg_group_1, std::vector<int> gxg_group_2);
-RcppExport SEXP _famer_simulate_traits_cpp(SEXP plink_fileSEXP, SEXP additive_heritabilitySEXP, SEXP gxg_heritabilitySEXP, SEXP n_additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
+RcppExport SEXP _mmer_simulate_traits_cpp(SEXP plink_fileSEXP, SEXP additive_heritabilitySEXP, SEXP gxg_heritabilitySEXP, SEXP n_additive_snpsSEXP, SEXP gxg_group_1SEXP, SEXP gxg_group_2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -149,21 +149,21 @@ END_RCPP
 RcppExport SEXP run_testthat_tests(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_famer_check_openmp", (DL_FUNC) &_famer_check_openmp, 0},
-    {"_famer_count_samples", (DL_FUNC) &_famer_count_samples, 1},
-    {"_famer_count_fam", (DL_FUNC) &_famer_count_fam, 1},
-    {"_famer_count_snps_bim", (DL_FUNC) &_famer_count_snps_bim, 1},
-    {"_famer_fame_cpp", (DL_FUNC) &_famer_fame_cpp, 9},
-    {"_famer_fame_traits_cpp", (DL_FUNC) &_famer_fame_traits_cpp, 6},
-    {"_famer_simulate_a_trait_cpp", (DL_FUNC) &_famer_simulate_a_trait_cpp, 6},
-    {"_famer_readH5File", (DL_FUNC) &_famer_readH5File, 2},
-    {"_famer_replaceH5Dataset", (DL_FUNC) &_famer_replaceH5Dataset, 3},
-    {"_famer_simulate_traits_cpp", (DL_FUNC) &_famer_simulate_traits_cpp, 6},
+    {"_mmer_check_openmp", (DL_FUNC) &_mmer_check_openmp, 0},
+    {"_mmer_count_samples", (DL_FUNC) &_mmer_count_samples, 1},
+    {"_mmer_count_fam", (DL_FUNC) &_mmer_count_fam, 1},
+    {"_mmer_count_snps_bim", (DL_FUNC) &_mmer_count_snps_bim, 1},
+    {"_mmer_fame_traits_cpp", (DL_FUNC) &_mmer_fame_traits_cpp, 6},
+    {"_mmer_mme_cpp", (DL_FUNC) &_mmer_mme_cpp, 9},
+    {"_mmer_simulate_a_trait_cpp", (DL_FUNC) &_mmer_simulate_a_trait_cpp, 6},
+    {"_mmer_readH5File", (DL_FUNC) &_mmer_readH5File, 2},
+    {"_mmer_replaceH5Dataset", (DL_FUNC) &_mmer_replaceH5Dataset, 3},
+    {"_mmer_simulate_traits_cpp", (DL_FUNC) &_mmer_simulate_traits_cpp, 6},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_famer(DllInfo *dll) {
+RcppExport void R_init_mmer(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

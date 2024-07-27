@@ -1,7 +1,7 @@
 #' Estimate the memory requirements
 #'
 #' Get an approximate estimation of the memory requirements
-#' of the fame routine based on current input parameters
+#' of the mme routine based on current input parameters
 #'
 #' @param n_samples Number of samples
 #' @param n_snps Number of SNPs

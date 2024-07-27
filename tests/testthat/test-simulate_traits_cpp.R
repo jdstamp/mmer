@@ -3,7 +3,7 @@ test_that("trait simulation works", {
   plink_file <-
     gsub("\\.bed",
          "",
-         system.file("testdata", "test.bed", package = "famer"))
+         system.file("testdata", "test.bed", package = "mmer"))
   additive_heritability <- 0.3
   gxg_heritability <- 0.1
   n_additive_snps <- 50

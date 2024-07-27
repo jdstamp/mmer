@@ -1,7 +1,7 @@
 # test_that("Compare to MAPIT inference", {
 #   # given
-#   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="famer"))
-#   phen_file <- system.file("testdata", "test_h2_0.5.pheno", package="famer")
+#   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+#   phen_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
 #   covariate_file = ""
 #   mask_file <- ""
 #   n_randvecs <- 1000
@@ -60,7 +60,7 @@
 #     }
 #
 #     # when
-#     observed <- fame(plink_file,
+#     observed <- mme(plink_file,
 #                    phen_file,
 #                    covariate_file,
 #                    mask_file,

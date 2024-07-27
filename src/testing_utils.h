@@ -7,7 +7,7 @@
 #include "computation.h"
 #include "compute_covariance_q.h"
 #include "compute_mom_components.h"
-#include "fame.h"
+#include "mme.h"
 #include "genotype.h"
 #include "initialize_random_vectors.h"
 #include "read_genotype_mask.h"

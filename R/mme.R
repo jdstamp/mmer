@@ -13,8 +13,8 @@
 #' @param log_level Log level.
 #'
 #' @return A list of P values and PVEs
-#' @name fame
-#' @useDynLib famer
+#' @name mme
+#' @useDynLib mmer
 #' @import Rcpp
 #' @import RcppEigen
 #' @import dplyr
@@ -22,7 +22,7 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom progress progress_bar
 #' @export
-fame <-
+mme <-
   function(plink_file,
            pheno_file,
            covariate_file,
@@ -36,7 +36,7 @@ fame <-
            log_level = "WARNING") {
     logging::logReset()
     logging::basicConfig(level = log_level)
-    log <- logging::getLogger("fame")
+    log <- logging::getLogger("mme")
 
     n_gxg_indices <- length(gxg_indices)
 
@@ -96,7 +96,7 @@ fame <-
     for (i in seq_along(chunks)) {
       chunk <- chunks[[i]]
       result <-
-        fame_cpp(
+        mme_cpp(
           plink_file,
           pheno_file,
           covariate_file,

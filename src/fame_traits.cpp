@@ -1,5 +1,5 @@
 #include "fame_traits.h"
-#include "fame.h"
+#include "mme.h"
 #include <highfive/H5Easy.hpp>
 
 MatrixXdr draw_normal_effects(int n, float variance_component) {
