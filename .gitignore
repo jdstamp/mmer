@@ -48,6 +48,7 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 .Rproj.user
+mmer.Rproj
 
 
 .idea/
@@ -61,3 +62,4 @@ src/runner
 src/runner.cpp
 src/compile-runner.sh
 Rprof.out
+inst/doc

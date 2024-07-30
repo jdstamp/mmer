@@ -4,6 +4,7 @@
 ^Makefile$
 ^README\.Rmd$
 ^_pkgdown\.yml$
+^pkgdown$
 ^docs$
 ^pkgdown$
 ^src/compile-runner.sh$

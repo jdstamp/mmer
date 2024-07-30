@@ -31,10 +31,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 #ifdef _OPENMP
   omp_set_num_threads(n_threads);
 #endif
-  //  #pragma omp parallel for schedule(dynamic)
-  //  1. try oscar because linux
-  //  a. maybe get stack trace of crash?
-  // 2. provide bash script for parallelization accross jobs
 
   // TODO: make "gxg" configurable
   string gxg_h5_dataset = "gxg";
@@ -66,9 +62,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   genotype grm_genotype_block;
   //  std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
-
-  MatrixXdr allelecount_means;
-  MatrixXdr allelecount_stds;
 
   int n_snps = count_snps_bim(bim_file);
   int n_samples = count_samples(pheno_file);
@@ -207,8 +200,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         }
 
         MatrixXdr focal_snp_gtype;
-        MatrixXdr gxg_allelecount_means;
-        MatrixXdr gxg_allelecount_stds;
         int n_gxg_snps = n_gxg_snps_list[parallel_idx];
         int gxg_i = gxg_indices[parallel_idx];
 

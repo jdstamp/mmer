@@ -2,15 +2,16 @@
 % Please edit documentation in R/simulate_traits.R
 \name{simulate_traits}
 \alias{simulate_traits}
-\title{Simulate traits from plink genotypes}
+\title{Simulate a trait from plink genotypes}
 \usage{
 simulate_traits(
   plink_file,
   output_file,
   additive_heritability,
   gxg_heritability,
-  n_causal,
-  gxg_indices,
+  additive_indices,
+  gxg_indices_1,
+  gxg_indices_2,
   log_level = "WARNING"
 )
 }
@@ -23,9 +24,11 @@ simulate_traits(
 
 \item{gxg_heritability}{Fraction of heritability due to additive only effects}
 
-\item{n_causal}{Integer number of causal SNPs}
+\item{additive_indices}{Vector of SNP indices that are chosen to contribute to the additive heritability}
 
-\item{gxg_indices}{Vector of SNP indices that are chosen to be epistatic}
+\item{gxg_indices_1}{Vector of SNP indices that are chosen to be epistatic in group 1}
+
+\item{gxg_indices_2}{Vector of SNP indices that are chosen to be epistatic in group 2}
 
 \item{log_level}{Log level.}
 }
@@ -33,5 +36,5 @@ simulate_traits(
 None
 }
 \description{
-Simulate traits from plink genotypes
+Simulate a trait from plink genotypes
 }

@@ -1,0 +1,34 @@
+---
+title: "Illustrating the Multimodal Marginal Epistasis Test with Simulated Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Illustrating the Multimodal Marginal Epistasis Test with Simulated Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mmer)
+```
+
+Use the convenient function that estimates memory requirements based on input parameters. You can use this function to either estimate the memory for the settings you are planning to run or to find parameters that can be run given your memory constraints. In particular the parameters `n_blocks`, `n_randvecs`, and `chunksize` can be chosen freely. Both `chunksize` but particularly `n_randvecs` have an impact on the accuracy of the estimates.
+
+```{r memory}
+n_samples <- 300000
+n_snps <- 1000000
+n_blocks <- 100
+n_randvecs <- 100
+chunksize <- 100
+estimated_memory <- approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize)
+
+print(sprintf("Estimated memory requirements: %.2f GB", estimated_memory))
+```
+
+

@@ -17,27 +17,11 @@ count_snps_bim <- function(filename) {
     .Call('_mmer_count_snps_bim', PACKAGE = 'mmer', filename)
 }
 
-fame_traits_cpp <- function(plink_file, additive_variance_component, gxg_variance_component, focal_snp, gxg_indices, additive_indices) {
-    .Call('_mmer_fame_traits_cpp', PACKAGE = 'mmer', plink_file, additive_variance_component, gxg_variance_component, focal_snp, gxg_indices, additive_indices)
-}
-
 mme_cpp <- function(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads) {
     .Call('_mmer_mme_cpp', PACKAGE = 'mmer', plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads)
 }
 
-simulate_a_trait_cpp <- function(plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2) {
-    .Call('_mmer_simulate_a_trait_cpp', PACKAGE = 'mmer', plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2)
-}
-
-readH5File <- function(filename, datasetName) {
-    .Call('_mmer_readH5File', PACKAGE = 'mmer', filename, datasetName)
-}
-
-replaceH5Dataset <- function(filename, datasetName, newData) {
-    invisible(.Call('_mmer_replaceH5Dataset', PACKAGE = 'mmer', filename, datasetName, newData))
-}
-
-simulate_traits_cpp <- function(plink_file, additive_heritability, gxg_heritability, n_additive_snps, gxg_group_1, gxg_group_2) {
-    .Call('_mmer_simulate_traits_cpp', PACKAGE = 'mmer', plink_file, additive_heritability, gxg_heritability, n_additive_snps, gxg_group_1, gxg_group_2)
+simulate_traits_cpp <- function(plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2) {
+    .Call('_mmer_simulate_traits_cpp', PACKAGE = 'mmer', plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2)
 }
 
