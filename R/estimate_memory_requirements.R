@@ -10,6 +10,18 @@
 #' @param chunksize Number of focal SNPS per chunk
 #'
 #' @return Approximate memory requirement in giga bytes
+#' @examples
+#' n_samples <- 1e5
+#' n_snps <- 1e6
+#' n_blocks <- 100
+#' n_randvecs <- 100
+#' chunksize <- 100
+#' approximate_memory_requirements(n_samples,
+#'                                 n_snps,
+#'                                 n_blocks,
+#'                                 n_randvecs,
+#'                                 chunksize)
+#'
 #' @export
 approximate_memory_requirements <- function(n_samples,
                                             n_snps,

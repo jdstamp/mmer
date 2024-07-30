@@ -16,19 +16,33 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(mmer)
+library(tidyr)
+library(dplyr)
+library(knitr)
 ```
 
 Use the convenient function that estimates memory requirements based on input parameters. You can use this function to either estimate the memory for the settings you are planning to run or to find parameters that can be run given your memory constraints. In particular the parameters `n_blocks`, `n_randvecs`, and `chunksize` can be chosen freely. Both `chunksize` but particularly `n_randvecs` have an impact on the accuracy of the estimates.
 
 ```{r memory}
-n_samples <- 300000
-n_snps <- 1000000
-n_blocks <- 100
-n_randvecs <- 100
-chunksize <- 100
-estimated_memory <- approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize)
+n_samples <- c(350000)
+n_snps <- c(1000000)
+n_blocks <- c(100, 1000)
+n_randvecs <- c(10, 100)
+chunksize <- c(10, 100)
 
-print(sprintf("Estimated memory requirements: %.2f GB", estimated_memory))
+parameters <- crossing(
+  n_samples = n_samples,
+  n_snps = n_snps,
+  n_blocks = n_blocks,
+  n_randvecs = n_randvecs,
+  chunksize = chunksize
+)
+
+estimated_memory <- parameters %>% 
+  mutate(memory_gb = approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize))
+
+# sprintf("Estimated memory requirements: %.2f GB", estimated_memory)
+kable(estimated_memory)
 ```
 
 
