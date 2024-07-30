@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# mmer <a href="https://jdstamp.github.io/mmer"><img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:550px; width: 30%;" /></a>
+# mmer <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 
 <!-- badges: start -->
