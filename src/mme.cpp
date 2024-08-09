@@ -151,7 +151,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
                          genotype_mask, n_gxg_snps);
       genotype_mask(gxg_i, 0) = 0;
       MatrixXdr gxg_mask =
-          genotype_mask.block(block_index * block_size, 0, block_size, 1);
+          genotype_mask.block(block_index * step_size, 0, block_size, 1);
       int gxg_snps_in_block = gxg_mask.sum();
       gxg_genotype_blocks[parallel_idx].set_block_parameters(n_samples,
                                                              gxg_snps_in_block);
@@ -168,7 +168,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
            parallel_idx++) { // parallel loop 1
         MatrixXdr gxg_mask =
             binary_gxg_mask.col(parallel_idx)
-                .block(block_index * block_size, 0, block_size, 1);
+                .block(block_index * step_size, 0, block_size, 1);
         if (gxg_mask(i, 0) == 1) {
           gxg_genotype_blocks[parallel_idx].encode_snp(snp_matrix);
         }
@@ -263,7 +263,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
       MatrixXdr gxg_mask =
           binary_gxg_mask.col(parallel_idx)
-              .block(block_index * block_size, 0, block_size, 1);
+              .block(block_index * step_size, 0, block_size, 1);
       int gxg_snps_in_block = gxg_mask.sum();
       gxg_genotype_blocks[parallel_idx].set_block_parameters(n_samples,
                                                              gxg_snps_in_block);
@@ -279,7 +279,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         // initialize gxg_mask
         MatrixXdr gxg_mask =
             binary_gxg_mask.col(parallel_idx)
-                .block(block_index * block_size, 0, block_size, 1);
+                .block(block_index * step_size, 0, block_size, 1);
         if (gxg_mask(i, 0) == 1) {
           gxg_genotype_blocks[parallel_idx].encode_snp(snp_matrix);
         }
