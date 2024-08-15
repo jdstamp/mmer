@@ -146,7 +146,7 @@ int encoding_to_allelecount(const int &value) {
   case 0:
     return 0;
   case 1:
-    // Rcpp::warning(missing_message);
+    // Rcpp::warning(missing_message); // Rcpp::warning is not thread safe. TODO: remove?
     return -1;
   case 2:
     return 1;

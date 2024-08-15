@@ -34,6 +34,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   // TODO: make "gxg" configurable
   string gxg_h5_dataset = "gxg";
+  string ld_h5_dataset = "ld";
 
   int n_variance_components = 2; // For now limited to GRM and GXG
   // initialize object to collect point_est and cov_sigma
@@ -148,7 +149,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       MatrixXdr genotype_mask = MatrixXdr::Zero(n_snps, 1);
       int gxg_i = gxg_indices[parallel_idx];
       read_genotype_mask(genotype_mask_file, n_snps, gxg_i, gxg_h5_dataset,
-                         genotype_mask, n_gxg_snps);
+                         ld_h5_dataset, genotype_mask, n_gxg_snps);
       genotype_mask(gxg_i, 0) = 0;
       MatrixXdr gxg_mask =
           genotype_mask.block(block_index * step_size, 0, block_size, 1);
