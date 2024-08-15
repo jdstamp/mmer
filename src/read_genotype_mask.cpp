@@ -14,7 +14,11 @@ void read_genotype_mask(const std::string &genotype_mask_file, int n_snps,
     if (has_gxg_data) {
       set_mask_values(genotype_mask_file, n_snps,
                       gxg_i, gxg_h5_dataset, genotype_mask, include);
+    } else{
+      genotype_mask = MatrixXdr::Ones(n_snps, 1);
+      n_gxg_snps = n_snps - 1;
     }
+
     if (has_ld_data) {
       set_mask_values(genotype_mask_file, n_snps,
                       gxg_i, ld_h5_dataset, genotype_mask, exclude);
