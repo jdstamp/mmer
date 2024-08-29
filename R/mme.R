@@ -138,12 +138,19 @@ mme <-
     p_values <- 2 * (1 - pnorm(z_score))
 
     pve <- result$vc_estimate / apply(result$vc_estimate, 1, sum)
-    id <- sprintf("gxg_%d", gxg_indices)
+
+    bim <- read.delim(bim_file, header = FALSE)
+    colnames(bim) <- c("chromosome", "variant_id", "genetic_distance", "position", "allele1", "allele2")
+
+    id <- bim$variant_id[gxg_indices]
+    position <- bim$position[gxg_indices]
+    # id <- sprintf("gxg_%d", gxg_indices)
     vc_names <- c("id", "grm", "gxg", "error")
     component_col <- "component"
     summary <-
       data.frame(
         id = id,
+        position = position,
         p = p_values[, 2],
         pve = pve[, 2],
         vc = result$vc_estimate[, 2],

@@ -41,7 +41,7 @@ test_that("mme end-to-end no covariates no mask", {
       0.12099050, 0.07292024, 0.10320580
     ), ncol = 3, byrow = TRUE
   )
-  id <- sprintf("gxg_%d", snp_indices)
+  id <- sprintf("rs%d", snp_indices)
   vc_names <- c("id", "grm", "gxg", "error")
   vc_df <- cbind(id, as.data.frame(expected_est))
   colnames(vc_df) <- vc_names
@@ -102,7 +102,7 @@ test_that("mme end-to-end with covariate file no mask", {
       0.416637, 0.0423788, 0.536325
     ), ncol = 3, byrow = TRUE
   )
-  id <- sprintf("gxg_%d", snp_indices)
+  id <- sprintf("rs%d", snp_indices)
   vc_names <- c("id", "grm", "gxg", "error")
   vc_df <- cbind(id, as.data.frame(expected))
   colnames(vc_df) <- vc_names
@@ -171,7 +171,7 @@ test_that("mme end-to-end no covariates but with mask", {
     ), ncol = 3, byrow = TRUE
   )
 
-  id <- sprintf("gxg_%d", snp_indices)
+  id <- sprintf("rs%d", snp_indices)
   vc_names <- c("id", "grm", "gxg", "error")
   vc_df <- cbind(id, as.data.frame(expected_est))
   colnames(vc_df) <- vc_names
@@ -229,7 +229,7 @@ test_that("mme end-to-end no covariates no mask only one gxg idx", {
       0.12076409, 0.07483502, 0.10296534
     ), ncol = 3, byrow = TRUE
   )
-  id <- sprintf("gxg_%d", snp_indices)
+  id <- sprintf("rs%d", snp_indices)
   vc_names <- c("id", "grm", "gxg", "error")
   vc_df <- cbind(id, as.data.frame(expected_est))
   colnames(vc_df) <- vc_names
