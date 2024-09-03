@@ -39,6 +39,7 @@ mme <-
     log <- logging::getLogger("mme")
 
     n_gxg_indices <- length(gxg_indices)
+    log$debug("Number of gxg indices: %d", n_gxg_indices)
 
     bim_file <- paste0(plink_file, ".bim")
     fam_file <- paste0(plink_file, ".fam")
@@ -74,7 +75,12 @@ mme <-
       log$debug("Chunksize set to %d. Using %d chunks.", chunksize, n_chunks)
     }
 
-    shuffled_gxg_indices <- sample(gxg_indices)
+    if (length(gxg_indices) > 1) {
+      shuffled_gxg_indices <- sample(gxg_indices)
+    } else {
+      shuffled_gxg_indices <- gxg_indices
+    }
+
     if (n_chunks > 1) {
       chunks <- split(shuffled_gxg_indices,
                       cut(seq_along(shuffled_gxg_indices), n_chunks, labels = FALSE))
@@ -121,20 +127,30 @@ mme <-
               average_duration)
 
     # undo the shuffling of the indices on the rows of VC and SE
-    reorder_indices <- order(shuffled_gxg_indices)
-    result$vc_estimate <- VC[reorder_indices, ]
-    result$vc_se <- SE[reorder_indices, ]
+    if (length(shuffled_gxg_indices) > 1) {
+      log$debug("Length shuffled gxg indices: %d", length(shuffled_gxg_indices))
+      reorder_indices <- order(shuffled_gxg_indices)
+      result$vc_estimate <- VC[reorder_indices, ]
+      result$vc_se <- SE[reorder_indices, ]
+    }
 
     z_score <- abs(result$vc_estimate / result$vc_se)
     p_values <- 2 * (1 - pnorm(z_score))
 
     pve <- result$vc_estimate / apply(result$vc_estimate, 1, sum)
-    id <- sprintf("gxg_%d", gxg_indices)
+
+    bim <- read.delim(bim_file, header = FALSE)
+    colnames(bim) <- c("chromosome", "variant_id", "genetic_distance", "position", "allele1", "allele2")
+
+    id <- bim$variant_id[gxg_indices]
+    position <- bim$position[gxg_indices]
+    # id <- sprintf("gxg_%d", gxg_indices)
     vc_names <- c("id", "grm", "gxg", "error")
     component_col <- "component"
     summary <-
       data.frame(
         id = id,
+        position = position,
         p = p_values[, 2],
         pve = pve[, 2],
         vc = result$vc_estimate[, 2],

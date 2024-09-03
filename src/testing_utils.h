@@ -7,9 +7,9 @@
 #include "computation.h"
 #include "compute_covariance_q.h"
 #include "compute_mom_components.h"
-#include "mme.h"
 #include "genotype.h"
 #include "initialize_random_vectors.h"
+#include "mme.h"
 #include "read_genotype_mask.h"
 #include "read_genotypes.h"
 #include "read_phenotypes.h"
@@ -26,6 +26,7 @@ extern std::string test_bed;
 extern std::string test_csv;
 extern std::string test_pheno;
 extern std::string test_h5;
+extern std::string test_ld_h5;
 
 extern bool is_test;
 
@@ -40,4 +41,5 @@ MatrixXdr readCSVToMatrixXdr(const std::string &filename);
 bool fileExists(const std::string &path);
 
 void correctTestFiles(std::string &test_csv, std::string &test_bed,
-                      std::string &test_pheno, std::string &test_h5);
+                      std::string &test_pheno, std::string &test_h5,
+                      std::string &test_ld_h5);

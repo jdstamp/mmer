@@ -24,9 +24,8 @@ MatrixXdr draw_normal_effects(int n);
 
 MatrixXdr &scale_component(float target_variance, MatrixXdr &component);
 
-Rcpp::List simulate_traits(std::string plink_file,
-                                float additive_heritability,
-                                float gxg_heritability,
-                                std::vector<int> additive_snps,
-                                std::vector<int> gxg_group_1,
-                                std::vector<int> gxg_group_2);
+Rcpp::List simulate_traits(std::string plink_file, float additive_heritability,
+                           float gxg_heritability,
+                           std::vector<int> additive_snps,
+                           std::vector<int> gxg_group_1,
+                           std::vector<int> gxg_group_2);

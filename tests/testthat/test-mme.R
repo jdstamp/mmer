@@ -41,7 +41,7 @@ test_that("mme end-to-end no covariates no mask", {
       0.12099050, 0.07292024, 0.10320580
     ), ncol = 3, byrow = TRUE
   )
-  id <- sprintf("gxg_%d", snp_indices)
+  id <- sprintf("rs%d", snp_indices)
   vc_names <- c("id", "grm", "gxg", "error")
   vc_df <- cbind(id, as.data.frame(expected_est))
   colnames(vc_df) <- vc_names
@@ -102,7 +102,7 @@ test_that("mme end-to-end with covariate file no mask", {
       0.416637, 0.0423788, 0.536325
     ), ncol = 3, byrow = TRUE
   )
-  id <- sprintf("gxg_%d", snp_indices)
+  id <- sprintf("rs%d", snp_indices)
   vc_names <- c("id", "grm", "gxg", "error")
   vc_df <- cbind(id, as.data.frame(expected))
   colnames(vc_df) <- vc_names
@@ -171,7 +171,7 @@ test_that("mme end-to-end no covariates but with mask", {
     ), ncol = 3, byrow = TRUE
   )
 
-  id <- sprintf("gxg_%d", snp_indices)
+  id <- sprintf("rs%d", snp_indices)
   vc_names <- c("id", "grm", "gxg", "error")
   vc_df <- cbind(id, as.data.frame(expected_est))
   colnames(vc_df) <- vc_names
@@ -201,5 +201,64 @@ test_that("mme end-to-end no covariates but with mask", {
 
   # then
   expect_equal(observed_est, vc_df, tolerance = 1e-1)
+  expect_equal(observed_se, se_df, tolerance = 1e-1)
+})
+
+test_that("mme end-to-end no covariates no mask only one gxg idx", {
+  # given
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
+  covariate_file <- ""
+  mask_file <- ""
+  chunksize <- 3
+  n_randvecs <- 10
+  n_blocks <- 10
+  rand_seed <- 123
+  n_threads <- 3
+  log_level <- "DEBUG"
+
+  snp_indices <- c(3)
+
+  expected_est <- matrix(
+    c(
+      0.422807472, 0.030770829, 0.525349947
+    ), ncol = 3, byrow = TRUE
+  )
+  expected_se <- matrix(
+    c(
+      0.12076409, 0.07483502, 0.10296534
+    ), ncol = 3, byrow = TRUE
+  )
+  id <- sprintf("rs%d", snp_indices)
+  vc_names <- c("id", "grm", "gxg", "error")
+  vc_df <- cbind(id, as.data.frame(expected_est))
+  colnames(vc_df) <- vc_names
+  vc_df <- pivot_output(vc_df,
+                        "component",
+                        "vc_estimate",
+                        vc_names[2:4])
+  se_df <- cbind(id, as.data.frame(expected_se))
+  colnames(se_df) <- vc_names
+  se_df <- pivot_output(se_df,
+                        "component",
+                        "vc_se",
+                        vc_names[2:4])
+  # when
+  result <- mme(plink_file,
+                pheno_file,
+                covariate_file,
+                mask_file,
+                snp_indices,
+                chunksize,
+                n_randvecs,
+                n_blocks,
+                n_threads,
+                rand_seed,
+                log_level)
+  observed_est <- result$vc_estimate
+  observed_se <- result$vc_se
+
+  # then
+  expect_equal(observed_est, vc_df, tolerance = 1e-2)
   expect_equal(observed_se, se_df, tolerance = 1e-1)
 })

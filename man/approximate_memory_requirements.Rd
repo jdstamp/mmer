@@ -30,3 +30,16 @@ Approximate memory requirement in giga bytes
 Get an approximate estimation of the memory requirements
 of the mme routine based on current input parameters.
 }
+\examples{
+n_samples <- 1e5
+n_snps <- 1e6
+n_blocks <- 100
+n_randvecs <- 100
+chunksize <- 100
+approximate_memory_requirements(n_samples,
+                                n_snps,
+                                n_blocks,
+                                n_randvecs,
+                                chunksize)
+
+}
