@@ -48,8 +48,12 @@ mme <-
     n_fam_lines <- count_fam(fam_file)
 
     log$debug("Dataset: %s", plink_file)
+    log$debug("Trait file: %s", pheno_file)
+    log$debug("Mask file: %s", mask_file)
     log$debug("Number of samples: %d", n_samples)
     log$debug("Number of SNPs: %d", n_snps)
+    log$debug("Number of random vectors: %d", n_randvecs)
+    log$debug("Number of blocks: %d", n_blocks)
 
     if (check_openmp()) {
       log$info("openMP is enabled")
@@ -75,15 +79,9 @@ mme <-
       log$debug("Chunksize set to %d. Using %d chunks.", chunksize, n_chunks)
     }
 
-    if (length(gxg_indices) > 1) {
-      shuffled_gxg_indices <- sample(gxg_indices)
-    } else {
-      shuffled_gxg_indices <- gxg_indices
-    }
-
     if (n_chunks > 1) {
-      chunks <- split(shuffled_gxg_indices,
-                      cut(seq_along(shuffled_gxg_indices), n_chunks, labels = FALSE))
+      chunks <- split(gxg_indices,
+                      cut(seq_along(gxg_indices), n_chunks, labels = FALSE))
     } else {
       chunks <- list(`1` = gxg_indices)
     }
@@ -126,25 +124,16 @@ mme <-
     log$debug("Average computation time per SNP: %f seconds",
               average_duration)
 
-    # undo the shuffling of the indices on the rows of VC and SE
-    if (length(shuffled_gxg_indices) > 1) {
-      log$debug("Length shuffled gxg indices: %d", length(shuffled_gxg_indices))
-      reorder_indices <- order(shuffled_gxg_indices)
-      result$vc_estimate <- VC[reorder_indices, ]
-      result$vc_se <- SE[reorder_indices, ]
-    }
-
-    z_score <- abs(result$vc_estimate / result$vc_se)
+    z_score <- abs(VC / SE)
     p_values <- 2 * (1 - pnorm(z_score))
 
-    pve <- result$vc_estimate / apply(result$vc_estimate, 1, sum)
+    pve <- VC / apply(VC, 1, sum)
 
     bim <- read.delim(bim_file, header = FALSE)
     colnames(bim) <- c("chromosome", "variant_id", "genetic_distance", "position", "allele1", "allele2")
 
     id <- bim$variant_id[gxg_indices]
     position <- bim$position[gxg_indices]
-    # id <- sprintf("gxg_%d", gxg_indices)
     vc_names <- c("id", "grm", "gxg", "error")
     component_col <- "component"
     summary <-
@@ -153,13 +142,13 @@ mme <-
         position = position,
         p = p_values[, 2],
         pve = pve[, 2],
-        vc = result$vc_estimate[, 2],
-        se = result$vc_se[, 2]
+        vc = VC[, 2],
+        se = SE[, 2]
       )
     pve <- cbind(id, as.data.frame(pve))
     p_values <- cbind(id, as.data.frame(p_values))
-    vc <- cbind(id, as.data.frame(result$vc_estimate))
-    se <- cbind(id, as.data.frame(result$vc_se))
+    vc <- cbind(id, as.data.frame(VC))
+    se <- cbind(id, as.data.frame(SE))
     colnames(pve) <- vc_names
     colnames(p_values) <- vc_names
     colnames(vc) <- vc_names
