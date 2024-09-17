@@ -133,12 +133,14 @@ mme <-
     colnames(bim) <- c("chromosome", "variant_id", "genetic_distance", "position", "allele1", "allele2")
 
     id <- bim$variant_id[gxg_indices]
+    chromosome <- bim$chromosome[gxg_indices]
     position <- bim$position[gxg_indices]
     vc_names <- c("id", "grm", "gxg", "error")
     component_col <- "component"
     summary <-
       data.frame(
         id = id,
+        chromosome = chromosome,
         position = position,
         p = p_values[, 2],
         pve = pve[, 2],
