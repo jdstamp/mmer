@@ -18,7 +18,8 @@ Eigen::MatrixXd get_residuals(std::string pheno_file, std::string covariate_file
         double y_sum = 0;
         double y_mean = 0;
         MatrixXdr pheno_col = pheno.col(col);
-        MatrixXdr residual_col = fit_covariates(pheno_mask, pheno_col, n_samples, y_sum, y_mean, covariate, cov_num);
+        MatrixXdr pheno_mask_col = pheno_mask.col(col);
+        MatrixXdr residual_col = fit_covariates(pheno_mask_col, pheno_col, n_samples, y_sum, y_mean, covariate, cov_num);
         residuals.col(col) = residual_col;
     }
 
