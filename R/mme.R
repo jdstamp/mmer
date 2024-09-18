@@ -2,7 +2,6 @@
 #'
 #' @param plink_file File path for plink genotype dataset without *.bed extension.
 #' @param pheno_file File path for plink *.pheno data.
-#' @param covariate_file File path for covariates data.
 #' @param mask_file File path for gxg mask data.
 #' @param gxg_indices List of indices for the focal variants.
 #' @param chunksize Integer representing the number of SNPs analyzed with the same set of random vectors.
@@ -25,7 +24,6 @@
 mme <-
   function(plink_file,
            pheno_file,
-           covariate_file,
            mask_file = NULL,
            gxg_indices = NULL,
            chunksize = NULL,
@@ -103,7 +101,6 @@ mme <-
         mme_cpp(
           plink_file,
           pheno_file,
-          covariate_file,
           n_randvecs,
           n_blocks,
           rand_seed,

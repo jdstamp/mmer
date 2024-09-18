@@ -1,8 +1,7 @@
-test_that("mme end-to-end no covariates no mask", {
+test_that("mme end-to-end no mask", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
-  covariate_file <- ""
   mask_file <- ""
   chunksize <- 3
   n_randvecs <- 10
@@ -58,7 +57,6 @@ test_that("mme end-to-end no covariates no mask", {
   # when
   result <- mme(plink_file,
                  pheno_file,
-                 covariate_file,
                  mask_file,
                  snp_indices,
                  chunksize,
@@ -75,64 +73,10 @@ test_that("mme end-to-end no covariates no mask", {
   expect_equal(observed_se, se_df, tolerance = 1e-1)
 })
 
-test_that("mme end-to-end with covariate file no mask", {
+test_that("mme end-to-end with mask", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
-  covariate_file <- system.file("testdata", "test.cov", package="mmer")
-  mask_file <- system.file("testdata", "test.h5", package="mmer")
-  chunksize <- 3
-  n_randvecs <- 10
-  n_blocks <- 10
-  rand_seed <- 123
-  n_threads <- 1
-
-  snp_indices <- c(13, 18, 29, 34, 37, 74, 82, 88, 94, 96)
-  expected <- matrix(
-    c(
-      0.420443, -0.0484235, 0.622903,
-      0.419517, -0.0105727, 0.584645,
-      0.421285, -0.0511097, 0.624927,
-      0.414692, 0.163413, 0.397894,
-      0.415631, 0.0506359, 0.529439,
-      0.419678, -0.0951365, 0.679929,
-      0.422461, 0.13161, 0.432249,
-      0.417551, 0.0682423, 0.503778,
-      0.400282, 0.166734, 0.413728,
-      0.416637, 0.0423788, 0.536325
-    ), ncol = 3, byrow = TRUE
-  )
-  id <- sprintf("rs%d", snp_indices)
-  vc_names <- c("id", "grm", "gxg", "error")
-  vc_df <- cbind(id, as.data.frame(expected))
-  colnames(vc_df) <- vc_names
-  vc_df <- pivot_output(vc_df,
-                        "component",
-                        "vc_estimate",
-                        vc_names[2:4])
-
-  # when
-  result <- mme(plink_file,
-                 pheno_file,
-                 covariate_file,
-                 mask_file,
-                 snp_indices,
-                 chunksize,
-                 n_randvecs,
-                 n_blocks,
-                 n_threads,
-                 rand_seed)
-  observed <- result$vc_estimate
-
-  # then
-  expect_equal(observed, vc_df, tolerance = 1e-1)
-})
-
-test_that("mme end-to-end no covariates but with mask", {
-  # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
-  pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
-  covariate_file <- ""
   mask_file <- system.file("testdata", "test.h5", package="mmer")
   chunksize <- 3
   n_randvecs <- 10
@@ -188,7 +132,6 @@ test_that("mme end-to-end no covariates but with mask", {
   # when
   result <- mme(plink_file,
                  pheno_file,
-                 covariate_file,
                  mask_file,
                  snp_indices,
                  chunksize,
@@ -204,11 +147,10 @@ test_that("mme end-to-end no covariates but with mask", {
   expect_equal(observed_se, se_df, tolerance = 1e-1)
 })
 
-test_that("mme end-to-end no covariates no mask only one gxg idx", {
+test_that("mme end-to-end no mask only one gxg idx", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
-  covariate_file <- ""
   mask_file <- ""
   chunksize <- 3
   n_randvecs <- 10
@@ -246,7 +188,6 @@ test_that("mme end-to-end no covariates no mask only one gxg idx", {
   # when
   result <- mme(plink_file,
                 pheno_file,
-                covariate_file,
                 mask_file,
                 snp_indices,
                 chunksize,
@@ -263,11 +204,10 @@ test_that("mme end-to-end no covariates no mask only one gxg idx", {
   expect_equal(observed_se, se_df, tolerance = 1e-1)
 })
 
-test_that("mme end-to-end no covariates no mask - chunksize 1", {
+test_that("mme end-to-end no mask - chunksize 1", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
-  covariate_file <- ""
   mask_file <- ""
   chunksize <- 1
   n_randvecs <- 10
@@ -323,7 +263,6 @@ test_that("mme end-to-end no covariates no mask - chunksize 1", {
   # when
   result <- mme(plink_file,
                 pheno_file,
-                covariate_file,
                 mask_file,
                 snp_indices,
                 chunksize,
@@ -340,11 +279,10 @@ test_that("mme end-to-end no covariates no mask - chunksize 1", {
   expect_equal(observed_se, se_df, tolerance = 1e-1)
 })
 
-test_that("mme end-to-end no covariates but with mask - chunksize 1", {
+test_that("mme end-to-end but with mask - chunksize 1", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
-  covariate_file <- ""
   mask_file <- system.file("testdata", "test.h5", package="mmer")
   chunksize <- 1
   n_randvecs <- 10
@@ -400,7 +338,6 @@ test_that("mme end-to-end no covariates but with mask - chunksize 1", {
   # when
   result <- mme(plink_file,
                 pheno_file,
-                covariate_file,
                 mask_file,
                 snp_indices,
                 chunksize,
@@ -414,5 +351,4 @@ test_that("mme end-to-end no covariates but with mask - chunksize 1", {
   # then
   expect_equal(observed_est, vc_df, tolerance = 1e-1)
   expect_equal(observed_se, se_df, tolerance = 1e-1)
-  print(result$summary)
 })

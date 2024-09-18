@@ -7,7 +7,6 @@
 mme(
   plink_file,
   pheno_file,
-  covariate_file,
   mask_file = NULL,
   gxg_indices = NULL,
   chunksize = NULL,
@@ -22,8 +21,6 @@ mme(
 \item{plink_file}{File path for plink genotype dataset without *.bed extension.}
 
 \item{pheno_file}{File path for plink *.pheno data.}
-
-\item{covariate_file}{File path for covariates data.}
 
 \item{mask_file}{File path for gxg mask data.}
 

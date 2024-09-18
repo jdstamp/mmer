@@ -6,7 +6,6 @@ int main() {
             "/users/jstamp1/data/jstamp1/ukbb/c12_100k-samples_010k-snps_imputed";
     std::string pheno_file =
             "/users/jstamp1/data/jstamp1/ukbb/c12_100k-samples_010k-snps_imputed.phen";
-    std::string covariate_file = "";
     std::string mask_file = "";
     int n_randvecs = 100;
     int focal_snp_index = 1;
@@ -31,7 +30,7 @@ int main() {
             //                                   15,
     };
     Rcpp::List results =
-            mme_cpp(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks,
+            mme_cpp(plink_file, pheno_file, n_randvecs, n_blocks,
                      rand_seed, index_vector, mask_file, n_threads);
     return 0;
 }
