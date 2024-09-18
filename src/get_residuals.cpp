@@ -10,8 +10,6 @@ Eigen::MatrixXd get_residuals(std::string pheno_file, std::string covariate_file
   int cov_num;
   bool standardize = false;
   cov_num = read_covariates(standardize, n_samples, covariate_file, covariate);
-  double y_sum = 0;
-  double y_mean = 0;
   MatrixXdr residuals(pheno.rows(), pheno.cols());
     // Iterate over the columns of pheno
     for (int col = 0; col < pheno.cols(); ++col) {
