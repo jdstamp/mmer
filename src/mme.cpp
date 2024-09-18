@@ -84,6 +84,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       pheno(i, 0) = pheno(i, 0) - y_mean;
     } // center phenotype
   }
+  pheno = pheno.col(0);
 
   XXz = MatrixXdr::Zero(n_samples, n_randvecs);
   GxGz = MatrixXdr::Zero(n_samples, n_randvecs * n_gxg_idx);
