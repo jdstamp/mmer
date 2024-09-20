@@ -20,8 +20,10 @@
 
 // [[Rcpp::export]]
 Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
-                   std::string genotype_mask_file, int n_randvecs, int n_blocks,
-                   int rand_seed, std::vector<int> gxg_indices, int n_threads) {
+                   std::string genotype_mask_file, std::string grm_plink_file,
+                   int n_randvecs, int n_blocks, int rand_seed,
+                   std::vector<int> gxg_indices, int n_threads,
+                   std::string gxg_h5_dataset, std::string ld_h5_dataset) {
 
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -29,22 +31,16 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   omp_set_num_threads(n_threads);
 #endif
 
-  // TODO: make "gxg" configurable
-  string gxg_h5_dataset = "gxg";
-  string ld_h5_dataset = "ld";
-
   int n_variance_components = 2; // For now limited to GRM and GXG
   // initialize object to collect point_est and cov_sigma
   MatrixXdr VC;
   MatrixXdr SE;
 
-  std::stringstream bim_stream;
-  std::stringstream bed_stream;
-  bim_stream << plink_file << ".bim";
-  bed_stream << plink_file << ".bed";
-  std::string bim_file = bim_stream.str();
-  std::string bed_file = bed_stream.str();
+  std::string bim_file = plink_file + ".bim";
+  std::string bed_file = plink_file + ".bed";
   int n_gxg_idx = gxg_indices.size();
+  std::string grm_bim_file = bim_file;
+  std::string grm_bed_file = bed_file;
 
   MatrixXdr pheno_mask;
   MatrixXdr pheno;
@@ -62,11 +58,18 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   int n_snps = count_snps_bim(bim_file);
   int n_samples = count_samples(pheno_file);
+  int n_grm_snps = n_snps;
 
   int step_size = n_snps / n_blocks;
   int step_size_remainder = n_snps % n_blocks;
   std::vector<int> block_sizes(n_blocks, step_size);
   block_sizes.back() += step_size_remainder; // add remainder to last block
+
+  int grm_step_size = n_grm_snps / n_blocks;
+  int grm_step_size_remainder = n_grm_snps % n_blocks;
+  std::vector<int> grm_block_sizes(n_blocks, grm_step_size);
+  grm_block_sizes.back() +=
+      grm_step_size_remainder; // add remainder to last block
 
   VC.resize(n_gxg_idx, n_variance_components + 1);
   SE.resize(n_gxg_idx, n_variance_components + 1);
@@ -100,6 +103,9 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   metaData metadata = set_metadata(n_samples, n_snps);
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   int global_snp_index = -1;
+  metaData grm_metadata = set_metadata(n_samples, n_grm_snps);
+  ifstream grm_bed_ifs(grm_bed_file.c_str(), ios::in | ios::binary);
+  int grm_global_snp_index = -1;
 
   XXz = MatrixXdr::Zero(n_samples, n_randvecs);
   yXXy = MatrixXdr::Zero(1, 1);
@@ -112,6 +118,21 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   random_vectors = initialize_random_vectors(n_randvecs, rand_seed, pheno_mask,
                                              random_vectors, n_samples);
 
+  // Check if grm_plink_file is empty
+  if (!grm_plink_file.empty()) {
+    // print message that this is empty
+    grm_bim_file = grm_plink_file + ".bim";
+    grm_bed_file = grm_plink_file + ".bed";
+    n_grm_snps = count_snps_bim(grm_bim_file);
+
+    grm_step_size = n_grm_snps / n_blocks;
+    grm_step_size_remainder = n_grm_snps % n_blocks;
+    // overwrite the grm_block_sizes vector with the new block sizes for the grm
+    grm_block_sizes = std::vector<int>(n_blocks, grm_step_size);
+    grm_block_sizes.back() +=
+        grm_step_size_remainder; // add remainder to last block
+  }
+
   bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
   global_snp_index = -1;
 
@@ -120,8 +141,8 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
-    MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
-    grm_genotype_block.set_block_parameters(n_samples, block_size);
+    int grm_block_size = grm_block_sizes[block_index];
+    grm_genotype_block.set_block_parameters(n_samples, grm_block_size);
 
     for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
       int n_gxg_snps;
@@ -139,9 +160,15 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       n_gxg_snps_list[parallel_idx] = n_gxg_snps;
     }
 
+    for (int i = 0; i < grm_block_size; i++) {
+      read_snp(grm_bed_ifs, n_samples, grm_global_snp_index, grm_metadata,
+               snp_matrix);
+      grm_genotype_block.encode_snp(snp_matrix);
+    }
+
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
-      grm_genotype_block.encode_snp(snp_matrix);
+      //      grm_genotype_block.encode_snp(snp_matrix);
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
@@ -228,14 +255,16 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
   global_snp_index = -1;
+  grm_bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+  grm_global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
     Rcpp::checkUserInterrupt();
     std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
-    MatrixXdr grm_mask = MatrixXdr::Ones(block_size, 1);
-    grm_genotype_block.set_block_parameters(n_samples, block_size);
+    int grm_block_size = grm_block_sizes[block_index];
+    grm_genotype_block.set_block_parameters(n_samples, grm_block_size);
 
 #pragma omp parallel for schedule(dynamic)
     for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
@@ -249,9 +278,15 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
                                                              gxg_snps_in_block);
     } // end loop 3
 
+    for (int i = 0; i < grm_block_size; i++) {
+      read_snp(grm_bed_ifs, n_samples, grm_global_snp_index, grm_metadata,
+               snp_matrix);
+      grm_genotype_block.encode_snp(snp_matrix);
+    }
+
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
-      grm_genotype_block.encode_snp(snp_matrix);
+      //      grm_genotype_block.encode_snp(snp_matrix);
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
@@ -271,7 +306,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
       MatrixXdr temp_XXXXy =
           compute_XXz(collect_XXy.col(0), pheno_mask, 1, grm_genotype_block) /
-          n_snps;
+          n_grm_snps;
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
