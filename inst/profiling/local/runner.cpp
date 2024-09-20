@@ -23,8 +23,8 @@ int main() {
             9,
             10};
   Rcpp::List results = mme_cpp(plink_file, pheno_file,
-                                n_randvecs, n_blocks, rand_seed, index_vector,
-                                mask_file);
+                               mask_file,
+                                n_randvecs, n_blocks, rand_seed, index_vector);
   return 0;
 }
 // 5 threads:

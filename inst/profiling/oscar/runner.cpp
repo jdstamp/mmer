@@ -30,8 +30,8 @@ int main() {
             //                                   15,
     };
     Rcpp::List results =
-            mme_cpp(plink_file, pheno_file, n_randvecs, n_blocks,
-                     rand_seed, index_vector, mask_file, n_threads);
+            mme_cpp(plink_file, pheno_file, mask_file, n_randvecs, n_blocks,
+                     rand_seed, index_vector, n_threads);
     return 0;
 }
 // 5 threads:

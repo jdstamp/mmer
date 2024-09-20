@@ -20,9 +20,8 @@
 
 // [[Rcpp::export]]
 Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
-                   int n_randvecs, int n_blocks, int rand_seed,
-                   std::vector<int> gxg_indices, std::string genotype_mask_file,
-                   int n_threads) {
+                   std::string genotype_mask_file, int n_randvecs, int n_blocks,
+                   int rand_seed, std::vector<int> gxg_indices, int n_threads) {
 
   auto start = std::chrono::high_resolution_clock::now();
 
