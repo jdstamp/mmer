@@ -17,8 +17,12 @@ count_snps_bim <- function(filename) {
     .Call('_mmer_count_snps_bim', PACKAGE = 'mmer', filename)
 }
 
-mme_cpp <- function(plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads) {
-    .Call('_mmer_mme_cpp', PACKAGE = 'mmer', plink_file, pheno_file, covariate_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads)
+get_residuals <- function(pheno_file, covariate_file) {
+    .Call('_mmer_get_residuals', PACKAGE = 'mmer', pheno_file, covariate_file)
+}
+
+mme_cpp <- function(plink_file, pheno_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads) {
+    .Call('_mmer_mme_cpp', PACKAGE = 'mmer', plink_file, pheno_file, n_randvecs, n_blocks, rand_seed, gxg_indices, genotype_mask_file, n_threads)
 }
 
 simulate_traits_cpp <- function(plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2) {

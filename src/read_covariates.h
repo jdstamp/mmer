@@ -7,5 +7,4 @@
 using namespace std;
 
 int read_covariates(const bool &std, const int &Nind,
-                    const std::string &filename, MatrixXdr &covariate,
-                    const bool &snp_fix_ef);
+                    const std::string &filename, MatrixXdr &covariate);

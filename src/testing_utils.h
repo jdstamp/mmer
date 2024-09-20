@@ -1,7 +1,7 @@
-#ifndef FAMER_TESTING_UTILS_H
-#define FAMER_TESTING_UTILS_H
+#ifndef MMER_TESTING_UTILS_H
+#define MMER_TESTING_UTILS_H
 
-#endif // FAMER_TESTING_UTILS_H
+#endif // MMER_TESTING_UTILS_H
 
 #include "allocate_memory.h"
 #include "computation.h"

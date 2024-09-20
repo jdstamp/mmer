@@ -1,8 +1,7 @@
 #include "read_covariates.h"
 
-int read_covariates(const bool &std, const int &Nind,
-                    const std::string &filename, MatrixXdr &covariate,
-                    const bool &snp_fix_ef) {
+int read_covariates(const bool &standardize, const int &Nind,
+                    const std::string &filename, MatrixXdr &covariate) {
   std::string covname = "";
   ifstream ifs(filename.c_str(), ios::in);
   std::string line;
@@ -23,9 +22,6 @@ int read_covariates(const bool &std, const int &Nind,
   }
   vector<double> cov_sum(covNum, 0);
   if (covname == "") {
-    if (snp_fix_ef == true)
-      covariate.resize(Nind, covNum + 1);
-    else
       covariate.resize(Nind, covNum);
   } else {
     covariate.resize(Nind, 1);
@@ -73,7 +69,7 @@ int read_covariates(const bool &std, const int &Nind,
         covariate(index, 0) = cov_sum[a];
     }
   }
-  if (std) {
+  if (standardize) {
     MatrixXdr cov_std;
     cov_std.resize(1, covNum);
     MatrixXdr sum = covariate.colwise().sum();
@@ -90,8 +86,5 @@ int read_covariates(const bool &std, const int &Nind,
       }
     }
   }
-  if (snp_fix_ef == true)
-    return covNum + 1;
-  else
-    return covNum;
+  return covNum;
 }

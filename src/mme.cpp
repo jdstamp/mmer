@@ -12,19 +12,17 @@
 #include "compute_covariance_q.h"
 #include "compute_mom_components.h"
 #include "count_data.h"
-#include "fit_covariates.h"
 #include "initialize_random_vectors.h"
 #include "mme.h"
-#include "read_covariates.h"
 #include "read_genotype_mask.h"
 #include "read_genotypes.h"
 #include "read_phenotypes.h"
 
 // [[Rcpp::export]]
 Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
-                   std::string covariate_file, int n_randvecs, int n_blocks,
-                   int rand_seed, std::vector<int> gxg_indices,
-                   std::string genotype_mask_file, int n_threads) {
+                   int n_randvecs, int n_blocks, int rand_seed,
+                   std::vector<int> gxg_indices, std::string genotype_mask_file,
+                   int n_threads) {
 
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -62,7 +60,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr random_vectors;
 
   genotype grm_genotype_block;
-  //  std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
 
   int n_snps = count_snps_bim(bim_file);
   int n_samples = count_samples(pheno_file);
@@ -77,34 +74,17 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   read_phenotypes(n_samples, pheno_file, pheno, pheno_mask);
 
-  // Covariate handling - needs cleanup
   double y_sum = 0;
   double y_mean = 0;
-  if (covariate_file != "") {
-    bool snp_fix_ef = false;
-    MatrixXdr covariate;
-    int cov_num;
-    cov_num = read_covariates(false, n_samples, covariate_file, covariate,
-                              snp_fix_ef);
-    // TODO: make this a default true and remove the option ? this might have
-    //  to move to the SNP specific portion if we do that
-    //        if (snp_fix_ef == true) {
-    //            covariate.col(cov_num - 1) = focal_snp_gtype.col(0);
-    //        }
-
-    pheno = fit_covariates(pheno_mask, pheno, n_samples, y_sum, y_mean,
-                           covariate, cov_num);
-
-  } else {
-    y_sum = pheno.sum();
-    y_mean = y_sum / pheno_mask.sum();
-    // TODO: should we scale to 1 as well?
-    for (int i = 0; i < n_samples; i++) {
-      if (pheno(i, 0) != 0) {
-        pheno(i, 0) = pheno(i, 0) - y_mean;
-      } // center phenotype
-    }
+  y_sum = pheno.sum();
+  y_mean = y_sum / pheno_mask.sum();
+  // TODO: should we scale to 1 as well?
+  for (int i = 0; i < n_samples; i++) {
+    if (pheno(i, 0) != 0) {
+      pheno(i, 0) = pheno(i, 0) - y_mean;
+    } // center phenotype
   }
+  pheno = pheno.col(0);
 
   XXz = MatrixXdr::Zero(n_samples, n_randvecs);
   GxGz = MatrixXdr::Zero(n_samples, n_randvecs * n_gxg_idx);
