@@ -146,6 +146,7 @@ mme <-
     summary <-
       data.frame(
         id = id,
+        index = gxg_indices,
         chromosome = chromosome,
         position = position,
         p = p_values[, 2],
