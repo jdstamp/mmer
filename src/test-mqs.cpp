@@ -126,7 +126,7 @@ context("C++ test mqs method is implemented correctly") {
 
     for (int i = 0; i < block_size; i++) {
       MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
-      read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
       genotype_block.encode_snp(snp_matrix);
       if (i != focal_snp_local_index)
         gxg_block.encode_snp(snp_matrix);

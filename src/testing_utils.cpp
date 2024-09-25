@@ -15,8 +15,8 @@ bool is_test = true;
 double tolerance = 1e-6;
 int n_samples = 200;
 int block_size = 10;
-metaData metadata = set_metadata(n_samples, block_size);
-metaData metadata2 = set_metadata(n_samples, block_size - 1);
+metaData metadata = set_metadata(n_samples);
+metaData metadata2 = set_metadata(n_samples);
 
 MatrixXdr readCSVToMatrixXdr(const std::string &filename) {
   std::ifstream data(filename);

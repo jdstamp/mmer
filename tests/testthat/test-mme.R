@@ -383,7 +383,7 @@ test_that("mme end-to-end no mask but grm_file given", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- ""
-  grm_file <- plink_file
+  grm_file <- gsub("\\.bed", "", system.file("testdata", "test_2.bed", package="mmer"))
   gxg_h5_group <- "gxg"
   ld_h5_group <- "ld"
   chunksize <- 3

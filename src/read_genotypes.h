@@ -19,7 +19,7 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
                          int &global_snp_index, const metaData &metadata);
 
 void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
-              const metaData &metadata, MatrixXdr &genotype_matrix);
+              MatrixXdr &genotype_matrix);
 
 void encode_snp(genotype &genotype_block, const MatrixXdr &genotype_matrix);
 

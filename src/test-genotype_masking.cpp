@@ -98,7 +98,7 @@ context("C++ test yXXy with masking") {
 
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     for (int i = 0; i < block_size; i++) {
-      read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
       if (genotype_mask_matrix(i, 0) == 1) {
         genotype_block.encode_snp(snp_matrix);
       }
@@ -297,7 +297,7 @@ context("C++ test XXz with masking") {
 
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     for (int i = 0; i < block_size; i++) {
-      read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
       if (genotype_mask_matrix(i, 0) == 1) {
         genotype_block.encode_snp(snp_matrix);
       }
@@ -443,7 +443,7 @@ context("C++ test XXy with masking") {
 
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
     for (int i = 0; i < block_size; i++) {
-      read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
+      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
       if (genotype_mask_matrix(i, 0) == 1) {
         genotype_block.encode_snp(snp_matrix);
       }
@@ -524,7 +524,7 @@ context("C++ test focal SNP exclusion") {
 
     for (int i = 0; i < block_size; i++) {
       MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
-      read_snp(bed_ifs, n_samples, global_snp_index, metadata2, snp_matrix);
+      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
       if (genotype_mask[i] == 1)
         genotype_block.encode_snp(snp_matrix);
     }
@@ -593,7 +593,7 @@ context("C++ test focal SNP exclusion") {
 
     for (int i = 0; i < block_size; i++) {
       MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
-      read_snp(bed_ifs, n_samples, global_snp_index, metadata2, snp_matrix);
+      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
       if (genotype_mask[i] == 1)
         genotype_block.encode_snp(snp_matrix);
     }
