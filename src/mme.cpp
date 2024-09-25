@@ -41,7 +41,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   int n_gxg_idx = gxg_indices.size();
   std::string grm_bim_file = bim_file;
   std::string grm_bed_file = bed_file;
-  bool  plink_files_differ = false; // default assume only one plink file
+  bool plink_files_differ = false; // default assume only one plink file
 
   MatrixXdr pheno_mask;
   MatrixXdr pheno;
@@ -135,28 +135,27 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
     // check if the plink files are the same and set the flag
     if (grm_bed_file.compare(bed_file) != 0) {
-        plink_files_differ = true;
+      plink_files_differ = true;
     }
   }
 
   // print the bed file names and the plink files differ flag
-    Rcpp::Rcout << "bed_file: " << bed_file << std::endl;
-    Rcpp::Rcout << "grm_bed_file: " << grm_bed_file << std::endl;
-    Rcpp::Rcout << "plink_files_differ: " << plink_files_differ << std::endl;
-    // print the block sizes and the number of snps
-    Rcpp::Rcout << "block_sizes: ";
-    for (const auto &size : block_sizes) {
-        Rcpp::Rcout << size << " ";
-    }
+  Rcpp::Rcout << "bed_file: " << bed_file << std::endl;
+  Rcpp::Rcout << "grm_bed_file: " << grm_bed_file << std::endl;
+  Rcpp::Rcout << "plink_files_differ: " << plink_files_differ << std::endl;
+  // print the block sizes and the number of snps
+  Rcpp::Rcout << "block_sizes: ";
+  for (const auto &size : block_sizes) {
+    Rcpp::Rcout << size << " ";
+  }
 
-    Rcpp::Rcout << "grm_block_sizes: ";
-    for (const auto &size : grm_block_sizes) {
-        Rcpp::Rcout << size << " ";
-    }
-    Rcpp::Rcout << std::endl;
-    Rcpp::Rcout << "n_snps: " << n_snps << std::endl;
-    Rcpp::Rcout << "n_grm_snps: " << n_grm_snps << std::endl;
-
+  Rcpp::Rcout << "grm_block_sizes: ";
+  for (const auto &size : grm_block_sizes) {
+    Rcpp::Rcout << size << " ";
+  }
+  Rcpp::Rcout << std::endl;
+  Rcpp::Rcout << "n_snps: " << n_snps << std::endl;
+  Rcpp::Rcout << "n_grm_snps: " << n_grm_snps << std::endl;
 
   bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
   global_snp_index = -1;
@@ -186,17 +185,19 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     }
 
     if (plink_files_differ) {
-        for (int i = 0; i < grm_block_size; i++) {
-            read_snp(grm_bed_ifs, n_samples, grm_global_snp_index, grm_metadata,
-                     snp_matrix);
-            grm_genotype_block.encode_snp(snp_matrix);
-        }
+        Rcpp::Rcout << "Reading GRM separately" << std::endl;
+      for (int i = 0; i < grm_block_size; i++) {
+        read_snp(grm_bed_ifs, n_samples, grm_global_snp_index, grm_metadata,
+                 snp_matrix);
+        grm_genotype_block.encode_snp(snp_matrix);
+      }
     }
 
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
       if (!plink_files_differ) {
-          grm_genotype_block.encode_snp(snp_matrix);
+          Rcpp::Rcout << "Reading GRM with GxG" << std::endl;
+        grm_genotype_block.encode_snp(snp_matrix);
       }
 
 #pragma omp parallel for schedule(dynamic)
@@ -239,7 +240,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         int n_gxg_snps = n_gxg_snps_list[parallel_idx];
         int gxg_i = gxg_indices[parallel_idx];
 
-        vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
+        vector<int> n_snps_variance_component = {n_grm_snps, n_gxg_snps};
 
         focal_snp_gtype.resize(n_samples, 1);
         int gindex = -1;
@@ -275,7 +276,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     }
   }
 
-  collect_XXy = collect_XXy / n_snps;
+  collect_XXy = collect_XXy / n_grm_snps;
 
   // TODO: enable this when loop is in block
   for (int i = 0; i < n_gxg_idx; i++) {
@@ -308,18 +309,18 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     } // end loop 3
 
     if (plink_files_differ) {
-        for (int i = 0; i < grm_block_size; i++) {
-            read_snp(grm_bed_ifs, n_samples, grm_global_snp_index, grm_metadata,
-                     snp_matrix);
-            grm_genotype_block.encode_snp(snp_matrix);
-        }
+      for (int i = 0; i < grm_block_size; i++) {
+        read_snp(grm_bed_ifs, n_samples, grm_global_snp_index, grm_metadata,
+                 snp_matrix);
+        grm_genotype_block.encode_snp(snp_matrix);
+      }
     }
 
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, n_samples, global_snp_index, metadata, snp_matrix);
-        if (!plink_files_differ) {
-            grm_genotype_block.encode_snp(snp_matrix);
-        }
+      if (!plink_files_differ) {
+        grm_genotype_block.encode_snp(snp_matrix);
+      }
 
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx;
@@ -352,7 +353,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
             temp_XXXXy;
         collect_XXUy.col(1 + (n_variance_components + 1) *
                                  (n_variance_components + 1) * parallel_idx) +=
-            temp_XXUy / n_snps; // n_snps_variance_component[0];
+            temp_XXUy / n_grm_snps;
 
       } // end of parallel loop 5
 
@@ -380,7 +381,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         MatrixXdr gxg_allelecount_stds;
         int gxg_i = gxg_indices[parallel_idx];
 
-        vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
+        vector<int> n_snps_variance_component = {n_grm_snps, n_gxg_snps};
 
         focal_snp_gtype.resize(n_samples, 1);
         global_snp_index = -1;
@@ -429,7 +430,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 #pragma omp parallel for schedule(dynamic)
   for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
     // parallel loop 9
-    vector<int> n_snps_variance_component = {n_snps,
+    vector<int> n_snps_variance_component = {n_grm_snps,
                                              n_gxg_snps_list[parallel_idx]};
 
     int n_samples_mask = pheno_mask.sum();
