@@ -79,7 +79,7 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
 
   for (int i = 0; i < block_size; i++) {
     MatrixXdr genotype_matrix = MatrixXdr::Zero(n_samples, 1);
-    read_snp(ifs, n_samples, global_snp_index, genotype_matrix);
+    read_snp(ifs, global_snp_index, genotype_matrix);
     encode_snp(genotype_block, genotype_matrix);
   }
 }
@@ -91,8 +91,9 @@ void encode_snp(genotype &genotype_block, const MatrixXdr &genotype_matrix) {
   }
   genotype_block.n_encoded++;
 }
-void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
+void read_snp(std::istream &ifs, int &global_snp_index,
               MatrixXdr &genotype_matrix) {
+  int n_samples = genotype_matrix.rows();
   metaData metadata = set_metadata(n_samples);
   char magic[3];
   unsigned char *gtype;
@@ -147,7 +148,8 @@ int encoding_to_allelecount(const int &value) {
   case 0:
     return 0;
   case 1:
-    // Rcpp::warning(missing_message); // Rcpp::warning is not thread safe. TODO: remove?
+    // Rcpp::warning(missing_message); // Rcpp::warning is not thread safe.
+    // TODO: remove?
     return -1;
   case 2:
     return 1;

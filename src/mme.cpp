@@ -178,14 +178,13 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
     if (plink_files_differ) {
       for (int i = 0; i < grm_block_size; i++) {
-        read_snp(grm_bed_ifs, n_samples, grm_global_snp_index,
-                 snp_matrix);
+        read_snp(grm_bed_ifs, grm_global_snp_index, snp_matrix);
         grm_genotype_block.encode_snp(snp_matrix);
       }
     }
 
     for (int i = 0; i < block_size; i++) {
-      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
+      read_snp(bed_ifs, global_snp_index, snp_matrix);
       if (!plink_files_differ) {
         grm_genotype_block.encode_snp(snp_matrix);
       }
@@ -299,14 +298,13 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
     if (plink_files_differ) {
       for (int i = 0; i < grm_block_size; i++) {
-        read_snp(grm_bed_ifs, n_samples, grm_global_snp_index,
-                 snp_matrix);
+        read_snp(grm_bed_ifs, grm_global_snp_index, snp_matrix);
         grm_genotype_block.encode_snp(snp_matrix);
       }
     }
 
     for (int i = 0; i < block_size; i++) {
-      read_snp(bed_ifs, n_samples, global_snp_index, snp_matrix);
+      read_snp(bed_ifs, global_snp_index, snp_matrix);
       if (!plink_files_differ) {
         grm_genotype_block.encode_snp(snp_matrix);
       }

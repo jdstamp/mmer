@@ -22,7 +22,7 @@ int read_covariates(const bool &standardize, const int &Nind,
   }
   vector<double> cov_sum(covNum, 0);
   if (covname == "") {
-      covariate.resize(Nind, covNum);
+    covariate.resize(Nind, covNum);
   } else {
     covariate.resize(Nind, 1);
   }

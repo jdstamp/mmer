@@ -25,8 +25,8 @@ context("C++ test reading genotype mask file") {
     MatrixXdr genotype_mask = MatrixXdr::Zero(n_snps, 1);
     int n_gxg_snps;
     // when
-    read_genotype_mask(test_h5, n_snps, gxg_i, gxg_h5_dataset, ld_h5_dataset, genotype_mask,
-                       n_gxg_snps);
+    read_genotype_mask(test_h5, n_snps, gxg_i, gxg_h5_dataset, ld_h5_dataset,
+                       genotype_mask, n_gxg_snps);
 
     // then
     expect_true(genotype_mask.sum() == n_snps - 1);
@@ -43,8 +43,8 @@ context("C++ test reading genotype mask file") {
     MatrixXdr genotype_mask = MatrixXdr::Zero(n_snps, 1);
     int n_gxg_snps;
     // when
-    read_genotype_mask(test_h5, n_snps, gxg_i, gxg_h5_dataset, ld_h5_dataset, genotype_mask,
-                       n_gxg_snps);
+    read_genotype_mask(test_h5, n_snps, gxg_i, gxg_h5_dataset, ld_h5_dataset,
+                       genotype_mask, n_gxg_snps);
 
     // then
     expect_true(genotype_mask.sum() == n_snps);
@@ -62,8 +62,8 @@ context("C++ test reading genotype mask file") {
     MatrixXdr genotype_mask = MatrixXdr::Zero(n_snps, 1);
     int n_gxg_snps;
     // when
-    read_genotype_mask(test_ld_h5, n_snps, gxg_i, gxg_h5_dataset, ld_h5_dataset, genotype_mask,
-                       n_gxg_snps);
+    read_genotype_mask(test_ld_h5, n_snps, gxg_i, gxg_h5_dataset, ld_h5_dataset,
+                       genotype_mask, n_gxg_snps);
     // then
     expect_true(genotype_mask.sum() == n_snps - 1 - 10);
     expect_true(genotype_mask(gxg_i, 0) == 0);
