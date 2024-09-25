@@ -66,8 +66,8 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   std::vector<int> block_sizes(n_blocks, step_size);
   block_sizes.back() += step_size_remainder; // add remainder to last block
 
-  int grm_step_size = n_grm_snps / n_blocks;
-  int grm_step_size_remainder = n_grm_snps % n_blocks;
+  int grm_step_size = step_size;
+  int grm_step_size_remainder = step_size_remainder;
   std::vector<int> grm_block_sizes(n_blocks, grm_step_size);
   grm_block_sizes.back() +=
       grm_step_size_remainder; // add remainder to last block
@@ -101,13 +101,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       MatrixXdr::Zero(n_samples, (n_variance_components + 1) *
                                      (n_variance_components + 1) * n_gxg_idx);
 
-  metaData metadata = set_metadata(n_samples, n_snps);
-  ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
-  int global_snp_index = -1;
-  metaData grm_metadata = set_metadata(n_samples, n_grm_snps);
-  ifstream grm_bed_ifs(grm_bed_file.c_str(), ios::in | ios::binary);
-  int grm_global_snp_index = -1;
-
   XXz = MatrixXdr::Zero(n_samples, n_randvecs);
   yXXy = MatrixXdr::Zero(1, 1);
   collect_XXy = MatrixXdr::Zero(n_samples, 1);
@@ -138,6 +131,13 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       plink_files_differ = true;
     }
   }
+
+  metaData metadata = set_metadata(n_samples, n_snps);
+  ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
+  int global_snp_index = -1;
+  metaData grm_metadata = set_metadata(n_samples, n_grm_snps);
+  ifstream grm_bed_ifs(grm_bed_file.c_str(), ios::in | ios::binary);
+  int grm_global_snp_index = -1;
 
   // print the bed file names and the plink files differ flag
   Rcpp::Rcout << "bed_file: " << bed_file << std::endl;
