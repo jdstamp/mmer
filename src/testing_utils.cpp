@@ -9,6 +9,7 @@ std::string test_csv = testdata_dir + "test.csv";
 std::string test_pheno = testdata_dir + "test_h2_0.5.pheno";
 std::string test_h5 = testdata_dir + "test.h5";
 std::string test_ld_h5 = testdata_dir + "test_ld.h5";
+std::string test_bed_2 = testdata_dir + "test_2.bed";
 
 bool is_test = true;
 

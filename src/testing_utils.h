@@ -27,6 +27,7 @@ extern std::string test_csv;
 extern std::string test_pheno;
 extern std::string test_h5;
 extern std::string test_ld_h5;
+extern std::string test_bed_2;
 
 extern bool is_test;
 

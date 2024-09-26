@@ -109,9 +109,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   std::vector<int> n_gxg_snps_list(n_gxg_idx);
   MatrixXdr binary_gxg_mask = MatrixXdr::Ones(n_snps, n_gxg_idx);
 
-  // Check if grm_plink_file is empty
   if (!grm_plink_file.empty()) {
-    // print message that this is empty
     grm_bim_file = grm_plink_file + ".bim";
     grm_bed_file = grm_plink_file + ".bed";
     n_grm_snps = count_snps_bim(grm_bim_file);
@@ -133,24 +131,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   int global_snp_index = -1;
   ifstream grm_bed_ifs(grm_bed_file.c_str(), ios::in | ios::binary);
   int grm_global_snp_index = -1;
-
-  // print the bed file names and the plink files differ flag
-  Rcpp::Rcout << "bed_file: " << bed_file << std::endl;
-  Rcpp::Rcout << "grm_bed_file: " << grm_bed_file << std::endl;
-  Rcpp::Rcout << "plink_files_differ: " << plink_files_differ << std::endl;
-  // print the block sizes and the number of snps
-  Rcpp::Rcout << "block_sizes: ";
-  for (const auto &size : block_sizes) {
-    Rcpp::Rcout << size << " ";
-  }
-
-  Rcpp::Rcout << "grm_block_sizes: ";
-  for (const auto &size : grm_block_sizes) {
-    Rcpp::Rcout << size << " ";
-  }
-  Rcpp::Rcout << std::endl;
-  Rcpp::Rcout << "n_snps: " << n_snps << std::endl;
-  Rcpp::Rcout << "n_grm_snps: " << n_grm_snps << std::endl;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
     Rcpp::checkUserInterrupt();
@@ -221,7 +201,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
         // parallel loop 2
         if (gxg_genotype_blocks[parallel_idx].n_encoded == 0) {
-          //          gxg_genotype_blocks[parallel_idx].clear_block();
           continue;
         }
 
