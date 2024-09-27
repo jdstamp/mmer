@@ -50,8 +50,15 @@ mme <-
     n_snps <- count_snps_bim(bim_file)
     n_samples <- count_samples(pheno_file)
     n_fam_lines <- count_fam(fam_file)
+    
+    if (!is.null(grm_file)) {
+      grm_bim_file <- paste0(grm_file, ".bim")
+      n_grm_snps <- count_snps_bim(grm_bim_file)
+      log$debug("GRM Dataset: %s", n_grm_snps)
+      log$debug("Number of SNPs in GRM: %d", grm_file)
+    }
 
-    log$debug("Dataset: %s", plink_file)
+    log$debug("GxG Dataset: %s", plink_file)
     log$debug("Trait file: %s", pheno_file)
     log$debug("Mask file: %s", mask_file)
     log$debug("Number of samples: %d", n_samples)
