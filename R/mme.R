@@ -55,7 +55,7 @@ mme <-
       grm_bim_file <- paste0(grm_file, ".bim")
       n_grm_snps <- count_snps_bim(grm_bim_file)
       log$debug("GRM Dataset: %s", n_grm_snps)
-      log$debug("Number of SNPs in GRM: %d", grm_file)
+      log$debug("Number of SNPs in GRM: %d", n_grm_snps)
     }
 
     log$debug("GxG Dataset: %s", plink_file)
