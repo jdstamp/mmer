@@ -182,64 +182,66 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     }
 
     if (block_size != 0) {
-      grm_genotype_block.compute_block_stats();
-
-      temp_grm = compute_XXz(random_vectors, pheno_mask, n_randvecs,
-                             grm_genotype_block);
-
-      for (int z_index = 0; z_index < n_randvecs; z_index++) {
-        XXz.col(z_index) += temp_grm.col(z_index);
-      }
-
-      yXXy(0, 0) += compute_yXXy(grm_genotype_block, pheno);
-      collect_XXy.col(0) +=
-          compute_XXz(pheno, pheno_mask, 1, grm_genotype_block);
-
-      grm_genotype_block.clear_block();
-
 #pragma omp parallel for schedule(dynamic)
-      for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
-        // parallel loop 2
-        if (gxg_genotype_blocks[parallel_idx].n_encoded == 0) {
-          continue;
+      for (int parallel_idx = -1; parallel_idx < n_gxg_idx; parallel_idx++) {
+          // parallel loop 2
+        if (parallel_idx < 0) {
+          grm_genotype_block.compute_block_stats();
+
+          temp_grm = compute_XXz(random_vectors, pheno_mask, n_randvecs,
+                                 grm_genotype_block);
+
+          for (int z_index = 0; z_index < n_randvecs; z_index++) {
+            XXz.col(z_index) += temp_grm.col(z_index);
+          }
+
+          yXXy(0, 0) += compute_yXXy(grm_genotype_block, pheno);
+          collect_XXy.col(0) +=
+              compute_XXz(pheno, pheno_mask, 1, grm_genotype_block);
+          grm_genotype_block.clear_block();
+        } else {
+          if (gxg_genotype_blocks[parallel_idx].n_encoded == 0) {
+            continue;
+          }
+
+          MatrixXdr focal_snp_gtype;
+          int n_gxg_snps = n_gxg_snps_list[parallel_idx];
+          int gxg_i = gxg_indices[parallel_idx];
+
+          vector<int> n_snps_variance_component = {n_grm_snps, n_gxg_snps};
+
+          focal_snp_gtype.resize(n_samples, 1);
+          int gindex = -1;
+          read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps,
+                         gindex);
+          normalize_genotype(focal_snp_gtype, n_samples);
+
+          MatrixXdr gxg_random_vectors =
+              random_vectors.array().colwise() * focal_snp_gtype.col(0).array();
+          MatrixXdr temp_gxg;
+          gxg_genotype_blocks[parallel_idx].compute_block_stats();
+
+          temp_gxg = compute_XXz(gxg_random_vectors, pheno_mask, n_randvecs,
+                                 gxg_genotype_blocks[parallel_idx]);
+          temp_gxg =
+              temp_gxg.array().colwise() * focal_snp_gtype.col(0).array();
+
+          for (int z_index = 0; z_index < n_randvecs; z_index++) {
+            GxGz.col(z_index + parallel_idx * n_randvecs) +=
+                temp_gxg.col(z_index);
+          }
+
+          MatrixXdr gxg_pheno;
+          gxg_pheno = pheno.array() * focal_snp_gtype.col(0).array();
+          MatrixXdr temp_Gy = compute_XXz(gxg_pheno, pheno_mask, 1,
+                                          gxg_genotype_blocks[parallel_idx]);
+          temp_Gy = temp_Gy.array() * focal_snp_gtype.col(0).array();
+          collect_Gy.col(parallel_idx) += temp_Gy;
+
+          yGxGy(parallel_idx, 0) +=
+              compute_yXXy(gxg_genotype_blocks[parallel_idx], gxg_pheno);
+          //        gxg_genotype_blocks[parallel_idx].clear_block();
         }
-
-        MatrixXdr focal_snp_gtype;
-        int n_gxg_snps = n_gxg_snps_list[parallel_idx];
-        int gxg_i = gxg_indices[parallel_idx];
-
-        vector<int> n_snps_variance_component = {n_grm_snps, n_gxg_snps};
-
-        focal_snp_gtype.resize(n_samples, 1);
-        int gindex = -1;
-        read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps,
-                       gindex);
-        normalize_genotype(focal_snp_gtype, n_samples);
-
-        MatrixXdr gxg_random_vectors =
-            random_vectors.array().colwise() * focal_snp_gtype.col(0).array();
-        MatrixXdr temp_gxg;
-        gxg_genotype_blocks[parallel_idx].compute_block_stats();
-
-        temp_gxg = compute_XXz(gxg_random_vectors, pheno_mask, n_randvecs,
-                               gxg_genotype_blocks[parallel_idx]);
-        temp_gxg = temp_gxg.array().colwise() * focal_snp_gtype.col(0).array();
-
-        for (int z_index = 0; z_index < n_randvecs; z_index++) {
-          GxGz.col(z_index + parallel_idx * n_randvecs) +=
-              temp_gxg.col(z_index);
-        }
-
-        MatrixXdr gxg_pheno;
-        gxg_pheno = pheno.array() * focal_snp_gtype.col(0).array();
-        MatrixXdr temp_Gy = compute_XXz(gxg_pheno, pheno_mask, 1,
-                                        gxg_genotype_blocks[parallel_idx]);
-        temp_Gy = temp_Gy.array() * focal_snp_gtype.col(0).array();
-        collect_Gy.col(parallel_idx) += temp_Gy;
-
-        yGxGy(parallel_idx, 0) +=
-            compute_yXXy(gxg_genotype_blocks[parallel_idx], gxg_pheno);
-        //        gxg_genotype_blocks[parallel_idx].clear_block();
       } // end of parallel loop 2
     }
   }
