@@ -8,7 +8,6 @@ mme(
   plink_file,
   pheno_file,
   mask_file = NULL,
-  grm_file = NULL,
   gxg_indices = NULL,
   chunksize = NULL,
   n_randvecs = 10,
@@ -26,8 +25,6 @@ mme(
 \item{pheno_file}{File path for plink *.pheno data.}
 
 \item{mask_file}{File path for gxg mask data.}
-
-\item{grm_file}{File path for plink genotype dataset without *.bed extension that is only used for the GRM computation. If empty, plink_file will be used for the GRM computation.}
 
 \item{gxg_indices}{List of indices for the focal variants.}
 

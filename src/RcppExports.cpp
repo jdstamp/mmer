@@ -67,15 +67,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // mme_cpp
-Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file, std::string genotype_mask_file, std::string grm_plink_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, int n_threads, std::string gxg_h5_dataset, std::string ld_h5_dataset);
-RcppExport SEXP _mmer_mme_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP genotype_mask_fileSEXP, SEXP grm_plink_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP n_threadsSEXP, SEXP gxg_h5_datasetSEXP, SEXP ld_h5_datasetSEXP) {
+Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file, std::string genotype_mask_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, int n_threads, std::string gxg_h5_dataset, std::string ld_h5_dataset);
+RcppExport SEXP _mmer_mme_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP genotype_mask_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP n_threadsSEXP, SEXP gxg_h5_datasetSEXP, SEXP ld_h5_datasetSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type plink_file(plink_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type pheno_file(pheno_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type genotype_mask_file(genotype_mask_fileSEXP);
-    Rcpp::traits::input_parameter< std::string >::type grm_plink_file(grm_plink_fileSEXP);
     Rcpp::traits::input_parameter< int >::type n_randvecs(n_randvecsSEXP);
     Rcpp::traits::input_parameter< int >::type n_blocks(n_blocksSEXP);
     Rcpp::traits::input_parameter< int >::type rand_seed(rand_seedSEXP);
@@ -83,7 +82,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< std::string >::type gxg_h5_dataset(gxg_h5_datasetSEXP);
     Rcpp::traits::input_parameter< std::string >::type ld_h5_dataset(ld_h5_datasetSEXP);
-    rcpp_result_gen = Rcpp::wrap(mme_cpp(plink_file, pheno_file, genotype_mask_file, grm_plink_file, n_randvecs, n_blocks, rand_seed, gxg_indices, n_threads, gxg_h5_dataset, ld_h5_dataset));
+    rcpp_result_gen = Rcpp::wrap(mme_cpp(plink_file, pheno_file, genotype_mask_file, n_randvecs, n_blocks, rand_seed, gxg_indices, n_threads, gxg_h5_dataset, ld_h5_dataset));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -112,7 +111,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mmer_count_fam", (DL_FUNC) &_mmer_count_fam, 1},
     {"_mmer_count_snps_bim", (DL_FUNC) &_mmer_count_snps_bim, 1},
     {"_mmer_get_residuals", (DL_FUNC) &_mmer_get_residuals, 2},
-    {"_mmer_mme_cpp", (DL_FUNC) &_mmer_mme_cpp, 11},
+    {"_mmer_mme_cpp", (DL_FUNC) &_mmer_mme_cpp, 10},
     {"_mmer_simulate_traits_cpp", (DL_FUNC) &_mmer_simulate_traits_cpp, 6},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}

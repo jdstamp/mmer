@@ -3,7 +3,6 @@
 #' @param plink_file File path for plink genotype dataset without *.bed extension.
 #' @param pheno_file File path for plink *.pheno data.
 #' @param mask_file File path for gxg mask data.
-#' @param grm_file File path for plink genotype dataset without *.bed extension that is only used for the GRM computation. If empty, plink_file will be used for the GRM computation.
 #' @param gxg_indices List of indices for the focal variants.
 #' @param chunksize Integer representing the number of SNPs analyzed with the same set of random vectors.
 #' @param n_randvecs Integer. Number of random vectors.
@@ -28,7 +27,6 @@ mme <-
   function(plink_file,
            pheno_file,
            mask_file = NULL,
-           grm_file = NULL,
            gxg_indices = NULL,
            chunksize = NULL,
            n_randvecs = 10,
@@ -51,14 +49,7 @@ mme <-
     n_samples <- count_samples(pheno_file)
     n_fam_lines <- count_fam(fam_file)
 
-    if (!is.null(grm_file) && grm_file != "") {
-      grm_bim_file <- paste0(grm_file, ".bim")
-      n_grm_snps <- count_snps_bim(grm_bim_file)
-      log$debug("GRM Dataset: %s", grm_file)
-      log$debug("Number of SNPs in GRM: %d", n_grm_snps)
-    }
-
-    log$debug("GxG Dataset: %s", plink_file)
+    log$debug("Dataset: %s", plink_file)
     log$debug("Trait file: %s", pheno_file)
     log$debug("Mask file: %s", mask_file)
     log$debug("Number of samples: %d", n_samples)
@@ -115,7 +106,6 @@ mme <-
           plink_file,
           pheno_file,
           mask_file,
-          grm_file,
           n_randvecs,
           n_blocks,
           rand_seed,

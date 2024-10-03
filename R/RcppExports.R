@@ -21,8 +21,8 @@ get_residuals <- function(pheno_file, covariate_file) {
     .Call('_mmer_get_residuals', PACKAGE = 'mmer', pheno_file, covariate_file)
 }
 
-mme_cpp <- function(plink_file, pheno_file, genotype_mask_file, grm_plink_file, n_randvecs, n_blocks, rand_seed, gxg_indices, n_threads, gxg_h5_dataset, ld_h5_dataset) {
-    .Call('_mmer_mme_cpp', PACKAGE = 'mmer', plink_file, pheno_file, genotype_mask_file, grm_plink_file, n_randvecs, n_blocks, rand_seed, gxg_indices, n_threads, gxg_h5_dataset, ld_h5_dataset)
+mme_cpp <- function(plink_file, pheno_file, genotype_mask_file, n_randvecs, n_blocks, rand_seed, gxg_indices, n_threads, gxg_h5_dataset, ld_h5_dataset) {
+    .Call('_mmer_mme_cpp', PACKAGE = 'mmer', plink_file, pheno_file, genotype_mask_file, n_randvecs, n_blocks, rand_seed, gxg_indices, n_threads, gxg_h5_dataset, ld_h5_dataset)
 }
 
 simulate_traits_cpp <- function(plink_file, additive_heritability, gxg_heritability, additive_snps, gxg_group_1, gxg_group_2) {
