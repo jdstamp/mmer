@@ -42,6 +42,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   MatrixXdr pheno_mask;
   MatrixXdr pheno;
+  MatrixXdr focal_snps_matrix;
   MatrixXdr XXz;
   MatrixXdr GxGz;
   MatrixXdr yXXy;
@@ -79,6 +80,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   }
   pheno = pheno.col(0);
 
+  focal_snps_matrix = MatrixXdr::Zero(n_samples, n_gxg_idx);
   XXz = MatrixXdr::Zero(n_samples, n_randvecs);
   GxGz = MatrixXdr::Zero(n_samples, n_randvecs * n_gxg_idx);
   yXXy = MatrixXdr::Zero(1, 1);
@@ -101,6 +103,17 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   int global_snp_index = -1;
+
+  // read focal snps
+  for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
+    MatrixXdr focal_snp_gtype;
+    focal_snp_gtype.resize(n_samples, 1);
+    int gxg_i = gxg_indices[parallel_idx];
+    int gindex = -1;
+    read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps, gindex);
+    normalize_genotype(focal_snp_gtype, n_samples);
+    focal_snps_matrix.col(parallel_idx) = focal_snp_gtype;
+  }
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
     Rcpp::checkUserInterrupt();
@@ -146,7 +159,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         end_encoding - start_encoding;
     // print duration of encoding in seconds
     std::cout << "Duration of encoding: " << elapsed_encoding.count()
-               << " seconds" << std::endl;
+              << " seconds" << std::endl;
 
     auto start_parallel = std::chrono::high_resolution_clock::now();
     if (block_size != 0) {
@@ -179,17 +192,10 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
           }
           auto start_gxg = std::chrono::high_resolution_clock::now();
 
-          MatrixXdr focal_snp_gtype;
+          MatrixXdr focal_snp_gtype = focal_snps_matrix.col(parallel_idx);
           int n_gxg_snps = n_gxg_snps_list[parallel_idx];
-          int gxg_i = gxg_indices[parallel_idx];
 
           vector<int> n_snps_variance_component = {n_snps, n_gxg_snps};
-
-          focal_snp_gtype.resize(n_samples, 1);
-          int gindex = -1;
-          read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps,
-                         gindex);
-          normalize_genotype(focal_snp_gtype, n_samples);
 
           MatrixXdr gxg_random_vectors =
               random_vectors.array().colwise() * focal_snp_gtype.col(0).array();
@@ -317,16 +323,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         }
 
         int n_gxg_snps = n_gxg_snps_list[parallel_idx];
-        MatrixXdr focal_snp_gtype;
-        MatrixXdr gxg_allelecount_means;
-        MatrixXdr gxg_allelecount_stds;
-        int gxg_i = gxg_indices[parallel_idx];
-
-        focal_snp_gtype.resize(n_samples, 1);
-        global_snp_index = -1;
-        read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps,
-                       global_snp_index);
-        normalize_genotype(focal_snp_gtype, n_samples);
+        MatrixXdr focal_snp_gtype = focal_snps_matrix.col(parallel_idx);
 
         gxg_genotype_blocks[parallel_idx].compute_block_stats();
 

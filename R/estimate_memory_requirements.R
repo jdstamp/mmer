@@ -41,8 +41,9 @@ approximate_memory_requirements <- function(n_samples,
   # focal_snp_gtype - Matrix: (n_samples, 1)
   # collect_XXy - Matrix: (n_samples, 1)
   # collect_Gy - Matrix: (n_samples, n_gxg_idx)
+  # focal_snps_matrix - Matrix: (n_samples, n_gxg_idx)
   # collect_XXUy - Matrix: (n_samples, (n_variance_components + 1) * (n_variance_components + 1) * n_gxg_idx)
-  phenotype_like <- n_samples * (6 + chunksize + 9 * chunksize)
+  phenotype_like <- n_samples * (6 + 2 * chunksize + 9 * chunksize)
 
   # random_vectors - Matrix: (n_samples, n_randvecs)
   # gxg_random_vectors - Matrix: (n_samples, n_randvecs)
@@ -59,7 +60,7 @@ approximate_memory_requirements <- function(n_samples,
   block_stats <- 2 * n_encoded * (chunksize + 1) # *2 for mean and variance
 
   # 4 bytes for int;
-  gt_objects <- (n_segments_hori * n_samples) * (chunksize + 1)
+  gt_objects <- (n_segments_hori * n_samples) * (chunksize + 1) / 2
 
   # binary_gxg_mask - Matrix: (n_snps, n_gxg_idx)
   mask <- n_snps * chunksize
@@ -77,6 +78,6 @@ approximate_memory_requirements <- function(n_samples,
   #
   # these are so small they can be neglected
 
-  total <-  vc_estimates + phenotype_like + randomvec_like + (gt_objects / 2) + block_stats + mask
+  total <-  vc_estimates + phenotype_like + randomvec_like + gt_objects + block_stats + mask
   return(total * 8 / 1024 / 1024 / 1024)
 }
