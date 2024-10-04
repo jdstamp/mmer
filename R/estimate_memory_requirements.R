@@ -56,10 +56,10 @@ approximate_memory_requirements <- function(n_samples,
   # gxg_genotype_blocks - Vector of genotype objects: (n_gxg_idx)
   segment_size_hori <- floor(log(n_samples) / log(3)) - 2
   n_segments_hori <- ceiling(n_encoded / segment_size_hori)
-  block_stats <- 2 * n_encoded * chunksize
+  block_stats <- 2 * n_encoded * (chunksize + 1) # *2 for mean and variance
 
-  # 4 bytes for int; *2 blockstats to correct for doubles
-  gt_objects <- (n_segments_hori * n_samples + block_stats * 2) * (chunksize + 1) / 4
+  # 4 bytes for int;
+  gt_objects <- (n_segments_hori * n_samples) * (chunksize + 1)
 
   # binary_gxg_mask - Matrix: (n_snps, n_gxg_idx)
   mask <- n_snps * chunksize
@@ -77,6 +77,6 @@ approximate_memory_requirements <- function(n_samples,
   #
   # these are so small they can be neglected
 
-  total <-  vc_estimates + phenotype_like + randomvec_like + gt_objects + mask
+  total <-  vc_estimates + phenotype_like + randomvec_like + (gt_objects / 2) + block_stats + mask
   return(total * 8 / 1024 / 1024 / 1024)
 }
