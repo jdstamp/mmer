@@ -43,6 +43,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   MatrixXdr pheno_mask;
   MatrixXdr pheno;
   MatrixXdr focal_snps_matrix;
+  MatrixXdr snp_matrix;
   MatrixXdr XXz;
   MatrixXdr GxGz;
   MatrixXdr yXXy;
@@ -103,24 +104,38 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   int global_snp_index = -1;
+  ifstream focal_bed_ifs(bed_file.c_str(), ios::in | ios::binary);
+  int focal_global_snp_index = -1;
 
   // read focal snps
-  for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
-    MatrixXdr focal_snp_gtype;
-    focal_snp_gtype.resize(n_samples, 1);
-    int gxg_i = gxg_indices[parallel_idx];
-    std::cout << "Reading focal snp " << gxg_i << std::endl;
-    int gindex = -1;
-    read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps, gindex);
-    normalize_genotype(focal_snp_gtype, n_samples);
-    focal_snps_matrix.col(parallel_idx) = focal_snp_gtype;
+  std::unordered_map<int, int>
+      index_to_column; // Maps line number to position in selected_lines
+  for (int i = 0; i < gxg_indices.size(); ++i) {
+    index_to_column[gxg_indices[i]] = i;
+    // print mapping
+    std::cout << "Mapping: " << gxg_indices[i] << " -> " << i << std::endl;
   }
+
+  snp_matrix = MatrixXdr::Zero(n_samples, 1);
+  // Read bed file snp by snp
+  while (focal_global_snp_index < n_snps) {
+    read_snp(focal_bed_ifs, focal_global_snp_index, snp_matrix);
+    normalize_genotype(snp_matrix, n_samples);
+    if (index_to_column.count(focal_global_snp_index)) {
+      int column = index_to_column[focal_global_snp_index];
+      focal_snps_matrix.col(column) = snp_matrix;
+      std::cout << "Reading focal snp " << global_snp_index << std::endl;
+    }
+  }
+
+  //    bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+  //    global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
     Rcpp::checkUserInterrupt();
     std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
-    MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+    snp_matrix = MatrixXdr::Zero(n_samples, 1);
     grm_genotype_block.set_block_parameters(n_samples, block_size);
 
     for (int parallel_idx = 0; parallel_idx < n_gxg_idx; parallel_idx++) {
