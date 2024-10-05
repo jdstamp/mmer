@@ -109,6 +109,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     MatrixXdr focal_snp_gtype;
     focal_snp_gtype.resize(n_samples, 1);
     int gxg_i = gxg_indices[parallel_idx];
+    std::cout << "Reading focal snp " << gxg_i << std::endl;
     int gindex = -1;
     read_focal_snp(bed_file, focal_snp_gtype, gxg_i, n_samples, n_snps, gindex);
     normalize_genotype(focal_snp_gtype, n_samples);
