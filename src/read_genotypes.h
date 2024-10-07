@@ -21,6 +21,8 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
 void read_snp(std::istream &ifs, int &global_snp_index,
               MatrixXdr &genotype_matrix);
 
+void skip_snp(std::istream &ifs, int &global_snp_index, int &n_samples);
+
 void encode_snp(genotype &genotype_block, const MatrixXdr &genotype_matrix);
 
 void extract_plink_genotypes(int *y, const unsigned char &c,

@@ -38,7 +38,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   std::string bim_file = plink_file + ".bim";
   std::string bed_file = plink_file + ".bed";
   int n_gxg_idx = gxg_indices.size();
-  bool plink_files_differ = false; // default assume only one plink file
 
   MatrixXdr pheno_mask;
   MatrixXdr pheno;
@@ -119,12 +118,15 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   snp_matrix = MatrixXdr::Zero(n_samples, 1);
   // Read bed file snp by snp
   while (focal_global_snp_index < n_snps) {
-    read_snp(focal_bed_ifs, focal_global_snp_index, snp_matrix);
-    normalize_genotype(snp_matrix, n_samples);
-    if (index_to_column.count(focal_global_snp_index)) {
+    if (index_to_column.count(focal_global_snp_index + 1)) { // + 1 to know
+      // if the next snp is in the list
+      read_snp(focal_bed_ifs, focal_global_snp_index, snp_matrix);
+      normalize_genotype(snp_matrix, n_samples);
       int column = index_to_column[focal_global_snp_index];
       focal_snps_matrix.col(column) = snp_matrix;
-      std::cout << "Reading focal snp " << global_snp_index << std::endl;
+      std::cout << "Reading focal snp " << focal_global_snp_index << " -> " << "Column index " << column << std::endl;
+    } else {
+      skip_snp(focal_bed_ifs, focal_global_snp_index, n_samples);
     }
   }
 
@@ -265,6 +267,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
+    auto start_block2 = std::chrono::high_resolution_clock::now();
     Rcpp::checkUserInterrupt();
     std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
@@ -363,6 +366,12 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         }
       } // end of parallel loop 7
     }
+
+    auto end_block2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_block2 = end_block2 - start_block2;
+    // print duration of encoding in seconds
+    std::cout << "Duration of block " << block_index + 1
+              << elapsed_block2.count() << "seconds" << std::endl;
   }
 
 #pragma omp parallel for schedule(dynamic)

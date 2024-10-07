@@ -124,6 +124,20 @@ void read_snp(std::istream &ifs, int &global_snp_index,
   delete[] gtype;
 }
 
+void skip_snp(std::istream &ifs, int &global_snp_index, int &n_samples) {
+  metaData metadata = set_metadata(n_samples);
+  char magic[3];
+  unsigned char *gtype;
+  gtype = new unsigned char[metadata.ncol];
+  if (global_snp_index < 0) {
+    binary_read(ifs, magic);
+  }
+  global_snp_index++;
+  ifs.read(reinterpret_cast<char *>(gtype),
+           metadata.ncol * sizeof(unsigned char));
+  delete[] gtype;
+}
+
 void encode_genotypes(genotype &genotype_block, int j, int val) {
   int snp_index;
   snp_index = genotype_block.n_encoded;
