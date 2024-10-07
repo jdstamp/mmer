@@ -370,7 +370,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     auto end_block2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_block2 = end_block2 - start_block2;
     // print duration of encoding in seconds
-    std::cout << "Duration of block " << block_index + 1
+    std::cout << "Duration of block " << block_index + 1 << ": "
               << elapsed_block2.count() << "seconds" << std::endl;
   }
 
