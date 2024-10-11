@@ -68,13 +68,56 @@ Rcpp::List simulate_traits_cpp(std::string plink_file,
   MatrixXdr gxg_component = MatrixXdr::Zero(n_samples, 1);
   MatrixXdr error_component = draw_normal_effects(n_samples);
 
+  // initialize MatrixXdr to store the snp genotypes for all additive snps
+  // and both gxg groups
+  MatrixXdr additive_genotypes = MatrixXdr::Zero(n_samples, n_additive_snps);
+  MatrixXdr gxg_group_1_genotypes = MatrixXdr::Zero(n_samples, n_group_1);
+  MatrixXdr gxg_group_2_genotypes = MatrixXdr::Zero(n_samples, n_group_2);
+
+  std::unordered_map<int, int> additive_index_to_column;
+  std::unordered_map<int, int> gxg_index_to_column_1;
+  std::unordered_map<int, int> gxg_index_to_column_2;
+  for (int i = 0; i < additive_snps.size(); ++i) {
+    additive_index_to_column[additive_snps[i]] = i;
+  }
+  for (int i = 0; i < gxg_group_1.size(); ++i) {
+    gxg_index_to_column_1[gxg_group_1[i]] = i;
+  }
+  for (int i = 0; i < gxg_group_2.size(); ++i) {
+    gxg_index_to_column_2[gxg_group_2[i]] = i;
+  }
+
+  int global_snp_index = -1;
+  ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
+  while (global_snp_index < n_snps - 1) {
+    MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
+    bool is_additive = additive_index_to_column.count(global_snp_index + 1);
+    bool is_gxg_1 = gxg_index_to_column_1.count(global_snp_index + 1);
+    bool is_gxg_2 = gxg_index_to_column_2.count(global_snp_index + 1);
+    if (is_additive || is_gxg_1 || is_gxg_2) {
+      read_snp(bed_ifs, global_snp_index, snp_matrix);
+      normalize_genotype(snp_matrix, n_samples);
+      if (is_additive) {
+        int column = additive_index_to_column[global_snp_index];
+        additive_genotypes.col(column) = snp_matrix;
+      }
+      if (is_gxg_1) {
+        int column = gxg_index_to_column_1[global_snp_index];
+        gxg_group_1_genotypes.col(column) = snp_matrix;
+      }
+      if (is_gxg_2) {
+        int column = gxg_index_to_column_2[global_snp_index];
+        gxg_group_2_genotypes.col(column) = snp_matrix;
+      }
+    } else {
+      skip_snp(bed_ifs, global_snp_index, n_samples);
+    }
+  }
+
   for (int i = 0; i < n_additive_snps; ++i) {
     int snp_index = additive_snps[i];
-    MatrixXdr snp_genotype;
-    snp_genotype.resize(n_samples, 1);
-    int global_snp_index = -1;
-    read_focal_snp(bed_file, snp_genotype, snp_index, n_samples, n_snps,
-                   global_snp_index);
+    int column = additive_index_to_column[snp_index];
+    MatrixXdr snp_genotype = additive_genotypes.col(column);
     additive_component = additive_component.array() +
                          snp_genotype.array() * additive_effects(i, 0);
   }
@@ -84,18 +127,12 @@ Rcpp::List simulate_traits_cpp(std::string plink_file,
     for (int j = 0; j < n_group_2; ++j) {
       int snp_index1 = gxg_group_1[i];
       int snp_index2 = gxg_group_2[j];
+      int column1 = gxg_index_to_column_1[snp_index1];
+      int column2 = gxg_index_to_column_2[snp_index2];
       MatrixXdr snp_gxg_component;
-      MatrixXdr snp_genotype1, snp_genotype2;
-      snp_genotype1.resize(n_samples, 1);
-      snp_genotype2.resize(n_samples, 1);
-      int global_snp_index = -1;
-      read_focal_snp(bed_file, snp_genotype1, snp_index1, n_samples, n_snps,
-                     global_snp_index);
-      normalize_genotype(snp_genotype1, n_samples);
-      global_snp_index = -1;
-      read_focal_snp(bed_file, snp_genotype2, snp_index2, n_samples, n_snps,
-                     global_snp_index);
-      normalize_genotype(snp_genotype2, n_samples);
+      MatrixXdr snp_genotype1 = gxg_group_1_genotypes.col(column1);
+      MatrixXdr snp_genotype2 = gxg_group_2_genotypes.col(column2);
+
       snp_gxg_component = snp_genotype1.array() * snp_genotype2.array() *
                           epistatic_effects(i * n_group_2 + j, 0);
       snp_gxg_component =

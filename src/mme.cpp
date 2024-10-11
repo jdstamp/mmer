@@ -67,6 +67,7 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   SE.resize(n_gxg_idx, n_variance_components + 1);
 
   read_phenotypes(n_samples, pheno_file, pheno, pheno_mask);
+  int n_samples_mask = pheno_mask.sum();
 
   double y_sum = 0;
   double y_mean = 0;
@@ -103,8 +104,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   ifstream bed_ifs(bed_file.c_str(), ios::in | ios::binary);
   int global_snp_index = -1;
-  ifstream focal_bed_ifs(bed_file.c_str(), ios::in | ios::binary);
-  int focal_global_snp_index = -1;
 
   // read focal snps
   std::unordered_map<int, int>
@@ -117,22 +116,22 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   snp_matrix = MatrixXdr::Zero(n_samples, 1);
   // Read bed file snp by snp
-  while (focal_global_snp_index < n_snps) {
-    if (index_to_column.count(focal_global_snp_index + 1)) { // + 1 to know
+  while (global_snp_index < n_snps - 1) {
+    if (index_to_column.count(global_snp_index + 1)) { // + 1 to know
       // if the next snp is in the list
-      read_snp(focal_bed_ifs, focal_global_snp_index, snp_matrix);
+      read_snp(bed_ifs, global_snp_index, snp_matrix);
       normalize_genotype(snp_matrix, n_samples);
-      int column = index_to_column[focal_global_snp_index];
+      int column = index_to_column[global_snp_index];
       focal_snps_matrix.col(column) = snp_matrix;
-      std::cout << "Reading focal snp " << focal_global_snp_index << " -> "
+      std::cout << "Reading focal snp " << global_snp_index << " -> "
                 << "Column index " << column << std::endl;
     } else {
-      skip_snp(focal_bed_ifs, focal_global_snp_index, n_samples);
+      skip_snp(bed_ifs, global_snp_index, n_samples);
     }
   }
 
-  //    bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
-  //    global_snp_index = -1;
+  bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+  global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
 
@@ -401,8 +400,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
     // parallel loop 9
     vector<int> n_snps_variance_component = {n_snps,
                                              n_gxg_snps_list[parallel_idx]};
-
-    int n_samples_mask = pheno_mask.sum();
 
     MatrixXdr GxG =
         GxGz.block(0, parallel_idx * n_randvecs, n_samples, n_randvecs);
