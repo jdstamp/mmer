@@ -7,6 +7,8 @@ int main() {
     std::string pheno_file =
             "/users/jstamp1/data/jstamp1/ukbb/c12_100k-samples_010k-snps_imputed.phen";
     std::string mask_file = "";
+    std::string gxg_h5_group = "gxg";
+    std::string ld_h5_group = "ld";
     int n_randvecs = 100;
     int focal_snp_index = 1;
     int n_blocks = 100;
@@ -30,8 +32,8 @@ int main() {
             //                                   15,
     };
     Rcpp::List results =
-            mme_cpp(plink_file, pheno_file, n_randvecs, n_blocks,
-                     rand_seed, index_vector, mask_file, n_threads);
+            mme_cpp(plink_file, pheno_file, mask_file, plink_file, n_randvecs, n_blocks,
+                     rand_seed, index_vector, n_threads, gxg_h5_group, ld_h5_group);
     return 0;
 }
 // 5 threads:

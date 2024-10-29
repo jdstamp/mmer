@@ -8,6 +8,8 @@
 #' @param n_randvecs Integer. Number of random vectors.
 #' @param n_blocks Integer representing the number of blocks the SNPs will be read in.
 #' @param n_threads Integer representing the number of threads that are setup for OMP.
+#' @param gxg_h5_group String of the hdf5 group with the gxg mask. These SNPs will be included.
+#' @param ld_h5_group String of the hdf5 group with the ld mask. These SNPs will be excluded.
 #' @param rand_seed Integer to seed generation of random vectors. Only positive values are considered.
 #' @param log_level Log level.
 #'
@@ -30,6 +32,8 @@ mme <-
            n_randvecs = 10,
            n_blocks = 100,
            n_threads = 1,
+           gxg_h5_group = "gxg",
+           ld_h5_group = "ld",
            rand_seed = -1,
            log_level = "WARNING") {
     logging::logReset()
@@ -101,13 +105,15 @@ mme <-
         mme_cpp(
           plink_file,
           pheno_file,
+          mask_file,
           n_randvecs,
           n_blocks,
           rand_seed,
           chunk - 1,
           # R is 1-indexed, C++ is 0-indexed
-          mask_file,
-          n_threads
+          n_threads,
+          gxg_h5_group,
+          ld_h5_group
         )
       VC <- rbind(VC, result$vc_estimate)
       SE <- rbind(SE, result$vc_se)
@@ -121,8 +127,8 @@ mme <-
     log$debug("Average computation time per SNP: %f seconds",
               average_duration)
 
-    z_score <- abs(VC / SE)
-    p_values <- 2 * (1 - pnorm(z_score))
+    z_score <- (VC / SE)
+    p_values <- (1 - pnorm(z_score)) # one sided test
 
     pve <- VC / apply(VC, 1, sum)
 
@@ -137,6 +143,7 @@ mme <-
     summary <-
       data.frame(
         id = id,
+        index = gxg_indices,
         chromosome = chromosome,
         position = position,
         p = p_values[, 2],

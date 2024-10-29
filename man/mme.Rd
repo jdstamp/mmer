@@ -13,6 +13,8 @@ mme(
   n_randvecs = 10,
   n_blocks = 100,
   n_threads = 1,
+  gxg_h5_group = "gxg",
+  ld_h5_group = "ld",
   rand_seed = -1,
   log_level = "WARNING"
 )
@@ -33,6 +35,10 @@ mme(
 \item{n_blocks}{Integer representing the number of blocks the SNPs will be read in.}
 
 \item{n_threads}{Integer representing the number of threads that are setup for OMP.}
+
+\item{gxg_h5_group}{String of the hdf5 group with the gxg mask. These SNPs will be included.}
+
+\item{ld_h5_group}{String of the hdf5 group with the ld mask. These SNPs will be excluded.}
 
 \item{rand_seed}{Integer to seed generation of random vectors. Only positive values are considered.}
 

@@ -3,6 +3,8 @@ test_that("mme end-to-end no mask", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- ""
+  gxg_h5_group <- "gxg"
+  ld_h5_group <- "ld"
   chunksize <- 3
   n_randvecs <- 10
   n_blocks <- 10
@@ -63,6 +65,8 @@ test_that("mme end-to-end no mask", {
                  n_randvecs,
                  n_blocks,
                  n_threads,
+                 gxg_h5_group,
+                 ld_h5_group,
                  rand_seed,
                  log_level)
   observed_est <- result$vc_estimate
@@ -78,6 +82,8 @@ test_that("mme end-to-end with mask", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- system.file("testdata", "test.h5", package="mmer")
+  gxg_h5_group <- "gxg"
+  ld_h5_group <- "ld"
   chunksize <- 3
   n_randvecs <- 10
   n_blocks <- 10
@@ -138,6 +144,8 @@ test_that("mme end-to-end with mask", {
                  n_randvecs,
                  n_blocks,
                  n_threads,
+                 gxg_h5_group,
+                 ld_h5_group,
                  rand_seed)
   observed_est <- result$vc_estimate
   observed_se <- result$vc_se
@@ -151,6 +159,8 @@ test_that("mme end-to-end no mask only one gxg idx", {
   # given
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
+  gxg_h5_group <- "gxg"
+  ld_h5_group <- "ld"
   mask_file <- ""
   chunksize <- 3
   n_randvecs <- 10
@@ -194,6 +204,8 @@ test_that("mme end-to-end no mask only one gxg idx", {
                 n_randvecs,
                 n_blocks,
                 n_threads,
+                gxg_h5_group,
+                ld_h5_group,
                 rand_seed,
                 log_level)
   observed_est <- result$vc_estimate
@@ -209,6 +221,8 @@ test_that("mme end-to-end no mask - chunksize 1", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- ""
+  gxg_h5_group <- "gxg"
+  ld_h5_group <- "ld"
   chunksize <- 1
   n_randvecs <- 10
   n_blocks <- 10
@@ -269,6 +283,8 @@ test_that("mme end-to-end no mask - chunksize 1", {
                 n_randvecs,
                 n_blocks,
                 n_threads,
+                gxg_h5_group,
+                ld_h5_group,
                 rand_seed,
                 log_level)
   observed_est <- result$vc_estimate
@@ -284,6 +300,8 @@ test_that("mme end-to-end but with mask - chunksize 1", {
   plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- system.file("testdata", "test.h5", package="mmer")
+  gxg_h5_group <- "gxg"
+  ld_h5_group <- "ld"
   chunksize <- 1
   n_randvecs <- 10
   n_blocks <- 10
@@ -344,6 +362,8 @@ test_that("mme end-to-end but with mask - chunksize 1", {
                 n_randvecs,
                 n_blocks,
                 n_threads,
+                gxg_h5_group,
+                ld_h5_group,
                 rand_seed)
   observed_est <- result$vc_estimate
   observed_se <- result$vc_se

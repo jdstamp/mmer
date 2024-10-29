@@ -5,7 +5,7 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
                     const int &n_snps, int &global_snp_index) {
   ifstream ifs(filename.c_str(), ios::in | ios::binary);
   char magic[3];
-  metaData metadata = set_metadata(n_samples, n_snps);
+  metaData metadata = set_metadata(n_samples);
   unsigned char *gtype;
   gtype = new unsigned char[metadata.ncol];
 
@@ -79,7 +79,7 @@ void read_genotype_block(std::istream &ifs, const int &block_size,
 
   for (int i = 0; i < block_size; i++) {
     MatrixXdr genotype_matrix = MatrixXdr::Zero(n_samples, 1);
-    read_snp(ifs, n_samples, global_snp_index, metadata, genotype_matrix);
+    read_snp(ifs, global_snp_index, genotype_matrix);
     encode_snp(genotype_block, genotype_matrix);
   }
 }
@@ -91,8 +91,10 @@ void encode_snp(genotype &genotype_block, const MatrixXdr &genotype_matrix) {
   }
   genotype_block.n_encoded++;
 }
-void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
-              const metaData &metadata, MatrixXdr &genotype_matrix) {
+void read_snp(std::istream &ifs, int &global_snp_index,
+              MatrixXdr &genotype_matrix) {
+  int n_samples = genotype_matrix.rows();
+  metaData metadata = set_metadata(n_samples);
   char magic[3];
   unsigned char *gtype;
   gtype = new unsigned char[metadata.ncol];
@@ -122,6 +124,20 @@ void read_snp(std::istream &ifs, const int &n_samples, int &global_snp_index,
   delete[] gtype;
 }
 
+void skip_snp(std::istream &ifs, int &global_snp_index, int &n_samples) {
+  metaData metadata = set_metadata(n_samples);
+  char magic[3];
+  unsigned char *gtype;
+  gtype = new unsigned char[metadata.ncol];
+  if (global_snp_index < 0) {
+    binary_read(ifs, magic);
+  }
+  global_snp_index++;
+  ifs.read(reinterpret_cast<char *>(gtype),
+           metadata.ncol * sizeof(unsigned char));
+  delete[] gtype;
+}
+
 void encode_genotypes(genotype &genotype_block, int j, int val) {
   int snp_index;
   snp_index = genotype_block.n_encoded;
@@ -146,7 +162,8 @@ int encoding_to_allelecount(const int &value) {
   case 0:
     return 0;
   case 1:
-    // Rcpp::warning(missing_message); // Rcpp::warning is not thread safe. TODO: remove?
+    // Rcpp::warning(missing_message); // Rcpp::warning is not thread safe.
+    // TODO: remove?
     return -1;
   case 2:
     return 1;

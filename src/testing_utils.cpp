@@ -9,14 +9,15 @@ std::string test_csv = testdata_dir + "test.csv";
 std::string test_pheno = testdata_dir + "test_h2_0.5.pheno";
 std::string test_h5 = testdata_dir + "test.h5";
 std::string test_ld_h5 = testdata_dir + "test_ld.h5";
+std::string test_bed_2 = testdata_dir + "test_2.bed";
 
 bool is_test = true;
 
 double tolerance = 1e-6;
 int n_samples = 200;
 int block_size = 10;
-metaData metadata = set_metadata(n_samples, block_size);
-metaData metadata2 = set_metadata(n_samples, block_size - 1);
+metaData metadata = set_metadata(n_samples);
+metaData metadata2 = set_metadata(n_samples);
 
 MatrixXdr readCSVToMatrixXdr(const std::string &filename) {
   std::ifstream data(filename);
