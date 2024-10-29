@@ -127,8 +127,8 @@ mme <-
     log$debug("Average computation time per SNP: %f seconds",
               average_duration)
 
-    z_score <- abs(VC / SE)
-    p_values <- 2 * (1 - pnorm(z_score))
+    z_score <- (VC / SE)
+    p_values <- (1 - pnorm(z_score)) # one sided test
 
     pve <- VC / apply(VC, 1, sum)
 
