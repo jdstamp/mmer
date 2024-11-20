@@ -110,8 +110,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       index_to_column; // Maps line number to position in selected_lines
   for (int i = 0; i < gxg_indices.size(); ++i) {
     index_to_column[gxg_indices[i]] = i;
-    // print mapping
-    std::cout << "Mapping: " << gxg_indices[i] << " -> " << i << std::endl;
   }
 
   snp_matrix = MatrixXdr::Zero(n_samples, 1);
@@ -123,8 +121,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       normalize_genotype(snp_matrix, n_samples);
       int column = index_to_column[global_snp_index];
       focal_snps_matrix.col(column) = snp_matrix;
-      std::cout << "Reading focal snp " << global_snp_index << " -> "
-                << "Column index " << column << std::endl;
     } else {
       skip_snp(bed_ifs, global_snp_index, n_samples);
     }
@@ -135,7 +131,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
 
-    auto start_block1 = std::chrono::high_resolution_clock::now();
     Rcpp::checkUserInterrupt();
     std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
@@ -158,7 +153,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
       n_gxg_snps_list[parallel_idx] = n_gxg_snps;
     }
 
-    auto start_encoding = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < block_size; i++) {
       read_snp(bed_ifs, global_snp_index, snp_matrix);
       grm_genotype_block.encode_snp(snp_matrix);
@@ -174,20 +168,12 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         }
       } // end of parallel loop 1
     }
-    auto end_encoding = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_encoding =
-        end_encoding - start_encoding;
-    // print duration of encoding in seconds
-    std::cout << "Duration of encoding: " << elapsed_encoding.count()
-              << " seconds" << std::endl;
 
-    auto start_parallel = std::chrono::high_resolution_clock::now();
     if (block_size != 0) {
 #pragma omp parallel for schedule(dynamic)
       for (int parallel_idx = -1; parallel_idx < n_gxg_idx; parallel_idx++) {
         // parallel loop 2
         if (parallel_idx < 0) {
-          auto start_grm = std::chrono::high_resolution_clock::now();
           grm_genotype_block.compute_block_stats();
 
           temp_grm = compute_XXz(random_vectors, pheno_mask, n_randvecs,
@@ -201,16 +187,10 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
           collect_XXy.col(0) +=
               compute_XXz(pheno, pheno_mask, 1, grm_genotype_block);
           grm_genotype_block.clear_block();
-          auto end_grm = std::chrono::high_resolution_clock::now();
-          std::chrono::duration<double> elapsed_grm = end_grm - start_grm;
-          // print duration of encoding in seconds
-          std::cout << "Duration of GRM part: " << elapsed_grm.count()
-                    << "seconds" << std::endl;
         } else {
           if (gxg_genotype_blocks[parallel_idx].n_encoded == 0) {
             continue;
           }
-          auto start_gxg = std::chrono::high_resolution_clock::now();
 
           MatrixXdr focal_snp_gtype = focal_snps_matrix.col(parallel_idx);
           int n_gxg_snps = n_gxg_snps_list[parallel_idx];
@@ -242,25 +222,9 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
           yGxGy(parallel_idx, 0) +=
               compute_yXXy(gxg_genotype_blocks[parallel_idx], gxg_pheno);
           //        gxg_genotype_blocks[parallel_idx].clear_block();
-          auto end_gxg = std::chrono::high_resolution_clock::now();
-          std::chrono::duration<double> elapsed_gxg = end_gxg - start_gxg;
-          // print duration of encoding in seconds
-          std::cout << "Duration of GxG part: " << elapsed_gxg.count()
-                    << "seconds" << std::endl;
         }
       } // end of parallel loop 2
     }
-    auto end_parallel = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_parallel =
-        end_parallel - start_parallel;
-    // print duration of encoding in seconds
-    std::cout << "Duration of parallel loop 2: " << elapsed_parallel.count()
-              << " seconds" << std::endl;
-    auto end_block1 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_block1 = end_block1 - start_block1;
-    // print duration of encoding in seconds
-    std::cout << "Duration of block " << block_index + 1 << ": "
-              << elapsed_block1.count() << "seconds" << std::endl;
   }
 
   collect_XXy = collect_XXy / n_snps;
@@ -274,7 +238,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
   global_snp_index = -1;
 
   for (int block_index = 0; block_index < n_blocks; block_index++) {
-    auto start_block2 = std::chrono::high_resolution_clock::now();
     Rcpp::checkUserInterrupt();
     std::vector<genotype> gxg_genotype_blocks(n_gxg_idx);
     int block_size = block_sizes[block_index];
@@ -373,12 +336,6 @@ Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file,
         }
       } // end of parallel loop 7
     }
-
-    auto end_block2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_block2 = end_block2 - start_block2;
-    // print duration of encoding in seconds
-    std::cout << "Duration of block " << block_index + 1 << ": "
-              << elapsed_block2.count() << "seconds" << std::endl;
   }
 
 #pragma omp parallel for schedule(dynamic)
