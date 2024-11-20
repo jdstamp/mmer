@@ -1,26 +1,39 @@
-#' Estimate the memory requirements
+#' Estimate Memory Requirements for MME Routine
 #'
-#' Get an approximate estimation of the memory requirements
-#' of the mme routine based on current input parameters.
+#' This function provides an approximate estimate of the memory requirements 
+#' (in gigabytes) for running the Multimodal Marginal Epistasis (MME) routine 
+#' based on input parameters such as the number of samples, SNPs, and other configurations.
 #'
-#' @param n_samples Number of samples
-#' @param n_snps Number of SNPs
-#' @param n_blocks Number of genotype blocks
-#' @param n_randvecs Number of random vectors
-#' @param chunksize Number of focal SNPS per chunk
+#' @param n_samples Integer. The number of samples in the dataset.
+#' @param n_snps Integer. The total number of SNPs in the dataset.
+#' @param n_blocks Integer. The number of genotype blocks used to partition SNPs. 
+#'   Affects the size of encoded genotype segments.
+#' @param n_randvecs Integer. The number of random vectors used for stochastic 
+#'   trace estimation. Affects memory for operations involving random vectors.
+#' @param chunksize Integer. The number of focal SNPs processed per chunk.
 #'
-#' @return Approximate memory requirement in giga bytes
+#' @return Numeric. The approximate memory requirement (in gigabytes) for the MME routine.
+#'
+#' @details
+#' The function calculates memory usage by summing the contributions from 
+#' various components used in the MME routine, including:
+#' - Variance component estimates (`vc_estimates`)
+#' - Phenotype-related matrices
+#' - Random vector-based computations
+#' - Genotype objects and block statistics
+#' - Gene-by-gene interaction masks
+#'
+#' The estimated memory requirement is derived from the data dimensions 
+#' and operational needs, and it provides a guideline for configuring resources 
+#' for the analysis.
+#'
 #' @examples
 #' n_samples <- 1e5
 #' n_snps <- 1e6
 #' n_blocks <- 100
 #' n_randvecs <- 100
-#' chunksize <- 100
-#' approximate_memory_requirements(n_samples,
-#'                                 n_snps,
-#'                                 n_blocks,
-#'                                 n_randvecs,
-#'                                 chunksize)
+#' chunksize <- 10
+#' approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize)
 #'
 #' @export
 approximate_memory_requirements <- function(n_samples,
