@@ -23,5 +23,39 @@ library(dplyr)
 library(knitr)
 ```
 
-## 
+## Simulate traits
+
+
+```{r}
+plink_file <- gsub("\\.bed",
+                   "",
+                   system.file("testdata", "test.bed", package = "mmer"))
+pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package = "mmer")
+mask_file <- ""
+gxg_h5_group <- "gxg"
+ld_h5_group <- "ld"
+chunksize <- 3
+n_randvecs <- 10
+n_blocks <- 10
+rand_seed <- 123
+n_threads <- 1
+log_level <- "WARNING"
+
+snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
+
+result <- mme(
+  plink_file,
+  pheno_file,
+  mask_file,
+  snp_indices,
+  chunksize,
+  n_randvecs,
+  n_blocks,
+  n_threads,
+  gxg_h5_group,
+  ld_h5_group,
+  rand_seed,
+  log_level
+)
+```
 

@@ -1,8 +1,8 @@
 ---
-title: "study-erythroid-differentiation-data"
+title: "Conditioning Epistasis Search on Open Chromatin"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{study-erythroid-differentiation-data}
+  %\VignetteIndexEntry{Conditioning Epistasis Search on Open Chromatin}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,3 +17,7 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(mmer)
 ```
+
+
+
+<img src="man/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" />

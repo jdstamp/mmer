@@ -1,4 +1,4 @@
-url: https://jdstamp.github.io/mmer/
+url: https://lcrawlab.github.io/mmer/
 
 template:
   bootstrap: 5
@@ -39,4 +39,3 @@ articles:
   desc: Vignettes with example studies
   contents:
   - starts_with("study")
-  

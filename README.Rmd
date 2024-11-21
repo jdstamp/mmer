@@ -29,7 +29,6 @@ The method builds on
 
 The package documentation for these methods including examples and articles can be found here: [Multivariate MAPIT Documentation](https://lcrawlab.github.io/mvMAPIT/). 
 
-<!-- <img src="man/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" /> -->
 
 ## Key Features
 
