@@ -51,7 +51,7 @@ MatrixXdr &fit_covariates(const MatrixXdr &trait_mask, MatrixXdr &trait,
   v3 = covariate * v2;                // WQW^ty
   new_pheno = trait - v3;
   trait = new_pheno.cwiseProduct(trait_mask);
-  
+
   y_sum = trait.sum();
   y_mean = y_sum / trait_mask.sum();
   for (int i = 0; i < n_samples; i++) {

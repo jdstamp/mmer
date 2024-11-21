@@ -415,7 +415,8 @@ context("C++ test variance of mqs method is implemented correctly") {
     MatrixXdr cov_sigma = invS * cov_q_observed * invS;
 
     // then
-    float var_sigma_error = (cov_sigma.diagonal().array() - sigma_variance.array()).abs().sum();
+    float var_sigma_error =
+        (cov_sigma.diagonal().array() - sigma_variance.array()).abs().sum();
     expect_true(var_sigma_error < 1e-3);
   }
 }

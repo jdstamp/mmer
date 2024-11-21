@@ -15,45 +15,45 @@
 #include "testing_utils.h"
 
 namespace local {
-  void centerAndStandardize(MatrixXdr &mat) {
-    // Compute column-wise mean
-    MatrixXdr mean = mat.colwise().mean();
+void centerAndStandardize(MatrixXdr &mat) {
+  // Compute column-wise mean
+  MatrixXdr mean = mat.colwise().mean();
 
-    // iterate over elements in mean and subtract it from corresponding mat
-    // columns
-    for (int i = 0; i < mean.cols(); i++) {
-      mat.col(i) = mat.col(i).array() - mean(0, i);
-    }
-
-    // Compute column-wise standard deviation
-    MatrixXdr std_dev =
-        ((mat.array().square().colwise().sum()) / (mat.rows() - 1)).sqrt();
-
-    for (int i = 0; i < mean.cols(); i++) {
-      mat.col(i) = mat.col(i).array() / std_dev(0, i);
-    }
+  // iterate over elements in mean and subtract it from corresponding mat
+  // columns
+  for (int i = 0; i < mean.cols(); i++) {
+    mat.col(i) = mat.col(i).array() - mean(0, i);
   }
 
-  void centerAndStandardize2(MatrixXdr &mat) {
-    // Compute column-wise mean
-    MatrixXdr mean = mat.colwise().mean();
+  // Compute column-wise standard deviation
+  MatrixXdr std_dev =
+      ((mat.array().square().colwise().sum()) / (mat.rows() - 1)).sqrt();
 
-    // iterate over elements in mean and subtract it from corresponding mat
-    // columns
-    for (int i = 0; i < mean.cols(); i++) {
-      mat.col(i) = mat.col(i).array() - mean(0, i);
-    }
-
-    MatrixXdr stds = MatrixXdr::Zero(mean.cols(), 1);
-    for (int i = 0; i < mean.cols(); i++) {
-      stds(i, 0) = 1 / sqrt((mean(0, i) * (1 - (0.5 * mean(0, i)))));
-    }
-
-    for (int i = 0; i < mean.cols(); i++) {
-      mat.col(i) = mat.col(i).array() * stds(i, 0);
-    }
+  for (int i = 0; i < mean.cols(); i++) {
+    mat.col(i) = mat.col(i).array() / std_dev(0, i);
   }
 }
+
+void centerAndStandardize2(MatrixXdr &mat) {
+  // Compute column-wise mean
+  MatrixXdr mean = mat.colwise().mean();
+
+  // iterate over elements in mean and subtract it from corresponding mat
+  // columns
+  for (int i = 0; i < mean.cols(); i++) {
+    mat.col(i) = mat.col(i).array() - mean(0, i);
+  }
+
+  MatrixXdr stds = MatrixXdr::Zero(mean.cols(), 1);
+  for (int i = 0; i < mean.cols(); i++) {
+    stds(i, 0) = 1 / sqrt((mean(0, i) * (1 - (0.5 * mean(0, i)))));
+  }
+
+  for (int i = 0; i < mean.cols(); i++) {
+    mat.col(i) = mat.col(i).array() * stds(i, 0);
+  }
+}
+} // namespace local
 
 context("C++ test covariance is computed correctly") {
   test_that("test second bed file") {
@@ -69,7 +69,6 @@ context("C++ test covariance is computed correctly") {
     MatrixXdr pheno;
     read_phenotypes(n_samples, test_pheno, pheno, pheno_mask);
 
-
     MatrixXdr grm_matrix_block = MatrixXdr::Zero(n_samples, n_grm_snps);
     MatrixXdr gxg_matrix_block = MatrixXdr::Zero(n_samples, n_gxg_snps);
     MatrixXdr snp_matrix = MatrixXdr::Zero(n_samples, 1);
@@ -83,19 +82,19 @@ context("C++ test covariance is computed correctly") {
     std::ifstream gxg_bed_ifs(test_bed.c_str(), ios::in | ios::binary);
     global_snp_index = -1;
     for (int i = 0; i < n_gxg_snps; i++) {
-        read_snp(gxg_bed_ifs, global_snp_index, snp_matrix);
-        gxg_matrix_block.col(i) = snp_matrix;
+      read_snp(gxg_bed_ifs, global_snp_index, snp_matrix);
+      gxg_matrix_block.col(i) = snp_matrix;
     }
 
     local::centerAndStandardize2(grm_matrix_block);
     local::centerAndStandardize2(gxg_matrix_block);
 
-// compute K from grm_matrix_block
+    // compute K from grm_matrix_block
     MatrixXdr K = grm_matrix_block * grm_matrix_block.transpose() / n_grm_snps;
     // compute G from gxg_matrix_block
     MatrixXdr focal_snp = gxg_matrix_block.col(focal_snp_local_index);
     MatrixXdr G = gxg_matrix_block * gxg_matrix_block.transpose();
-     G = (G - focal_snp * focal_snp.transpose()) / (n_gxg_snps - 1);
+    G = (G - focal_snp * focal_snp.transpose()) / (n_gxg_snps - 1);
 
     for (int i = 0; i < G.cols(); ++i) {
       G.col(i) = G.col(i).array() * focal_snp.array();
@@ -122,7 +121,6 @@ context("C++ test covariance is computed correctly") {
     MatrixXdr Sinv = S_expected.inverse();
     MatrixXdr sigma_expected = Sinv * q_expected;
 
-
     MatrixXdr V =
         sigma_expected(0, 0) * K + sigma_expected(1, 0) * G +
         sigma_expected(2, 0) * MatrixXdr::Identity(n_samples, n_samples);
@@ -142,22 +140,21 @@ context("C++ test covariance is computed correctly") {
     grm_genotype_block.set_block_parameters(n_samples, n_grm_snps);
     gxg_genotype_block.set_block_parameters(n_samples, n_gxg_snps - 1);
 
-
-    bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
+    bed_ifs.seekg(0, std::ios::beg);     // reset file pointer to beginning
     gxg_bed_ifs.seekg(0, std::ios::beg); // reset file pointer to beginning
     global_snp_index = -1;
 
     for (int i = 0; i < n_grm_snps; i++) {
-        read_snp(bed_ifs, global_snp_index, snp_matrix);
-        grm_genotype_block.encode_snp(snp_matrix);
+      read_snp(bed_ifs, global_snp_index, snp_matrix);
+      grm_genotype_block.encode_snp(snp_matrix);
     }
     global_snp_index = -1;
     for (int i = 0; i < n_gxg_snps; i++) {
-        read_snp(gxg_bed_ifs, global_snp_index, snp_matrix);
-        if (i != focal_snp_local_index)
-            gxg_genotype_block.encode_snp(snp_matrix);
+      read_snp(gxg_bed_ifs, global_snp_index, snp_matrix);
+      if (i != focal_snp_local_index)
+        gxg_genotype_block.encode_snp(snp_matrix);
     }
-//
+    //
     grm_genotype_block.compute_block_stats();
     gxg_genotype_block.compute_block_stats();
 
@@ -196,8 +193,8 @@ context("C++ test covariance is computed correctly") {
     for (int z_index = 0; z_index < n_randvecs; z_index++) {
       XXz.col(z_index) += temp_grm.col(z_index);
     }
-    temp_gxg =
-        compute_XXz(gxg_random_vectors, pheno_mask, n_randvecs, gxg_genotype_block);
+    temp_gxg = compute_XXz(gxg_random_vectors, pheno_mask, n_randvecs,
+                           gxg_genotype_block);
     temp_gxg = temp_gxg.array().colwise() * focal_snp.col(0).array();
 
     for (int z_index = 0; z_index < n_randvecs; z_index++) {
@@ -205,7 +202,8 @@ context("C++ test covariance is computed correctly") {
     }
     collect_XXy.col(0) += compute_XXz(pheno, pheno_mask, 1, grm_genotype_block);
 
-    MatrixXdr temp_Gy = compute_XXz(gxg_pheno, pheno_mask, 1, gxg_genotype_block);
+    MatrixXdr temp_Gy =
+        compute_XXz(gxg_pheno, pheno_mask, 1, gxg_genotype_block);
     temp_Gy = temp_Gy.array() * focal_snp.col(0).array();
     collect_XXy.col(1) += temp_Gy;
 
@@ -213,14 +211,14 @@ context("C++ test covariance is computed correctly") {
     collect_XXy.col(1) = collect_XXy.col(1) / (n_gxg_snps - 1);
     collect_XXy.col(2) = pheno;
 
-
     MatrixXdr scaled_vec;
     for (int i = 0; i < (n_variance_components + 1); i++) {
       MatrixXdr temp_XXUy =
           compute_XXz(collect_XXy.col(i), pheno_mask, 1, grm_genotype_block);
 
       scaled_vec = collect_XXy.col(i).array() * focal_snp.col(0).array();
-      MatrixXdr temp_GUy = compute_XXz(scaled_vec, pheno_mask, 1, gxg_genotype_block);
+      MatrixXdr temp_GUy =
+          compute_XXz(scaled_vec, pheno_mask, 1, gxg_genotype_block);
       temp_GUy = temp_GUy.array() * focal_snp.col(0).array();
 
       collect_XXUy.col(i) += temp_XXUy / block_size;
@@ -251,17 +249,15 @@ context("C++ test covariance is computed correctly") {
 
     MatrixXdr cov_sigma = invS * cov_q_observed * invS;
 
-
-//    // then
+    //    // then
     float S_error =
         std::sqrt((S_observed.array() - S_expected.array()).square().sum());
     float q_error = (q_observed.array() - q_expected.array()).square().sum();
     float sigma_error =
         (sigma_observed.array() - sigma_expected.array()).square().sum();
-    
+
     expect_true(S_error < 1e2);
     expect_true(q_error < 1e-5);
     expect_true(sigma_error < 1e-4);
   }
 }
-

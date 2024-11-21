@@ -8,7 +8,7 @@ metaData set_metadata(int n_samples) {
   for (int i = 0; i < unitsize; i++)
     mask = mask | (0x1 << i);
   int ncol = ceil(1.0 * n_samples / unitsperword);
-  metaData data = metaData{wordsize, unitsize, unitsperword, mask,
-                           ncol,    n_samples};
+  metaData data =
+      metaData{wordsize, unitsize, unitsperword, mask, ncol, n_samples};
   return (data);
 }
