@@ -2,7 +2,7 @@
 % Please edit documentation in R/mme.R
 \name{mme}
 \alias{mme}
-\title{Multimodal Marginal Epistasis (MME) Test Implementation}
+\title{Multimodal Marginal Epistasis (MME) Test}
 \usage{
 mme(
   plink_file,

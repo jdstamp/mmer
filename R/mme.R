@@ -1,4 +1,4 @@
-#' Multimodal Marginal Epistasis (MME) Test Implementation
+#' Multimodal Marginal Epistasis (MME) Test
 #'
 #' MME tests for marginal epistasis by incorporating functional data to inform
 #' the gene-by-gene interaction covariance matrix for computational and statistical
