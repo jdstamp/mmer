@@ -43,7 +43,7 @@ You can install the development version of mmer from [GitHub](https://github.com
 
 ``` r
 install.packages("devtools")
-devtools::install_github("jdstamp/mmer")
+devtools::install_github("lcrawlab/mmer")
 ```
 
 ## Dependencies
