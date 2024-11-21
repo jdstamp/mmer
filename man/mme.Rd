@@ -77,17 +77,15 @@ A list containing:
 }
 }
 \description{
-The MME test evaluates marginal epistasis using stochastic trace estimation
-for computational efficiency. It incorporates gene-by-gene interaction masks
-and linkage disequilibrium data to consider specific subsets of SNPs for interactions.
-Results include variance component estimates, standard errors, and
-P values for the tested indices.
+MME tests for marginal epistasis by incorporating functional data to inform
+the gene-by-gene interaction covariance matrix for computational and statistical
+efficiency.
 }
 \details{
 This function integrates PLINK-formatted genotype and phenotype data to perform
 marginal epistasis tests on a set of SNPs. Using stochastic trace estimation,
 the method computes variance components for gene-by-gene interaction and genetic
-relatedness using the MQS estimators. The process is parallelized using OpenMP
+relatedness using the MQS estimator. The process is parallelized using OpenMP
 when \code{n_threads > 1}.
 
 The memory requirements and computation time scaling can be optimized through

@@ -1,10 +1,8 @@
 #' Multimodal Marginal Epistasis (MME) Test Implementation
 #'
-#' The MME test evaluates marginal epistasis using stochastic trace estimation
-#' for computational efficiency. It incorporates gene-by-gene interaction masks
-#' and linkage disequilibrium data to consider specific subsets of SNPs for interactions. 
-#' Results include variance component estimates, standard errors, and 
-#' P values for the tested indices.
+#' MME tests for marginal epistasis by incorporating functional data to inform
+#' the gene-by-gene interaction covariance matrix for computational and statistical
+#' efficiency.
 #' 
 #' @references Stamp, J., DenAdel, A., Weinreich, D., & Crawford, L. (2023). 
 #' Leveraging the genetic correlation between traits improves the detection of 
@@ -58,7 +56,7 @@
 #' This function integrates PLINK-formatted genotype and phenotype data to perform 
 #' marginal epistasis tests on a set of SNPs. Using stochastic trace estimation, 
 #' the method computes variance components for gene-by-gene interaction and genetic
-#' relatedness using the MQS estimators. The process is parallelized using OpenMP 
+#' relatedness using the MQS estimator. The process is parallelized using OpenMP 
 #' when `n_threads > 1`.
 #'
 #' The memory requirements and computation time scaling can be optimized through 
@@ -91,7 +89,6 @@
 #' @import dplyr
 #' @importFrom stats pnorm
 #' @importFrom tidyr pivot_longer
-#' @importFrom progress progress_bar
 #' @export
 mme <-
   function(plink_file,
@@ -162,13 +159,6 @@ mme <-
     SE <- NULL
     TIME <- NULL
 
-    pb <- progress_bar$new(
-      format = "processing chunks [:bar] :percent elapsed: :elapsed eta: :eta",
-      total = n_chunks,
-      clear = FALSE,
-      width = 60
-    )
-    pb$tick(0)
     for (i in seq_along(chunks)) {
       chunk <- chunks[[i]]
       result <-
@@ -188,7 +178,6 @@ mme <-
       VC <- rbind(VC, result$vc_estimate)
       SE <- rbind(SE, result$vc_se)
       TIME <- c(TIME, result$duration)
-      pb$tick()
     }
     total_duration <- sum(TIME)
     average_duration <- total_duration / n_gxg_indices

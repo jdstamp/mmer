@@ -12,6 +12,16 @@ detecting marginal epistasis in genome-wide association studies (GWAS).
 
 <img src="man/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" />
 
+## Installation
+
+You can install the development version of mmer from
+[GitHub](https://github.com/) with:
+
+``` r
+install.packages("devtools")
+devtools::install_github("jdstamp/mmer")
+```
+
 ## Key Features
 
 - Stochastic Trace Estimation: Enables computational speedup to scale to
@@ -24,15 +34,27 @@ detecting marginal epistasis in genome-wide association studies (GWAS).
 - Parallelization: Utilizes OpenMP for efficient multi-threaded
   processing.
 
-## Installation
+## Dependencies
 
-You can install the development version of mmer from
-[GitHub](https://github.com/) with:
+### HighFive
 
-``` r
-# install.packages("devtools")
-devtools::install_github("jdstamp/mmer")
-```
+This package utilizes the
+[HighFive](https://github.com/BlueBrain/HighFive) library for efficient
+and index based access to masking data. HighFive is a modern C++11
+header-only library that provides a user-friendly interface for reading,
+writing, and managing data in HDF5 format.
+
+HighFive was chosen for its:
+
+- Ease of use: Provides an intuitive API for interacting with complex
+  HDF5 datasets.
+- Performance: Offers efficient handling of large-scale data without
+  compromising on speed.
+- Modern C++ support: Fully utilizes C++11 features, making it
+  compatible with modern C++ applications.
+
+In this package, HighFive is used to read SNP specific masking data by
+accessing it by index.
 
 ## References
 
@@ -40,3 +62,5 @@ devtools::install_github("jdstamp/mmer")
   epistasis detection in GWAS. G3: Genes, Genomes, Genetics.
 - Crawford et al. (2017): Detecting epistasis with the marginal
   epistasis test. PLoS Genetics.
+- Devresse et al. (2024): HighFive - Header-only C++ HDF5 interface.
+  <https://zenodo.org/records/13120799>
