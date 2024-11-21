@@ -258,16 +258,10 @@ context("C++ test covariance is computed correctly") {
     float q_error = (q_observed.array() - q_expected.array()).square().sum();
     float sigma_error =
         (sigma_observed.array() - sigma_expected.array()).square().sum();
-    float var_sigma_error = std::abs(cov_sigma(1, 1) - sigma_variance(0, 0));
-//
+    
     expect_true(S_error < 1e2);
     expect_true(q_error < 1e-5);
     expect_true(sigma_error < 1e-4);
-    //print S_error, q_error, sigma_error, var_sigma_error to cout
-    cout << "S_error: " << S_error << endl;
-    cout << "q_error: " << q_error << endl;
-    cout << "sigma_error: " << sigma_error << endl;
-//    expect_true(var_sigma_error < 1e-5);
   }
 }
 

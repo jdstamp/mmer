@@ -13,15 +13,23 @@ knitr::opts_chunk$set(
 )
 ```
 
-# mmer <img src="man/figures/logo.png" align="right" height="200" alt="" />
+# mmer - The Multimodal Marginal Epistasis test R implementation <img src="man/figures/logo.png" align="right" height="200" alt="" />
 
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The package `mmer` is the software implementation of the Multimodel Marginal Epistasis test.
+The `mmer` package implements a computationally efficient method for detecting marginal epistasis in genome-wide association studies (GWAS).
 
 <img src="man/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" />
+
+## Key Features
+
+-	Stochastic Trace Estimation: Enables computational speedup to scale to Biobank scale data.
+-	Multimodal Input: Incorporates prior data from HDF5 files to improve power in detecting gene-by-gene interactions.
+-	Optimize for Memory Constraints: Parameters like chunk size, number of random vectors, and number of blocks allow to optimize for low memory constraints or fast computation.
+-	Parallelization: Utilizes OpenMP for efficient multi-threaded processing.
+
 
 ## Installation
 
@@ -32,5 +40,8 @@ You can install the development version of mmer from [GitHub](https://github.com
 devtools::install_github("jdstamp/mmer")
 ```
 
+## References
 
+-	Stamp et al. (2023): Leveraging genetic correlation between traits for epistasis detection in GWAS. G3: Genes, Genomes, Genetics.
+-	Crawford et al. (2017): Detecting epistasis with the marginal epistasis test. PLoS Genetics.
 
