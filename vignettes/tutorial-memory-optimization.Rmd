@@ -1,0 +1,78 @@
+---
+title: "How To Optimize the Memory Requirements of MME"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How To Optimize the Memory Requirements of MME}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE, 
+  warning = FALSE
+)
+```
+
+```{r setup}
+library(mmer)
+library(tidyr)
+library(dplyr)
+library(knitr)
+```
+
+
+This tutorial explains the factors that influence memory usage when running the `mme()` function and how to adjust parameters to optimize memory consumption within your available resources. We recommend using the convenience function `approximate_memory_requirements()` to estimate the memory requirements of the C++ routine within the `mme()` function call. This function provides a rough approximation based on the C++ objects stored in memory, but it does not represent the exact memory usage.
+
+## Sample Size
+
+The sample size is the largest factor influencing memory requirements. The phenotype and genotype data must be loaded into memory for computation. For large datasets, such as Biobank-scale data with 350k samples and 500k SNPs, loading the entire dataset into memory requires about 1.4TB of memory (assuming double precision for the data matrix). This exceeds the capacity of most machines.
+
+To manage large datasets more efficiently, `mme()` reads the genotype data in smaller blocks. The parameter `n_blocks` controls the number of blocks. For instance, with 500k SNPs, setting `n_blocks = 100` will load 5000 SNPs into memory at a time, reducing the memory load and allowing computations to proceed block by block.
+
+## Number of random vectors
+
+The `mme()` function uses a stochastic trace estimator to efficiently approximate the trace of matrix products. The number of random vectors affects both the accuracy of the trace estimates and the memory and computational efficiency.
+
+The algorithm stores intermediate matrices of size `sample_size x n_randvecs` during the blockwise computation. Increasing the number of random vectors improves accuracy but also increases memory usage and computation time. A smaller number, such as 10 random vectors, typically provides reasonably accurate results.
+
+## Number of SNPs sharing random vectors
+
+To efficiently process genome-wide data, we use the `chunk_size` parameter to control how many SNPs share the same set of random vectors. This approach avoids redundant calculations of the genetic relatedness covariance matrix and reduces the time spent reading genotype data into memory.
+
+For each set of SNPs analyzed together (in a “chunk”), intermediate results need to be stored. As a result, the memory requirement grows multiplicatively with the chunk size, following the formula: `chunk_size x (sample_size x n_randvecs)`.
+
+## Genotype Masking for the Gene-by-Gene Interaction Covariance
+
+Masking genotypes that do not contribute to epistasis can reduce both memory usage and computation time. When genotypes are masked, they do not need to be stored in memory, which can significantly decrease memory requirements. However, the `approximate_memory_requirements()` function does not account for this reduction.
+
+## Explore the Memory Requirements
+
+Use the `approximate_memory_requirements()` function to estimate memory needs based on your chosen parameters. This function helps you assess whether your planned settings will fit within available memory or to identify which parameters can be adjusted to meet your resource constraints. Specifically, the parameters `n_blocks`, `n_randvecs`, and `chunk_size` are flexible and influence memory usage.
+
+```{r memory}
+n_samples <- c(350000)
+n_snps <- c(500000)
+n_blocks <- c(1, 100, 1000)
+n_randvecs <- c(10, 100)
+chunk_size <- c(10, 100)
+
+parameters <- crossing(
+  n_samples = n_samples,
+  n_snps = n_snps,
+  n_blocks = n_blocks,
+  n_randvecs = n_randvecs,
+  chunk_size = chunk_size
+)
+
+
+estimated_memory <- parameters %>%
+  mutate(memory_gb = round(
+    approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunk_size),
+    2
+  ))
+
+kable(estimated_memory)
+```

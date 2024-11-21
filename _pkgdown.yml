@@ -1,4 +1,4 @@
-url: ~
+url: https://jdstamp.github.io/mmer/
 
 template:
   bootstrap: 5
@@ -28,3 +28,15 @@ reference:
     Utility functions.
   contents:
   - approximate_memory_requirements
+
+articles:
+- title: Tutorials
+  navbar: Tutorials
+  contents:
+  - starts_with("tutorial")
+- title: Studies
+  navbar: Studies
+  desc: Vignettes with example studies
+  contents:
+  - starts_with("study")
+  

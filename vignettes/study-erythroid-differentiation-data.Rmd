@@ -1,0 +1,19 @@
+---
+title: "study-erythroid-differentiation-data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{study-erythroid-differentiation-data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mmer)
+```
