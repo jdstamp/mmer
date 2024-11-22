@@ -16,34 +16,33 @@ knitr::opts_chunk$set(
 )
 ```
 
+The Multimodal Marginal Epistasis test (MME) is designed to condition the genome-wide search for marginal epistasis in quantitative traits on multiple modes of genomic data to both maximize the power of the inference as well as realize the computational efficiency needed to analyze human Biobank scale data. The marginal epistasis framework tests for interactions between a focal variant with any other variant in the data. The multimodal step in the presented method conditions the search for interacting variants with the focal variant on functional genomic data.
+
+This documentation gives a toy example to show case what insights the implementation of the test provides.
+
 ```{r setup}
 library(mmer)
-library(tidyr)
 library(dplyr)
-library(knitr)
+library(ggplot2)
 ```
 
-## Simulate traits
-
-
-```{r}
-plink_file <- gsub("\\.bed",
-                   "",
-                   system.file("testdata", "test.bed", package = "mmer"))
-pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package = "mmer")
-mask_file <- ""
+```{r run_mme, eval = FALSE}
+plink_file <- "path/to/plink/file"
+pheno_file <- "path/to/pheno/file"
+mask_file <- "path/to/mask/file"
 gxg_h5_group <- "gxg"
 ld_h5_group <- "ld"
-chunksize <- 3
+chunksize <- 10
 n_randvecs <- 10
 n_blocks <- 10
 rand_seed <- 123
-n_threads <- 1
-log_level <- "WARNING"
+n_threads <- 5
+log_level <- "DEBUG"
 
-snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
+n_snps <- 100
+snp_indices <- 1:n_snps
 
-result <- mme(
+mme_result <- mme(
   plink_file,
   pheno_file,
   mask_file,
@@ -57,5 +56,33 @@ result <- mme(
   rand_seed,
   log_level
 )
+
+```
+
+```{r assign_data, include = FALSE}
+mme_result <- getting_started
+```
+
+```{r}
+manhattan_plot <- mme_result$summary %>%
+  ggplot(aes(
+  x = index,
+  y = -log10(p),
+  color = true_gxg_snp
+)) +
+  geom_point() +
+  xlab("Position") +
+  labs(color = "Epistatic SNP")
+plot(manhattan_plot)
+```
+```{r}
+vc_plot <- mme_result$summary %>%
+  ggplot(aes(x = true_gxg_snp, y = vc, fill = true_gxg_snp)) +
+  geom_boxplot() +
+  xlab("True Epistatic SNP") +
+  ylab("Phenotypic Variance Explained") +
+  labs(color = "Epistatic SNP") +
+  theme(legend.position = "none")
+plot(vc_plot)
 ```
 

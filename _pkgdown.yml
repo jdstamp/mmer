@@ -28,6 +28,10 @@ reference:
     Utility functions.
   contents:
   - approximate_memory_requirements
+- title: "Simulated Data Examples"
+  desc: "RDA data files for illustration purposes."
+  contents:
+  - getting_started
 
 articles:
 - title: Tutorials

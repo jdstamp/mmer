@@ -26,7 +26,7 @@ library(knitr)
 
 This tutorial explains the factors that influence memory usage when running the `mme()` function and how to adjust parameters to optimize memory consumption within your available resources. We recommend using the convenience function `approximate_memory_requirements()` to estimate the memory requirements of the C++ routine within the `mme()` function call. This function provides a rough approximation based on the C++ objects stored in memory, but it does not represent the exact memory usage.
 
-## Sample Size
+## Size of the genotype data and number of blocks
 
 The sample size is the largest factor influencing memory requirements. The phenotype and genotype data must be loaded into memory for computation. For large datasets, such as Biobank-scale data with 350k samples and 500k SNPs, loading the entire dataset into memory requires about 1.4TB of memory (assuming double precision for the data matrix). This exceeds the capacity of most machines.
 
@@ -70,7 +70,11 @@ parameters <- crossing(
 
 estimated_memory <- parameters %>%
   mutate(memory_gb = round(
-    approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunk_size),
+    approximate_memory_requirements(n_samples, 
+                                    n_snps, 
+                                    n_blocks, 
+                                    n_randvecs, 
+                                    chunk_size),
     2
   ))
 

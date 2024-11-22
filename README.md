@@ -13,13 +13,15 @@ association studies (GWAS). Find the full package documentation
 including examples and articles here: [Multimodal Marginal Epistasis
 test Documentation](https://jdstamp.github.io/mmer/).
 
-The method builds on the Marginal Epistasis Test (MAPIT), and the
-multivariate Marginal Epistasis Test (mvMAPIT). The package
-documentation for these methods including examples and articles can be
-found here: [Multivariate MAPIT
-Documentation](https://lcrawlab.github.io/mvMAPIT/).
+The method builds on
 
-<!-- <img src="man/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" /> -->
+- the Marginal Epistasis Test (MAPIT)
+- the multivariate Marginal Epistasis Test (mvMAPIT)
+- the Fast Marginal Epistasis Test (FAME)
+
+The R package documentation for mvMAPIT including examples and articles
+can be found here: [Multivariate MAPIT
+Documentation](https://lcrawlab.github.io/mvMAPIT/).
 
 ## Key Features
 
@@ -40,7 +42,7 @@ You can install the development version of mmer from
 
 ``` r
 install.packages("devtools")
-devtools::install_github("jdstamp/mmer")
+devtools::install_github("lcrawlab/mmer")
 ```
 
 ## Dependencies
@@ -73,6 +75,9 @@ format.
   <https://github.com/lcrawlab/mvMAPIT>.
 - Stamp et al. (2023): Leveraging genetic correlation between traits for
   epistasis detection in GWAS. G3: Genes, Genomes, Genetics.
+- Fu, B., Pazokitoroudi, A., Xue, A., Anand, A., Anand, P., Zaitlen, N.,
+  & Sankararaman, S. (2023). A biobank-scale test of marginal epistasis
+  reveals genome-wide signals of polygenic epistasis. bioRxiv.
 - Crawford et al. (2017): Detecting epistasis with the marginal
   epistasis test. PLoS Genetics.
 - Devresse et al. (2024): HighFive - Header-only C++ HDF5 interface.

@@ -1,0 +1,19 @@
+---
+title: "How To Create a Mask File"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How To Create a Mask File}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mmer)
+```
