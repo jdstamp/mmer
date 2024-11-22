@@ -13,3 +13,5 @@
 ^inst/logo
 .idea
 .vscode
+^data-raw$
+^dev$

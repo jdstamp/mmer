@@ -49,7 +49,6 @@
 #'
 #' @usage 
 #' data("getting_started")
-#' head(getting_started$summary)
 #'
 #' @examples
 #' data("getting_started")
@@ -60,4 +59,5 @@
 #'
 #' @keywords datasets
 #' @source data-raw/getting_started.R
+#' @import mvMAPIT
 "getting_started"

@@ -89,6 +89,7 @@
 #' @import dplyr
 #' @importFrom stats pnorm
 #' @importFrom tidyr pivot_longer
+#' @importFrom utils read.delim
 #' @export
 mme <-
   function(plink_file,

@@ -21,7 +21,6 @@ data-raw/getting_started.R
 }
 \usage{
 data("getting_started")
-head(getting_started$summary)
 }
 \description{
 \code{getting_started} is a simulated dataset created to demonstrate the use of the \code{mme()} function
