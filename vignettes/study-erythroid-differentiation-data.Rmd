@@ -1,0 +1,23 @@
+---
+title: "Conditioning Epistasis Search on Open Chromatin"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Conditioning Epistasis Search on Open Chromatin}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(mmer)
+```
+
+
+
+<img src="../reference/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" />

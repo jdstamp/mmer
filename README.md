@@ -1,12 +1,39 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
 
-# mmer <a href="https://jdstamp.github.io/mmer"><img src="man/figures/README-logo.png" align="right" alt="logo" style="padding:10px; max-width:550px; width: 30%;" /></a>
+# mmer - The Multimodal Marginal Epistasis test R implementation <img src="man/figures/logo.png" align="right" height="200" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of mmer is to …
+The `mmer` package implements a computationally and statistically
+efficient method for detecting marginal epistasis in genome-wide
+association studies (GWAS). Find the full package documentation
+including examples and articles here: [Multimodal Marginal Epistasis
+test Documentation](https://lcrawlab.github.io/mmer/).
+
+The method builds on
+
+- the Marginal Epistasis Test (MAPIT)
+- the multivariate Marginal Epistasis Test (mvMAPIT)
+- the Fast Marginal Epistasis Test (FAME)
+
+The R package documentation for mvMAPIT including examples and articles
+can be found here: [Multivariate MAPIT
+Documentation](https://lcrawlab.github.io/mvMAPIT/).
+
+## Key Features
+
+- Stochastic Trace Estimation: Enables computational speedup to scale to
+  Biobank scale data.
+- Multimodal Input: Incorporates prior data from HDF5 files to improve
+  power in detecting gene-by-gene interactions.
+- Optimize for Memory Constraints: Highly configurable block wise
+  processing of the data allows to make the most of available resources.
+  See also [How To Optimize the Memory Requirements of
+  MME](articles/tutorial-memory-optimization.html).
+- Parallelization: Utilizes OpenMP for multi-threaded processing.
 
 ## Installation
 
@@ -14,39 +41,39 @@ You can install the development version of mmer from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("jdstamp/mmer")
+install.packages("devtools")
+devtools::install_github("lcrawlab/mmer")
 ```
 
-## Example
+## Dependencies
 
-This is a basic example which shows you how to solve a common problem:
+The full list of R dependencies can be found in the [DESCRIPTION
+file](https://github.com/lcrawlab/mmer/blob/main/DESCRIPTION).
 
-``` r
-library(mmer)
-## basic example code
-```
+This package depends on several C++ libraries to provide efficient
+functionality and performance. Make sure the following software are
+installed and available on your system:
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+1.  HDF5
+2.  Boost
+3.  OpenMP
 
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
+The package ships with the header-only HDF55 C++ library
+[HighFive](https://github.com/BlueBrain/HighFive). It utilizes the
+library for efficient and index based access to masking data.
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+## References
 
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+- Stamp J, Crawford L (2024). mvMAPIT: Multivariate Genome Wide Marginal
+  Epistasis Test. R package version 2.0.3,
+  <https://lcrawlab.github.io/mvMAPIT/>,
+  <https://github.com/lcrawlab/mvMAPIT>.
+- Stamp et al. (2023): Leveraging genetic correlation between traits for
+  epistasis detection in GWAS. G3: Genes, Genomes, Genetics.
+- Fu, B., Pazokitoroudi, A., Xue, A., Anand, A., Anand, P., Zaitlen, N.,
+  & Sankararaman, S. (2023). A biobank-scale test of marginal epistasis
+  reveals genome-wide signals of polygenic epistasis. bioRxiv.
+- Crawford et al. (2017): Detecting epistasis with the marginal
+  epistasis test. PLoS Genetics.
+- Devresse et al. (2024): HighFive - Header-only C++ HDF5 interface.
+  <https://zenodo.org/records/13120799>

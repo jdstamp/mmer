@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate_traits.R
 \name{simulate_traits}
 \alias{simulate_traits}
-\title{Simulate a trait from plink genotypes}
+\title{Simulate Quantitative Traits from PLINK Genotypes}
 \usage{
 simulate_traits(
   plink_file,
@@ -16,25 +16,44 @@ simulate_traits(
 )
 }
 \arguments{
-\item{plink_file}{Path to the plink data set without file extension}
+\item{plink_file}{Character. Path to the PLINK dataset (without file extension).
+The function will append \code{.bed}, \code{.bim}, and \code{.fam} extensions as needed.}
 
-\item{output_file}{Path to the file that stores the simulated trait}
+\item{output_file}{Character. Path to the output file where the simulated trait will be saved.}
 
-\item{additive_heritability}{Float between 0 and 1 that quantifies the heritability of the trait}
+\item{additive_heritability}{Numeric. A value between 0 and 1 specifying the proportion
+of trait variance due to additive genetic effects.}
 
-\item{gxg_heritability}{Fraction of heritability due to additive only effects}
+\item{gxg_heritability}{Numeric. A value between 0 and 1 specifying the proportion
+of trait variance due to gene-by-gene (epistatic) interactions. The sum of
+\code{additive_heritability} and \code{gxg_heritability} must not exceed 1.}
 
-\item{additive_indices}{Vector of SNP indices that are chosen to contribute to the additive heritability}
+\item{additive_indices}{Integer vector. Indices of SNPs contributing to additive genetic effects.}
 
-\item{gxg_indices_1}{Vector of SNP indices that are chosen to be epistatic in group 1}
+\item{gxg_indices_1}{Integer vector. Indices of SNPs in the first group for epistatic interactions.}
 
-\item{gxg_indices_2}{Vector of SNP indices that are chosen to be epistatic in group 2}
+\item{gxg_indices_2}{Integer vector. Indices of SNPs in the second group for epistatic interactions.}
 
-\item{log_level}{Log level.}
+\item{log_level}{Character. Logging level for messages (e.g., "DEBUG", "INFO", "WARNING"). Default is "WARNING".}
 }
 \value{
-None
+None. The simulated trait is written to the specified \code{output_file}.
 }
 \description{
-Simulate a trait from plink genotypes
+This function simulates a quantitative trait based on additive and epistatic
+genetic effects using genotype data from a PLINK dataset. The simulated trait
+is saved to a specified output file in a phenotype format compatible with PLINK.
+}
+\details{
+The function uses the following components to simulate the trait:
+\itemize{
+\item Additive genetic effects: Determined by \code{additive_indices} and the specified \code{additive_heritability}.
+\item Epistatic interactions: Simulated using pairs of SNPs from \code{gxg_indices_1} and \code{gxg_indices_2},
+contributing to the \code{gxg_heritability}.
+\item Environmental effects: Any remaining variance not explained by genetic effects is assigned
+to random environmental noise.
+}
+
+The output file is in PLINK-compatible phenotype format with three columns:
+Family ID (\code{FID}), Individual ID (\code{IID}), and the simulated trait (\code{TRAIT}).
 }

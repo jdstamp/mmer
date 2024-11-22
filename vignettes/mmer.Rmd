@@ -1,8 +1,8 @@
 ---
-title: "Illustrating the Multimodal Marginal Epistasis Test with Simulated Data"
+title: "How To Use the Multimodal Marginal Epistasis Test"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Illustrating the Multimodal Marginal Epistasis Test with Simulated Data}
+  %\VignetteIndexEntry{How To Use the Multimodal Marginal Epistasis Test}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,39 +10,128 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE, 
+  warning = FALSE
 )
 ```
+
+The Multimodal Marginal Epistasis test (MME) is designed to condition the genome-wide search for marginal epistasis in quantitative traits on multiple modes of genomic data to both maximize the power of the inference as well as realize the computational efficiency needed to analyze human Biobank scale data. The marginal epistasis framework tests for interactions between a focal variant with any other variant in the data. The multimodal step in the presented method conditions the search for interacting variants with the focal variant on functional genomic data.
+
+This pages presents a toy example to show case what insights the implementation of the test provides.
+
+
+## Run MME on PLINK formatted data
 
 ```{r setup}
 library(mmer)
-library(tidyr)
 library(dplyr)
-library(knitr)
+library(ggplot2)
 ```
 
-Use the convenient function that estimates memory requirements based on input parameters. You can use this function to either estimate the memory for the settings you are planning to run or to find parameters that can be run given your memory constraints. In particular the parameters `n_blocks`, `n_randvecs`, and `chunksize` can be chosen freely. Both `chunksize` but particularly `n_randvecs` have an impact on the accuracy of the estimates.
+The R implementation of MME requires a dataset in PLINK format (i.e. `.bim`, `.bed`, and `.fam` files) to provide the genotype data. The phenotype data should be provided in a separate file that also follows the PLINK format for phenotypes. See `mme()` for the full documentation of the function arguments.
 
-```{r memory}
-n_samples <- c(350000)
-n_snps <- c(1000000)
-n_blocks <- c(100, 1000)
-n_randvecs <- c(10, 100)
-chunksize <- c(10, 100)
+The function `mme()` provides parameters that allow to optimize the usage of available resources. 
+See [How To Optimize the Memory Requirements of MME](articles/tutorial-memory-optimization.html) for a
+discussion of how to optimize for available resources.
 
-parameters <- crossing(
-  n_samples = n_samples,
-  n_snps = n_snps,
-  n_blocks = n_blocks,
-  n_randvecs = n_randvecs,
-  chunksize = chunksize
+Lastly, the function asks for **1-based** indices of which SNPs to analyze. These indices map 
+to variants corresponding the 1-based row-indices of the `.bim` file.
+
+```{r run_mme, eval = FALSE}
+# File inputs
+plink_file <- "path/to/plink/file"
+pheno_file <- "path/to/pheno/file"
+mask_file <- "path/to/mask/file"
+
+# Parameter inputs
+chun_ksize <- 10
+n_randvecs <- 10
+n_blocks <- 10
+n_threads <- 5
+
+# 1-based Indices of SNPs to be analyzed
+n_snps <- 100
+snp_indices <- 1:n_snps
+
+mme_result <- mme(
+  plink_file,
+  pheno_file,
+  mask_file,
+  snp_indices,
+  chunk_size,
+  n_randvecs,
+  n_blocks,
+  n_threads
 )
 
-estimated_memory <- parameters %>% 
-  mutate(memory_gb = approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize))
-
-# sprintf("Estimated memory requirements: %.2f GB", estimated_memory)
-kable(estimated_memory)
 ```
 
+```{r assign_data, include = FALSE}
+mme_result <- getting_started
+```
+
+The data analyzed in this example was simulated for illustration purposes. 
+See [How To Simulate Traits](articles/tutorial-simulate-traits.html) to go over the data simulation example.
+
+The return object of the function call `mme()` is a named list. The summary of the analysis can easily be
+accessed by the name `summary`. The results are stored as [tidy data](https://vita.had.co.nz/papers/tidy-data.html). As such, they are ready to be analyzed using tidy data
+compatible tools such as `ggplot2` and `dplyr`.
+
+### Manhattan Plot
+
+A common visualization of genome-wide analyses are Manhattan plots. They easily show
+strong signals of association. In the case of marginal epistasis, the signal of association
+is specific to statistical epistasis. In the figure below, SNPs that were true causal
+SNPs in the data simulation are highlighted in green.
+
+```{r manhattan_plot, fig.alt="Manhattan plot to illustrate the multimodal marginal epistasis test"}
+mme_result$summary %>%
+  ggplot(aes(
+  x = index,
+  y = -log10(p),
+  color = true_gxg_snp
+)) +
+  geom_point() +
+  xlab("Position") +
+  labs(color = "Epistatic SNP")
+```
+
+### Phenotypic Variance Explained by Marginal Epistasis
+
+MME estimates the variance component that can be attributed to marginal epistasis.
+The per SNP Phenotypic Variance Explained (PVE) for marginally epistatic SNPs in
+this example was simulated to be 5%. This true PVE is indicated as dashed line
+in the following plot. It shows the distribution of PVE estimates for true epistatic
+SNPs and non-epistatic SNPs.
+
+```{r pve_plot, fig.alt="PVE plot to illustrate the multimodal marginal epistasis test"}
+mme_result$summary %>%
+  ggplot(aes(x = true_gxg_snp, y = pve, fill = true_gxg_snp)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0.05, color = "grey40", linetype = "dashed") +
+  xlab("Epistatic SNP") +
+  ylab("Phenotypic Variance Explained") +
+  theme(legend.position = "none")
+```
+
+### Narrow Sense Heritability Estimates
+
+As linear mixed model, MME also fits the variance attributable to genetic relatedness.
+Therefore, the results also provide trait estimates of the narrow sense heritability $h^2$.
+The true narrow sense heritability in the simulations that generated the data
+was 30% and and is indicated as dashed line in the plot of the variance commponent estimates
+plotted below. The narrow sense heritability is indicated by the tick label `grm`.
+The tick label `gxg` indicates the gene-by-gene interaction variance component. 
+The `error` component is the unexplained variance, e.g. caused by environmental effects.
+
+```{r h2_plot, fig.alt="h2 plot to illustrate the multimodal marginal epistasis test"}
+mme_result$vc_estimate %>%
+  ggplot(aes(x = component, y = vc_estimate, fill = component)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0.3, color = "grey40", linetype = "dashed") +
+  xlab("Component") +
+  ylab("Variance Component Estimate") +
+  theme(legend.position = "none")
+```
 

@@ -1,20 +1,40 @@
-#' Simulate a trait from plink genotypes
+#' Simulate Quantitative Traits from PLINK Genotypes
 #'
-#' @param plink_file Path to the plink data set without file extension
-#' @param output_file Path to the file that stores the simulated trait
-#' @param additive_heritability Float between 0 and 1 that quantifies the heritability of the trait
-#' @param gxg_heritability Fraction of heritability due to additive only effects
-#' @param additive_indices Vector of SNP indices that are chosen to contribute to the additive heritability
-#' @param gxg_indices_1 Vector of SNP indices that are chosen to be epistatic in group 1
-#' @param gxg_indices_2 Vector of SNP indices that are chosen to be epistatic in group 2
-#' @param log_level Log level.
+#' This function simulates a quantitative trait based on additive and epistatic 
+#' genetic effects using genotype data from a PLINK dataset. The simulated trait 
+#' is saved to a specified output file in a phenotype format compatible with PLINK.
 #'
-#' @return None
+#' @param plink_file Character. Path to the PLINK dataset (without file extension). 
+#'   The function will append `.bed`, `.bim`, and `.fam` extensions as needed.
+#' @param output_file Character. Path to the output file where the simulated trait will be saved.
+#' @param additive_heritability Numeric. A value between 0 and 1 specifying the proportion 
+#'   of trait variance due to additive genetic effects.
+#' @param gxg_heritability Numeric. A value between 0 and 1 specifying the proportion 
+#'   of trait variance due to gene-by-gene (epistatic) interactions. The sum of 
+#'   `additive_heritability` and `gxg_heritability` must not exceed 1.
+#' @param additive_indices Integer vector. Indices of SNPs contributing to additive genetic effects.
+#' @param gxg_indices_1 Integer vector. Indices of SNPs in the first group for epistatic interactions.
+#' @param gxg_indices_2 Integer vector. Indices of SNPs in the second group for epistatic interactions.
+#' @param log_level Character. Logging level for messages (e.g., "DEBUG", "INFO", "WARNING"). Default is "WARNING".
+#'
+#' @return None. The simulated trait is written to the specified `output_file`.
+#'
+#' @details
+#' The function uses the following components to simulate the trait:
+#' - Additive genetic effects: Determined by `additive_indices` and the specified `additive_heritability`.
+#' - Epistatic interactions: Simulated using pairs of SNPs from `gxg_indices_1` and `gxg_indices_2`, 
+#'   contributing to the `gxg_heritability`.
+#' - Environmental effects: Any remaining variance not explained by genetic effects is assigned 
+#'   to random environmental noise.
+#' 
+#' The output file is in PLINK-compatible phenotype format with three columns: 
+#' Family ID (`FID`), Individual ID (`IID`), and the simulated trait (`TRAIT`).
+#'
 #' @useDynLib mmer
-#' @export
 #' @import genio
 #' @import dplyr
 #' @importFrom utils write.table
+#' @export
 simulate_traits <- function(plink_file,
                             output_file,
                             additive_heritability,

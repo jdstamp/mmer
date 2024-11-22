@@ -1,4 +1,4 @@
-url: ~
+url: https://lcrawlab.github.io/mmer/
 
 template:
   bootstrap: 5
@@ -28,3 +28,22 @@ reference:
     Utility functions.
   contents:
   - approximate_memory_requirements
+  - create_hdf5_file
+  - read_hdf5_dataset
+  - write_hdf5_dataset
+  
+- title: "Simulated Data Examples"
+  desc: "RDA data files for illustration purposes."
+  contents:
+  - getting_started
+
+articles:
+- title: Tutorials
+  navbar: Tutorials
+  contents:
+  - starts_with("tutorial")
+- title: Studies
+  navbar: Studies
+  desc: Vignettes with example studies
+  contents:
+  - starts_with("study")

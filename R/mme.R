@@ -1,34 +1,102 @@
-#' Fast Marginal Epistasis Test implementation
+#' Multimodal Marginal Epistasis (MME) Test
 #'
-#' @param plink_file File path for plink genotype dataset without *.bed extension.
-#' @param pheno_file File path for plink *.pheno data.
-#' @param mask_file File path for gxg mask data.
-#' @param gxg_indices List of indices for the focal variants.
-#' @param chunksize Integer representing the number of SNPs analyzed with the same set of random vectors.
-#' @param n_randvecs Integer. Number of random vectors.
-#' @param n_blocks Integer representing the number of blocks the SNPs will be read in.
-#' @param n_threads Integer representing the number of threads that are setup for OMP.
-#' @param gxg_h5_group String of the hdf5 group with the gxg mask. These SNPs will be included.
-#' @param ld_h5_group String of the hdf5 group with the ld mask. These SNPs will be excluded.
-#' @param rand_seed Integer to seed generation of random vectors. Only positive values are considered.
-#' @param log_level Log level.
+#' MME tests for marginal epistasis by incorporating functional data to inform
+#' the gene-by-gene interaction covariance matrix for computational and statistical
+#' efficiency.
+#' 
+#' @references Stamp, J., DenAdel, A., Weinreich, D., & Crawford, L. (2023). 
+#' Leveraging the genetic correlation between traits improves the detection of 
+#' epistasis in genome-wide association studies. G3: Genes, Genomes, Genetics, 13(8), jkad118.
+#' @references Crawford, L., Zeng, P., Mukherjee, S., & Zhou, X. (2017). 
+#' Detecting epistasis with the marginal epistasis test in genetic mapping 
+#' studies of quantitative traits. PLoS genetics, 13(7), e1006869.
+#' 
 #'
-#' @return A list of P values and PVEs
-#' @name mme
+#' @param plink_file Character. File path to the PLINK dataset (without *.bed extension). 
+#'   The function will append `.bim`, `.bed`, and `.fam` extensions automatically.
+#' @param pheno_file Character. File path to a phenotype file in PLINK format. 
+#'   The file should contain exactly one phenotype column.
+#' @param mask_file Character or NULL. File path to an HDF5 file specifying per-SNP 
+#'   masks for gene-by-gene interaction tests. This file informs which SNPs are tested 
+#'   for marginal epistasis. Defaults to `NULL`, indicating no masking.
+#'   Masking impacts the scaling of memory and time.
+#' @param gxg_indices Integer vector or NULL. List of indices corresponding to SNPs to test for marginal epistasis.
+#'   If `NULL`, all SNPs in the dataset will be tested. These indices are **1-based**.
+#' @param chunk_size Integer or NULL. Number of SNPs processed per chunk. This influences memory 
+#'   usage and can be left `NULL` to automatically determine the chunk size based on `gxg_indices` and number of threads.
+#' @param n_randvecs Integer. Number of random vectors used for stochastic trace estimation. 
+#'   Higher values yield more accurate estimates but increase computational cost. Default is 10.
+#' @param n_blocks Integer. Number of blocks into which SNPs are divided for processing. 
+#'   This parameter affects memory requirements. Default is 100.
+#' @param n_threads Integer. Number of threads for OpenMP parallel processing. Default is 1.
+#' @param gxg_h5_group Character. Name of the HDF5 group within the mask file containing gene-by-gene 
+#'   interaction masks. SNPs in this group will be included in the gene-by-gene interactions. Defaults to "gxg".
+#' @param ld_h5_group Character. Name of the HDF5 group within the mask file containing linkage disequilibrium 
+#'   masks. SNPs in this group are excluded from analysis. Defaults to "ld".
+#' @param rand_seed Integer. Seed for random vector generation. If `-1`, no seed is set. Default is -1.
+#' @param log_level Character. Logging level for messages. Must be in uppercase (e.g., "DEBUG", "INFO", 
+#'   "WARNING", "ERROR"). Default is "WARNING".
+#'
+#' @return A list containing:
+#'   - `summary`: A tibble summarizing results for each tested SNP, including:
+#'       - `id`: Variant ID.
+#'       - `index`: Index of the SNP in the dataset.
+#'       - `chromosome`: Chromosome number.
+#'       - `position`: Genomic position of the SNP.
+#'       - `p`: P value for the gene-by-gene interaction test.
+#'       - `pve`: Proportion of variance explained (PVE) by gene-by-gene interactions.
+#'       - `vc`: Variance component estimate.
+#'       - `se`: Standard error of the variance component.
+#'   - `pve`: A long-format tibble of PVE for all variance components.
+#'   - `vc_estimate`: A long-format tibble of variance component estimates.
+#'   - `vc_se`: A long-format tibble of standard errors for variance components.
+#'   - `average_duration`: Average computation time per SNP.
+#'
+#' @details
+#' This function integrates PLINK-formatted genotype and phenotype data to perform 
+#' marginal epistasis tests on a set of SNPs. Using stochastic trace estimation, 
+#' the method computes variance components for gene-by-gene interaction and genetic
+#' relatedness using the MQS estimator. The process is parallelized using OpenMP 
+#' when `n_threads > 1`.
+#'
+#' The memory requirements and computation time scaling can be optimized through 
+#' the parameters `chunk_size`, `n_randvecs`, and `n_blocks`.
+#' 
+#' **Mask Format Requirements**
+#'
+#' The mask file format is an HDF5 file used for storing index data for
+#' the masking process. This format supports data retrieval by index.
+#' Below are the required groups and datasets within the HDF5 file:
+#'
+#' The required group names can be configured as input parameters. 
+#' The defaults are described below.
+#'
+#' - **Groups**:
+#'   - `ld`: Stores SNPs in LD with the focal SNP. These SNPs will be **excluded**.
+#'   - `gxg`: Stores indices of SNPs that the marginal epistasis test is conditioned on. These SNPs will be **included**.
+#'
+#' - **Datasets**:
+#'   - `ld/<j>`: For each focal SNP `<j>`, this dataset contains indices of SNPs 
+#'     in the same LD block as that SNP. These SNPs will be **excluded** from the gene-by-gene interaction covariance matrix.
+#'   - `gxg/<j>`: For each focal SNP `<j>`, this dataset contains indices of SNPs to **include** in the 
+#'     the gene-by-gene interaction covariance matrix for focal SNP `<j>`.
+#'
+#' **Important**: All indices in the mask file data are **zero-based**, matching the zero-based indices of the PLINK `.bim` file. 
+#'
 #' @useDynLib mmer
 #' @import Rcpp
 #' @import RcppEigen
 #' @import dplyr
 #' @importFrom stats pnorm
 #' @importFrom tidyr pivot_longer
-#' @importFrom progress progress_bar
+#' @importFrom utils read.delim
 #' @export
 mme <-
   function(plink_file,
            pheno_file,
            mask_file = NULL,
            gxg_indices = NULL,
-           chunksize = NULL,
+           chunk_size = NULL,
            n_randvecs = 10,
            n_blocks = 100,
            n_threads = 1,
@@ -66,19 +134,19 @@ mme <-
       stop("Number of samples in fam file and pheno file do not match.")
     }
 
-    mem_req <- approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize)
+    mem_req <- approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunk_size)
     log$debug("Estimated memory requirement: %.2f GB", mem_req)
 
     if (is.null(gxg_indices)) {
       gxg_indices <- c(1:n_snps)
     }
 
-    if (is.null(chunksize)) {
+    if (is.null(chunk_size)) {
       n_chunks <- ceiling(n_gxg_indices / n_threads)
-      log$debug("No chunksize specified. Using %d chunks.", n_chunks)
+      log$debug("No chunk size specified. Using %d chunks.", n_chunks)
     } else {
-      n_chunks <- ceiling(n_gxg_indices / chunksize)
-      log$debug("Chunksize set to %d. Using %d chunks.", chunksize, n_chunks)
+      n_chunks <- ceiling(n_gxg_indices / chunk_size)
+      log$debug("Chunk size set to %d. Using %d chunks.", chunk_size, n_chunks)
     }
 
     if (n_chunks > 1) {
@@ -92,13 +160,6 @@ mme <-
     SE <- NULL
     TIME <- NULL
 
-    pb <- progress_bar$new(
-      format = "processing chunks [:bar] :percent elapsed: :elapsed eta: :eta",
-      total = n_chunks,
-      clear = FALSE,
-      width = 60
-    )
-    pb$tick(0)
     for (i in seq_along(chunks)) {
       chunk <- chunks[[i]]
       result <-
@@ -118,7 +179,6 @@ mme <-
       VC <- rbind(VC, result$vc_estimate)
       SE <- rbind(SE, result$vc_se)
       TIME <- c(TIME, result$duration)
-      pb$tick()
     }
     total_duration <- sum(TIME)
     average_duration <- total_duration / n_gxg_indices

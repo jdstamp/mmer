@@ -10,7 +10,7 @@ test_that("mme end-to-end no mask", {
   n_blocks <- 10
   rand_seed <- 123
   n_threads <- 3
-  log_level <- "DEBUG"
+  log_level <- "WARNING"
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
 
@@ -167,7 +167,7 @@ test_that("mme end-to-end no mask only one gxg idx", {
   n_blocks <- 10
   rand_seed <- 123
   n_threads <- 3
-  log_level <- "DEBUG"
+  log_level <- "WARNING"
 
   snp_indices <- c(3)
 
@@ -228,7 +228,7 @@ test_that("mme end-to-end no mask - chunksize 1", {
   n_blocks <- 10
   rand_seed <- 123
   n_threads <- 3
-  log_level <- "DEBUG"
+  log_level <- "WARNING"
 
   snp_indices <- c(3, 8, 9, 13, 16, 19, 29, 34, 93, 97)
 

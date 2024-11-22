@@ -17,8 +17,16 @@ count_snps_bim <- function(filename) {
     .Call('_mmer_count_snps_bim', PACKAGE = 'mmer', filename)
 }
 
-get_residuals <- function(pheno_file, covariate_file) {
-    .Call('_mmer_get_residuals', PACKAGE = 'mmer', pheno_file, covariate_file)
+createH5File <- function(filename) {
+    invisible(.Call('_mmer_createH5File', PACKAGE = 'mmer', filename))
+}
+
+readH5File <- function(filename, datasetName) {
+    .Call('_mmer_readH5File', PACKAGE = 'mmer', filename, datasetName)
+}
+
+replaceH5Dataset <- function(filename, datasetName, newData) {
+    invisible(.Call('_mmer_replaceH5Dataset', PACKAGE = 'mmer', filename, datasetName, newData))
 }
 
 mme_cpp <- function(plink_file, pheno_file, genotype_mask_file, n_randvecs, n_blocks, rand_seed, gxg_indices, n_threads, gxg_h5_dataset, ld_h5_dataset) {
