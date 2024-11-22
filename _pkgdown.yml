@@ -28,6 +28,10 @@ reference:
     Utility functions.
   contents:
   - approximate_memory_requirements
+  - create_hdf5_file
+  - read_hdf5_dataset
+  - write_hdf5_dataset
+  
 - title: "Simulated Data Examples"
   desc: "RDA data files for illustration purposes."
   contents:

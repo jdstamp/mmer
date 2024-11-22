@@ -72,14 +72,14 @@
 #' The defaults are described below.
 #'
 #' - **Groups**:
-#'   - `ld`: Stores linkage disequilibrium blocks for each focal SNP.
-#'   - `gxg`: Stores indices of SNPs that are grouped for interaction or epistatic analysis.
+#'   - `ld`: Stores SNPs in LD with the focal SNP. These SNPs will be **excluded**.
+#'   - `gxg`: Stores indices of SNPs that the marginal epistasis test is conditioned on. These SNPs will be **included**.
 #'
 #' - **Datasets**:
-#'   - `ld/<j>`: For each focal SNP `<j>`, this dataset contains indices of SNPs in the same LD block of 
-#'     that SNP.
-#'   - `gxg/<j>`: For each focal SNP `<j>`, this dataset contains indices of SNPs to include in the 
-#'      test for marginal epistasis with focal SNP `<j>`.
+#'   - `ld/<j>`: For each focal SNP `<j>`, this dataset contains indices of SNPs 
+#'     in the same LD block as that SNP. These SNPs will be **excluded** from the gene-by-gene interaction covariance matrix.
+#'   - `gxg/<j>`: For each focal SNP `<j>`, this dataset contains indices of SNPs to **include** in the 
+#'     the gene-by-gene interaction covariance matrix for focal SNP `<j>`.
 #'
 #' **Important**: All indices in the mask file data are **zero-based**, matching the zero-based indices of the PLINK `.bim` file. 
 #'

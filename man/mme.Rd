@@ -102,15 +102,15 @@ The defaults are described below.
 \itemize{
 \item \strong{Groups}:
 \itemize{
-\item \code{ld}: Stores linkage disequilibrium blocks for each focal SNP.
-\item \code{gxg}: Stores indices of SNPs that are grouped for interaction or epistatic analysis.
+\item \code{ld}: Stores SNPs in LD with the focal SNP. These SNPs will be \strong{excluded}.
+\item \code{gxg}: Stores indices of SNPs that the marginal epistasis test is conditioned on. These SNPs will be \strong{included}.
 }
 \item \strong{Datasets}:
 \itemize{
-\item \verb{ld/<j>}: For each focal SNP \verb{<j>}, this dataset contains indices of SNPs in the same LD block of
-that SNP.
-\item \verb{gxg/<j>}: For each focal SNP \verb{<j>}, this dataset contains indices of SNPs to include in the
-test for marginal epistasis with focal SNP \verb{<j>}.
+\item \verb{ld/<j>}: For each focal SNP \verb{<j>}, this dataset contains indices of SNPs
+in the same LD block as that SNP. These SNPs will be \strong{excluded} from the gene-by-gene interaction covariance matrix.
+\item \verb{gxg/<j>}: For each focal SNP \verb{<j>}, this dataset contains indices of SNPs to \strong{include} in the
+the gene-by-gene interaction covariance matrix for focal SNP \verb{<j>}.
 }
 }
 
