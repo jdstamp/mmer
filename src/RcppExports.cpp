@@ -54,6 +54,40 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// createH5File
+void createH5File(const std::string& filename);
+RcppExport SEXP _mmer_createH5File(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type filename(filenameSEXP);
+    createH5File(filename);
+    return R_NilValue;
+END_RCPP
+}
+// readH5File
+std::vector<int> readH5File(const std::string& filename, const std::string& datasetName);
+RcppExport SEXP _mmer_readH5File(SEXP filenameSEXP, SEXP datasetNameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type datasetName(datasetNameSEXP);
+    rcpp_result_gen = Rcpp::wrap(readH5File(filename, datasetName));
+    return rcpp_result_gen;
+END_RCPP
+}
+// replaceH5Dataset
+void replaceH5Dataset(const std::string& filename, const std::string& datasetName, const std::vector<int>& newData);
+RcppExport SEXP _mmer_replaceH5Dataset(SEXP filenameSEXP, SEXP datasetNameSEXP, SEXP newDataSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type filename(filenameSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type datasetName(datasetNameSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type newData(newDataSEXP);
+    replaceH5Dataset(filename, datasetName, newData);
+    return R_NilValue;
+END_RCPP
+}
 // mme_cpp
 Rcpp::List mme_cpp(std::string plink_file, std::string pheno_file, std::string genotype_mask_file, int n_randvecs, int n_blocks, int rand_seed, std::vector<int> gxg_indices, int n_threads, std::string gxg_h5_dataset, std::string ld_h5_dataset);
 RcppExport SEXP _mmer_mme_cpp(SEXP plink_fileSEXP, SEXP pheno_fileSEXP, SEXP genotype_mask_fileSEXP, SEXP n_randvecsSEXP, SEXP n_blocksSEXP, SEXP rand_seedSEXP, SEXP gxg_indicesSEXP, SEXP n_threadsSEXP, SEXP gxg_h5_datasetSEXP, SEXP ld_h5_datasetSEXP) {
@@ -98,6 +132,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mmer_count_samples", (DL_FUNC) &_mmer_count_samples, 1},
     {"_mmer_count_fam", (DL_FUNC) &_mmer_count_fam, 1},
     {"_mmer_count_snps_bim", (DL_FUNC) &_mmer_count_snps_bim, 1},
+    {"_mmer_createH5File", (DL_FUNC) &_mmer_createH5File, 1},
+    {"_mmer_readH5File", (DL_FUNC) &_mmer_readH5File, 2},
+    {"_mmer_replaceH5Dataset", (DL_FUNC) &_mmer_replaceH5Dataset, 3},
     {"_mmer_mme_cpp", (DL_FUNC) &_mmer_mme_cpp, 10},
     {"_mmer_simulate_traits_cpp", (DL_FUNC) &_mmer_simulate_traits_cpp, 6},
     {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
