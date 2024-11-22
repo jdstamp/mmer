@@ -131,7 +131,7 @@ mme_result$vc_estimate %>%
   geom_boxplot() +
   geom_hline(yintercept = 0.3, color = "grey40", linetype = "dashed") +
   xlab("Component") +
-  ylab("Variance Explained") +
+  ylab("Variance Component Estimate") +
   theme(legend.position = "none")
 ```
 

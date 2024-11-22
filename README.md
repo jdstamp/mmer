@@ -11,7 +11,7 @@ The `mmer` package implements a computationally and statistically
 efficient method for detecting marginal epistasis in genome-wide
 association studies (GWAS). Find the full package documentation
 including examples and articles here: [Multimodal Marginal Epistasis
-test Documentation](https://jdstamp.github.io/mmer/).
+test Documentation](https://lcrawlab.github.io/mmer/).
 
 The method builds on
 
@@ -29,11 +29,11 @@ Documentation](https://lcrawlab.github.io/mvMAPIT/).
   Biobank scale data.
 - Multimodal Input: Incorporates prior data from HDF5 files to improve
   power in detecting gene-by-gene interactions.
-- Optimize for Memory Constraints: Parameters like chunk size, number of
-  random vectors, and number of blocks allow to optimize for low memory
-  constraints or fast computation.
-- Parallelization: Utilizes OpenMP for efficient multi-threaded
-  processing.
+- Optimize for Memory Constraints: Highly configurable block wise
+  processing of the data allows to make the most of available resources.
+  See also [How To Optimize the Memory Requirements of
+  MME](articles/tutorial-memory-optimization.html).
+- Parallelization: Utilizes OpenMP for multi-threaded processing.
 
 ## Installation
 
@@ -48,24 +48,19 @@ devtools::install_github("lcrawlab/mmer")
 ## Dependencies
 
 The full list of R dependencies can be found in the [DESCRIPTION
-file](https://github.com/jdstamp/mmer/blob/main/DESCRIPTION).
+file](https://github.com/lcrawlab/mmer/blob/main/DESCRIPTION).
 
 This package depends on several C++ libraries to provide efficient
 functionality and performance. Make sure the following software are
 installed and available on your system:
 
-1.  HDF5 - A file format and set of tools for managing complex data.
-2.  Boost - A collection of portable C++ libraries that work well with
-    the C++ Standard Library.
-3.  OpenMP - A standard API for parallel programming in C, C++, and
-    Fortran.
+1.  HDF5
+2.  Boost
+3.  OpenMP
 
 The package ships with the header-only HDF55 C++ library
-[HighFive](https://github.com/BlueBrain/HighFive). This package utilizes
-the library for efficient and index based access to masking data.
-HighFive is a modern C++11 header-only library that provides a
-user-friendly interface for reading, writing, and managing data in HDF5
-format.
+[HighFive](https://github.com/BlueBrain/HighFive). It utilizes the
+library for efficient and index based access to masking data.
 
 ## References
 

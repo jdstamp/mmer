@@ -18,14 +18,13 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(mmer)
-library(tidyr)
-library(dplyr)
-library(knitr)
 library(genio)
-library(ggplot2)
 ```
 
-## Simulate traits
+For a simple illustration, we generate a synthetic allele count matrix with minor allele frequency `maf` greater than 5%. The function `simulate_traits()` requires the input genotype data to be
+stored in the PLINK format (`.bim`, `.bed`, and `.fam` files). Here we use the package `genio` to write
+the allele count matrix to a PLINK file.
+
 
 ```{r genotypes, eval=FALSE}
 plink_file <- tempfile()
@@ -68,6 +67,16 @@ write_plink(
 ```
 
 
+To simulate traits, we need to specify the genetic architecture. E.g., the function
+requires us to specify 
+
+- the narrow sense heritability $h^2$
+- the indices SNPs contributing to the narrow sense heritability
+- the heritability due to epistasis
+- the indices of SNPs contributing to the epistatic trait variance
+- the path to the output file.
+
+The simulated trait is written to file in the PLINK phenotype format.
 
 ```{r traits, eval=FALSE}
 pheno_file <- tempfile()
@@ -89,3 +98,5 @@ simulate_traits(
   gxg_group_2
 )
 ```
+
+See Crawford et al. (2017) and [mvMAPIT Documentation: Simulate Traits](https://lcrawlab.github.io/mvMAPIT/articles/tutorial-simulations.html) for a full description of the simulation scheme.
