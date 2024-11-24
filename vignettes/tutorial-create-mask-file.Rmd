@@ -17,6 +17,22 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(mmer)
 ```
+
+The Multimodal Marginal Epistasis test (MME) accepts a HDF5 file with binary masking data.
+The performance of the test depends on how informative the mask is for a trait.
+For example, in order to test for marginal epistasis that is attributed to transcriptional activity,
+DNase I hypersensitivity sites data can be used to condition the marginal epistasis detection on
+accessible chromatin.
+
+---
+
+<img src="../reference/figures/mme-schematic-dhs.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic manhattan plot" />
+
+Cartoon of how open chromatin data is converted to a binary mask. Open chromatin regions undergo dynamic changes during differentiation. In different cell types, different chromatin regions show transcriptional activity. DNase I hypersensitive sites are informative of transcriptional activity. The DNase-seq signal can be converted to a binary mask, excluding genetic variants in inaccessible chromatin regions from the covariance matrix for marginal epistasis.
+
+---
+
+
 The mask file format that `mme()` expects is an HDF5 file. In general, the HDF5 format file structure has two major object types:
 
 - Datasets - typed multidimensional arrays
