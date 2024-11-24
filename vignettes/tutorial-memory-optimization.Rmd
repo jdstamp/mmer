@@ -44,6 +44,13 @@ To efficiently process genome-wide data, we use the `chunk_size` parameter to co
 
 For each set of SNPs analyzed together (in a “chunk”), intermediate results need to be stored. As a result, the memory requirement grows multiplicatively with the chunk size, following the formula: `chunk_size x (sample_size x n_randvecs)`.
 
+---
+
+<img src="../reference/figures/mme-shared-rvs.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic pseudo-random vectors" />
+**Schematic overview illustrating the compuational speedup resulting from sharing random vectors. (A)** In the randomized trace estimates we can identify reusable matrix by vector products. Computing the exact trace of a product of two covariance matrices is prohibitively computationally expensive. Instead, the multimodal marginal epistasis (MME) test approximates the traces using random vectors $z$. For the full MQS computation of the point estimates of the variance components, we see that the matrix-by-vector products of the form $Az$ with $A \in \{K, G\}$ appear repeatedly. **(B)** The genetic relatedness matrix $K$ is the same for all focal SNPs. Using unique random vectors in this computation for every focal SNP, we compute the same quantity repeatedly. Computing the matrix-by-vector products $Kz$ constitutes almost half of the computation time of the point estimates. **(C)** By sharing random vectors $z$ between focal SNPs, computing $Kz$ can be done once for all focal SNPs that share random vectors. With this, the computation time of $Kz$ becomes negligible.
+
+---
+
 ## Genotype Masking for the Gene-by-Gene Interaction Covariance
 
 Masking genotypes that do not contribute to epistasis can reduce both memory usage and computation time. When genotypes are masked, they do not need to be stored in memory, which can significantly decrease memory requirements. However, the `approximate_memory_requirements()` function does not account for this reduction.
