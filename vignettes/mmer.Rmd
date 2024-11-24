@@ -20,6 +20,14 @@ The Multimodal Marginal Epistasis test (MME) is designed to condition the genome
 
 This pages presents a toy example to show case what insights the implementation of the test provides.
 
+---
+
+<img src="../reference/figures/mme-schematic.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic" />
+
+**Schematic overview of the multimodal marginal epistasis test (mme)**. **(A)** In the example of hematopoiesis, the open chromatin regions undergoes dynamic changes. In different cell types, different chromatin regions show transcriptional activity. The resulting cells are routinely measured in human subjects as hematology traits. **(B)** Cartoon of open chromatin data. DNase I hypersensitive sites are informative of transcriptional activity. The DNase-seq signal is converted to a binary mask, excluding genetic variants in closed inaccessible chromatin regions from the covariance matrix for marginal epistasis. **(C)** The multimodal marginal epistasis test incorporates functional data into the covariance matrix corresponding to the marginal epistasis variance component. **(D)** Cartoon illustrating the effect of applying appropriate masks to the marginal epistasis test. Masking both results in faster runtime and improved power to detect variants of small phenotypic variance explained over the full data.
+    The cell icons by [Servier](https://smart.servier.com/) are licensed under [CC-BY 3.0 Unported](https://creativecommons.org/licenses/by/3.0/).
+    
+---
 
 ## Run MME on PLINK formatted data
 
