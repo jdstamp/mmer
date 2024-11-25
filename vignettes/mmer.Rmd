@@ -24,7 +24,7 @@ This pages presents a toy example to show case what insights the implementation 
 
 <img src="../reference/figures/mme-schematic-manhattan.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic manhattan plot" />
 
-Cartoon illustrating the effect of applying appropriate masks to the marginal epistasis test. Masking both results in faster runtime and improved power to detect variants of small phenotypic variance explained over the full data.
+Cartoon illustrating the effect of applying appropriate masks to the marginal epistasis test. Masking not only results improved power to detect variants of small phenotypic variance explained over the full data, but also in faster runtime.
 
 ---
 
