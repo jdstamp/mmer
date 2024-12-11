@@ -63,7 +63,7 @@ For OS X and Linux the HDF5 library can be installed via one of the
 | System | Command |
 |:---|:---|
 | **OS X (using Homebrew)** | `brew install hdf5` |
-| **Debian-based systems (including Ubuntu)** | `sudo apt-get install libhdf5-serial-dev` |
+| **Debian-based systems (including Ubuntu)** | `sudo apt-get install libhdf5-dev` |
 
 For OS X and Linux, the OpenMP library can be installed via one of the
 (shell) commands specified below:

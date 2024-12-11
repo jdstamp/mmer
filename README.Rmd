@@ -62,7 +62,7 @@ For OS X and Linux the HDF5 library can be installed via one of the (shell) comm
 | System                                    | Command
 |:------------------------------------------|:-----------------------------------------|
 |**OS X (using Homebrew)**                  | `brew install hdf5`                      |
-|**Debian-based systems (including Ubuntu)**| `sudo apt-get install libhdf5-serial-dev`|
+|**Debian-based systems (including Ubuntu)**| `sudo apt-get install libhdf5-dev`|
 
 For OS X and Linux, the OpenMP library can be installed via one of the (shell) commands specified below:
 
@@ -90,6 +90,8 @@ Using openMP requires configuration of the flag `SHLIB_OPENMP_CXXFLAGS` in the `
 |---------|-------------------------------------------------|
 | Linux   | `SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp -lomp`|
 | OS X    | `SHLIB_OPENMP_CXXFLAGS = -fopenmp -lomp`        |
+
+On Ubuntu, `libhdf5-dev` has a subdirectory `serial` which if not properly linked to standard include paths is not found.
 
 ## References
 
