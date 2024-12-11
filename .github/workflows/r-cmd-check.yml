@@ -36,6 +36,8 @@ jobs:
           else
             sudo apt-get update
             sudo apt-get install -y libomp-dev libhdf5-dev
+            mkdir -p ~/.R
+            touch ~/.R/Makevars
             echo "CXXFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
             echo "LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
             echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
