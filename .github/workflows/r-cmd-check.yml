@@ -56,8 +56,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          R --no-save -e "install.packages('BiocManager')"
-          R --no-save -e "BiocManager::install('Rhdf5lib')"
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install('Rhdf5lib')"
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
