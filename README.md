@@ -83,9 +83,9 @@ OS X and homebrew, the libraries are typically installed at
 
 The `src/Makevars` file configures the compiler flags for the
 compilation process and considers the `LDFLAGS` and `CPPFLAGS` from the
-`Makeconf` files. These files can be configured e.g. in `~/.R/Makeconf`,
-or in the `$R_HOME/etc/Makeconf`. The home directory can be found in the
-R console with `R.home()`.
+the R installation. These flags can be configured e.g. in
+`~/.R/Makevars`, or in the `$R_HOME/etc/Makeconf`. The home directory
+can be found in the R console with `R.home()`.
 
 Using openMP requires configuration of the flag `SHLIB_OPENMP_CXXFLAGS`
 in the `Makeconf` file.
