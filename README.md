@@ -55,8 +55,7 @@ functionality and performance. Make sure the following software are
 installed and available on your system:
 
 1.  HDF5
-2.  Boost
-3.  OpenMP
+2.  OpenMP
 
 For OS X and Linux the HDF5 library can be installed via one of the
 (shell) commands specified below:
@@ -67,9 +66,14 @@ For OS X and Linux the HDF5 library can be installed via one of the
 | **Debian-based systems (including Ubuntu)** | `sudo apt-get install libhdf5-dev` |
 | **Systems supporting yum and RPMs** | `sudo yum install hdf5-devel` |
 
-The package ships with the header-only HDF55 C++ library
-[HighFive](https://github.com/BlueBrain/HighFive). It utilizes the
-library for efficient and index based access to masking data.
+For OS X and Linux, the OpenMP library can be installed via one of the
+(shell) commands specified below:
+
+| System | Command |
+|:---|:---|
+| **OS X (using Homebrew)** | `brew install libomp` |
+| **Debian-based systems (including Ubuntu)** | `sudo apt-get install libomp-dev` |
+| **Systems supporting yum and RPMs** | `sudo yum install libomp-devel` |
 
 ## Known Issues
 
