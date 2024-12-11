@@ -37,8 +37,8 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y libhdf5-serial-dev
             mkdir -p ~/.R
-            touch ~/.R/Makeconf
-            echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makeconf
+            touch ~/.R/Makevars
+            echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
           else
             choco install hdf5 --version=1.12.2
             mkdir -p ~/.R
