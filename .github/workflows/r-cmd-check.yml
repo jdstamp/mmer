@@ -36,8 +36,9 @@ jobs:
           elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
             sudo apt-get update
             sudo apt-get install -y libhdf5-serial-dev
-            find /usr/include/hdf5/serial -name '*.h' -exec ln -s {} /usr/local/include/ \;
-            find /usr /opt -name "H5Ppublic.h"
+            mkdir -p ~/.R
+            touch ~/.R/Makeconf
+            echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makeconf
           else
             choco install hdf5 --version=1.12.2
             mkdir -p ~/.R
