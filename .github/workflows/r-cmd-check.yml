@@ -33,32 +33,22 @@ jobs:
         shell: bash
         run: |
           if [ "$(uname)" = "Darwin" ]; then
-            brew install hdf5
+            R -e "install.packages('BiocManager')"
+            R -e "BiocManager::install('Rhdf5lib')"
           elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
             sudo apt-get update
-            sudo apt-get install -y libhdf5-serial-dev
-            mkdir -p ~/.R
-            touch ~/.R/Makevars
-            echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
-            echo "LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
+            sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+            R -e "install.packages('BiocManager')"
+            R -e "BiocManager::install('Rhdf5lib')"
           fi
 
       - name: Install dependencies on Windows
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          choco install hdf5 --version=1.12.2
-          choco install szip --version=2.1.1
+          R -e "install.packages('BiocManager')"
+          R -e "BiocManager::install('Rhdf5lib')"
 
-          # Fetch installation paths
-          $HDF5_PATH = (choco info hdf5 | Select-String -Pattern "Location" | ForEach-Object { $_ -replace ".*: ", "" }).Trim()
-          $SZIP_PATH = (choco info szip | Select-String -Pattern "Location" | ForEach-Object { $_ -replace ".*: ", "" }).Trim()
-
-          # Configure R Makevars
-          New-Item -ItemType Directory -Path $env:USERPROFILE\.R -Force
-          Set-Content -Path $env:USERPROFILE\.R\Makevars -Value "CXXFLAGS=-I$HDF5_PATH\include -I$SZIP_PATH\include"
-          Add-Content -Path $env:USERPROFILE\.R\Makevars -Value "LDFLAGS=-L$HDF5_PATH\lib -L$SZIP_PATH\lib -lsz"
-          
       - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
