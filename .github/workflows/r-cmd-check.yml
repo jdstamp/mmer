@@ -36,6 +36,9 @@ jobs:
           else
             sudo apt-get update
             sudo apt-get install -y libomp-dev libhdf5-dev
+            find /usr /usr/local -name "libomp.so"
+            ls /usr/include/omp.h       # Header
+            ls /usr/lib/x86_64-linux-gnu/libomp.so  # Library
             mkdir -p ~/.R
             touch ~/.R/Makevars
             echo "CXXFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
