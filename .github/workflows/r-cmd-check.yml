@@ -38,9 +38,8 @@ jobs:
             sudo apt-get install -y libomp-dev libhdf5-serial-dev
             mkdir -p ~/.R
             touch ~/.R/Makevars
-            echo "CXXFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
-            echo "LDFLAGS=-L/usr/lib/llvm-14/lib -L/usr/lib/x86_64-linux-gnu/ -L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
-            echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
+            echo "LDFLAGS=-L/usr/lib/llvm-14/lib -L/usr/lib/x86_64-linux-gnu/" >> ~/.R/Makevars
+
           else
             choco install hdf5 --version=1.12.2
             mkdir -p ~/.R
