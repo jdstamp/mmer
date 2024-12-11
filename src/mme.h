@@ -10,6 +10,10 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "boost/random.hpp"
 #include "genotype.h"
 

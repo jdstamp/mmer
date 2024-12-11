@@ -40,7 +40,6 @@
 
 // [[Rcpp::plugins(openmp)]]
 #include <algorithm>
-#include <omp.h>
 #include <random>
 
 #include "computation.h"
