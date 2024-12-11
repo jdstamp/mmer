@@ -33,16 +33,19 @@ jobs:
         run: |
           if [[ "$(uname)" == "Darwin" ]]; then
             brew install libomp hdf5
-          else
+          elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
             sudo apt-get update
             sudo apt-get install -y libomp-dev libhdf5-dev
-            find /usr /usr/local -name "libomp.so"
-            h5cc -showconfig
             mkdir -p ~/.R
             touch ~/.R/Makevars
             echo "CXXFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
             echo "LDFLAGS=-L/usr/lib/llvm-14/lib -L/usr/lib/x86_64-linux-gnu/ -L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
             echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
+          else
+            choco install hdf5 --version=1.12.2
+            mkdir -p ~/.R
+            echo "CXXFLAGS=-I$(choco info hdf5 | grep 'Location' | cut -d':' -f2 | xargs)/include" >> ~/.R/Makevars
+            echo "LDFLAGS=-L$(choco info hdf5 | grep 'Location' | cut -d':' -f2 | xargs)/lib" >> ~/.R/Makevars
           fi
           
       - uses: actions/checkout@v4
