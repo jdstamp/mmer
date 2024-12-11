@@ -29,22 +29,33 @@ jobs:
 
     steps:
       - name: Install OpenMP and HDF5
-        if: runner.os != 'Windows'
         run: |
-          if [[ "$(uname)" == "Darwin" ]]; then
+          if [ "$(uname)" = "Darwin" ]; then
+            # macOS installation
             brew install hdf5
-          elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+          elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
+            # Linux installation
             sudo apt-get update
             sudo apt-get install -y libhdf5-serial-dev
             mkdir -p ~/.R
             touch ~/.R/Makevars
             echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
             echo "LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
-          else
+          elif [ "$OS" = "Windows_NT" ]; then
+            # Windows installation
             choco install hdf5 --version=1.12.2
+            choco install szip --version=2.1.1
+
+            # Fetch installation paths
+            HDF5_PATH=$(choco info hdf5 | findstr /C:"Location" | for /f "tokens=2 delims=:" %i in ('findstr /C:"Location"') do @echo %i | xargs)
+            SZIP_PATH=$(choco info szip | findstr /C:"Location" | for /f "tokens=2 delims=:" %i in ('findstr /C:"Location"') do @echo %i | xargs)
+
+            # Configure R Makevars
             mkdir -p ~/.R
-            echo "CXXFLAGS=-I$(choco info hdf5 | grep 'Location' | cut -d':' -f2 | xargs)/include" >> ~/.R/Makevars
-            echo "LDFLAGS=-L$(choco info hdf5 | grep 'Location' | cut -d':' -f2 | xargs)/lib" >> ~/.R/Makevars
+            echo "CXXFLAGS=-I${HDF5_PATH}/include -I${SZIP_PATH}/include" >> ~/.R/Makevars
+            echo "LDFLAGS=-L${HDF5_PATH}/lib -L${SZIP_PATH}/lib -lsz" >> ~/.R/Makevars
+          else
+            echo "Unsupported operating system" && exit 1
           fi
           
       - uses: actions/checkout@v4
