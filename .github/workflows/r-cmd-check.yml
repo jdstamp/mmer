@@ -26,37 +26,38 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-
+      
     steps:
-      - name: Install OpenMP and HDF5
+      - name: Install dependencies on macOS and Linux
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           if [ "$(uname)" = "Darwin" ]; then
-            # macOS installation
             brew install hdf5
           elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
-            # Linux installation
             sudo apt-get update
             sudo apt-get install -y libhdf5-serial-dev
             mkdir -p ~/.R
             touch ~/.R/Makevars
             echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
             echo "LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
-          elif [ "$OS" = "Windows_NT" ]; then
-            # Windows installation
-            choco install hdf5 --version=1.12.2
-            choco install szip --version=2.1.1
-
-            # Fetch installation paths
-            HDF5_PATH=$(choco info hdf5 | findstr /C:"Location" | for /f "tokens=2 delims=:" %i in ('findstr /C:"Location"') do @echo %i | xargs)
-            SZIP_PATH=$(choco info szip | findstr /C:"Location" | for /f "tokens=2 delims=:" %i in ('findstr /C:"Location"') do @echo %i | xargs)
-
-            # Configure R Makevars
-            mkdir -p ~/.R
-            echo "CXXFLAGS=-I${HDF5_PATH}/include -I${SZIP_PATH}/include" >> ~/.R/Makevars
-            echo "LDFLAGS=-L${HDF5_PATH}/lib -L${SZIP_PATH}/lib -lsz" >> ~/.R/Makevars
-          else
-            echo "Unsupported operating system" && exit 1
           fi
+
+      - name: Install dependencies on Windows
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          choco install hdf5 --version=1.12.2
+          choco install szip --version=2.1.1
+
+          # Fetch installation paths
+          $HDF5_PATH = (choco info hdf5 | Select-String -Pattern "Location" | ForEach-Object { $_ -replace ".*: ", "" }).Trim()
+          $SZIP_PATH = (choco info szip | Select-String -Pattern "Location" | ForEach-Object { $_ -replace ".*: ", "" }).Trim()
+
+          # Configure R Makevars
+          New-Item -ItemType Directory -Path $env:USERPROFILE\.R -Force
+          Set-Content -Path $env:USERPROFILE\.R\Makevars -Value "CXXFLAGS=-I$HDF5_PATH\include -I$SZIP_PATH\include"
+          Add-Content -Path $env:USERPROFILE\.R\Makevars -Value "LDFLAGS=-L$HDF5_PATH\lib -L$SZIP_PATH\lib -lsz"
           
       - uses: actions/checkout@v4
 
