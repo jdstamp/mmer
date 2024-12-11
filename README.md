@@ -63,8 +63,7 @@ For OS X and Linux the HDF5 library can be installed via one of the
 | System | Command |
 |:---|:---|
 | **OS X (using Homebrew)** | `brew install hdf5` |
-| **Debian-based systems (including Ubuntu)** | `sudo apt-get install libhdf5-dev` |
-| **Systems supporting yum and RPMs** | `sudo yum install hdf5-devel` |
+| **Debian-based systems (including Ubuntu)** | `sudo apt-get install libhdf5-serial-dev` |
 
 For OS X and Linux, the OpenMP library can be installed via one of the
 (shell) commands specified below:
@@ -73,7 +72,6 @@ For OS X and Linux, the OpenMP library can be installed via one of the
 |:---|:---|
 | **OS X (using Homebrew)** | `brew install libomp` |
 | **Debian-based systems (including Ubuntu)** | `sudo apt-get install libomp-dev` |
-| **Systems supporting yum and RPMs** | `sudo yum install libomp-devel` |
 
 ## Known Issues
 
@@ -85,11 +83,17 @@ OS X and homebrew, the libraries are typically installed at
 
 The `src/Makevars` file configures the compiler flags for the
 compilation process and considers the `LDFLAGS` and `CPPFLAGS` from the
-`Makeconf` file in the `$R_HOME/etc` directory. The home directory can
-be found in the R console with `R.home()`.
+`Makeconf` files. These files can be configured e.g. in `~/.R/Makeconf`,
+or in the `$R_HOME/etc/Makeconf`. The home directory can be found in the
+R console with `R.home()`.
 
-Using openMP on OS X might require configuration of the flag
-`SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp` in the `Makeconf` file.
+Using openMP requires configuration of the flag `SHLIB_OPENMP_CXXFLAGS`
+in the `Makeconf` file.
+
+| System | Flag                                             |
+|--------|--------------------------------------------------|
+| Linux  | `SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp -lomp` |
+| OS X   | `SHLIB_OPENMP_CXXFLAGS = -fopenmp -lomp`         |
 
 ## References
 
