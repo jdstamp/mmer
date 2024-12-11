@@ -28,6 +28,19 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
+      - name: Install OpenMP and HDF5
+        if: runner.os != 'Windows'
+        run: |
+          if [[ "$(uname)" == "Darwin" ]]; then
+            brew install libomp hdf5
+          else
+            sudo apt-get update
+            sudo apt-get install -y libomp-dev libhdf5-dev
+            echo "CXXFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
+            echo "LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
+            echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
+          fi
+          
       - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
@@ -37,19 +50,6 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
-          
-      - name: Install OpenMP and HDF5
-        if: runner.os != 'Windows'
-        run: |
-          if [[ "$(uname)" == "Darwin" ]]; then
-            brew install libomp hdf5
-          else
-            sudo apt-get update
-            sudo apt-get install -y libomp-dev libhdf5-dev
-            echo "CXXFLAGS=-fopenmp -I/usr/include/hdf5/serial" >> ~/.R/Makevars
-            echo "LDFLAGS=-L/usr/lib/x86_64-linux-gnu/hdf5/serial" >> ~/.R/Makevars
-            echo "CPPFLAGS=-I/usr/include/hdf5/serial" >> ~/.R/Makevars
-          fi
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
