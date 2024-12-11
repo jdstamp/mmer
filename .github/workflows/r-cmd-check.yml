@@ -39,6 +39,16 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+          
+      - name: Install OpenMP and HDF5
+        if: runner.os != 'Windows'
+        run: |
+          if [[ "$(uname)" == "Darwin" ]]; then
+            brew install libomp hdf5
+          else
+            sudo apt-get update
+            sudo apt-get install -y libomp-dev libhdf5-dev
+          fi
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
