@@ -32,14 +32,10 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           if [[ "$(uname)" == "Darwin" ]]; then
-            brew install libomp hdf5
+            brew install hdf5
           elif [[ "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
             sudo apt-get update
-            sudo apt-get install -y libomp-dev libhdf5-serial-dev
-            mkdir -p ~/.R
-            touch ~/.R/Makevars
-            echo "LDFLAGS=-L/usr/lib/llvm-14/lib -L/usr/lib/x86_64-linux-gnu/" >> ~/.R/Makevars
-
+            sudo apt-get install -y libhdf5-serial-dev
           else
             choco install hdf5 --version=1.12.2
             mkdir -p ~/.R
