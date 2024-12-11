@@ -1,12 +1,15 @@
 Package: mmer
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: The Multimodal Marginal Epistasis Test
+Version: 0.0.1
 Authors@R: c(
     person("Julian", "Stamp", email = "julian_stamp@brown.edu",
     role = c("cre", "aut"), comment = c(ORCID = "0000-0003-3014-6249")),
     person("Lorin", "Crawford", email = "lorin_crawford@brown.edu",
     role = "aut", comment = c(ORCID = "0000-0003-0178-8242")))
-Description: What the package does (one paragraph).
+Description: The Multimodal Marginal Epistasis (MME) Test is a statistical
+    method which detects marginal epistatic variants. It focuses the 
+    scans for epistasis to regions of the genome that have known functional 
+    enrichment for a trait of interest.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -31,6 +34,7 @@ Suggests:
     testthat (>= 3.0.0),
     xml2
 Config/testthat/edition: 3
+SystemRequirements: HDF5 (>= 1.14.5)
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)

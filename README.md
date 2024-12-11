@@ -58,9 +58,34 @@ installed and available on your system:
 2.  Boost
 3.  OpenMP
 
+For OS X and Linux the HDF5 library can be installed via one of the
+(shell) commands specified below:
+
+| System | Command |
+|:---|:---|
+| **OS X (using Homebrew)** | `brew install hdf5` |
+| **Debian-based systems (including Ubuntu)** | `sudo apt-get install libhdf5-dev` |
+| **Systems supporting yum and RPMs** | `sudo yum install hdf5-devel` |
+
 The package ships with the header-only HDF55 C++ library
 [HighFive](https://github.com/BlueBrain/HighFive). It utilizes the
 library for efficient and index based access to masking data.
+
+## Known Issues
+
+Compiling the package requires the compiler to find the libraries for
+the dependencies. For unix systems, the libraries are typically
+installed at `/usr/local/lib` and `/usr/local/include`. For users using
+OS X and homebrew, the libraries are typically installed at
+`/opt/homebrew/lib` and `/opt/homebrew/include`.
+
+The `src/Makevars` file configures the compiler flags for the
+compilation process and considers the `LDFLAGS` and `CPPFLAGS` from the
+`Makeconf` file in the `$R_HOME/etc` directory. The home directory can
+be found in the R console with `R.home()`.
+
+Using openMP on OS X might require configuration of the flag
+`SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp` in the `Makeconf` file.
 
 ## References
 
