@@ -20,4 +20,4 @@ library(mmer)
 
 
 
-<img src="../reference/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" />
+# <img src="../reference/figures/dhs_manhattan.png"  width="100%" alt="Erythroid differentiation DHS sites MME analysis" />
