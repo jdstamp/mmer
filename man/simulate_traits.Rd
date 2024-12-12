@@ -57,3 +57,25 @@ to random environmental noise.
 The output file is in PLINK-compatible phenotype format with three columns:
 Family ID (\code{FID}), Individual ID (\code{IID}), and the simulated trait (\code{TRAIT}).
 }
+\examples{
+plink_file <- gsub("\\\\.bed", "", system.file("testdata", "test.bed", package = "mmer"))
+out_file <- tempfile()
+additive_heritability <- 0.3
+gxg_heritability <- 0.1
+additive_snps <- sort(sample(1:100, 50, replace = FALSE))
+gxg_group_1 <- sort(sample(additive_snps, 10, replace = FALSE))
+gxg_group_2 <- sort(sample(setdiff(additive_snps, gxg_group_1), 10, replace = FALSE))
+n_samples <- 200
+simulate_traits(
+  plink_file,
+  out_file,
+  additive_heritability,
+  gxg_heritability,
+  additive_snps,
+  gxg_group_1,
+  gxg_group_2
+)
+from_file <- read.table(out_file, header = TRUE)
+head(from_file)
+
+}

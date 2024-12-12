@@ -42,12 +42,12 @@ devtools::install_github("lcrawlab/mmer")
 System requirements of the package:
 
 - GNU make
-- R (\>= 2.10)
+- R (\>= 4.4)
+- Rhdf5lib (from BioConductor)
 - OpenMP (optional)
 
-The package depends on one package from BioConductor: `Rhdf5lib`. This
-dependency can be installed by first installing the tool `BiocManager`
-from CRAN, and subsequently installing the library with this tool.
+To install `Rhdf5lib`, first install the tool `BiocManager` from CRAN,
+then install the library using this tool.
 
     if (!require("BiocManager", quietly = TRUE))
         install.packages("BiocManager")

@@ -31,7 +31,7 @@ void read_focal_snp(const string &filename, MatrixXdr &focal_genotype,
         for (int l = 0; l < lmax; l++) {
           int j = j0 + l;
           int val = encoding_to_allelecount(y[l]);
-          // impute missing genotype
+          // set missing genotype to zero to prevent the software from freezing
           val = (val == -1) ? 0 : val;
           focal_genotype(j, 0) = val;
         }

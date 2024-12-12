@@ -49,6 +49,9 @@ MME is implemented in R and requires your genetic data to be in PLINK format, wh
 - `.bed`: Contains genetic data
 - `.fam`: Contains sample information
 
+**Note:** `mme()` cannot handle missing genotypes. Prior to running `mme()`, use PLINK
+to remove variants with missing genotypes or impute them.
+
 Additionally, your phenotype (trait) data should be in a separate file following PLINK's phenotype format.
 
 The `mme()` function includes parameters that let you control memory usage and computational resources. For detailed guidance on optimizing these settings for your system, please see our tutorial [How To Optimize the Memory Requirements of MME](articles/tutorial-memory-optimization.html).
@@ -93,7 +96,10 @@ mme_result <- mme(
 mme_result <- getting_started
 ```
 
-This analysis uses simulated data for demonstration purposes. If you would like to learn how we created this data, please refer to our tutorial [How To Simulate Traits](articles/tutorial-simulate-traits.html).
+This analysis uses simulated data for demonstration purposes. 
+We simulated synthetic phenotypes from 5000 synthetic genotypes with 6000 SNPs.
+If you would like to learn how to simulate data, please refer to our tutorial 
+[How To Simulate Traits](articles/tutorial-simulate-traits.html).
 
 ### Understanding the Results
 
@@ -130,7 +136,8 @@ The dashed line marks the true 5% PVE level we used in the simulation, allowing 
 mme_result$summary %>%
   ggplot(aes(x = true_gxg_snp, y = pve, fill = true_gxg_snp)) +
   geom_boxplot() +
-  geom_hline(yintercept = 0.05, color = "grey40", linetype = "dashed") +
+  geom_hline(yintercept = 0.05, color = "grey40", linetype = "dashed") + # Horizontal line
+  annotate("text", x = 0.8, y =  0.055, label = "True per SNP epistatic PVE", color = "black") + # Label
   xlab("Epistatic SNP") +
   ylab("Phenotypic Variance Explained") +
   theme(legend.position = "none")
@@ -154,9 +161,12 @@ dashed line in the plot. This reference line helps you evaluate how accurately M
 mme_result$vc_estimate %>%
   ggplot(aes(x = component, y = vc_estimate, fill = component)) +
   geom_boxplot() +
-  geom_hline(yintercept = 0.3, color = "grey40", linetype = "dashed") +
+  geom_hline(yintercept = 0.3, color = "grey40", linetype = "dashed") + # Horizontal line
+  annotate("text", x = 0.7, y =  0.33, label = expression("True " * h^2), color = "black")  +
   xlab("Component") +
   ylab("Variance Component Estimate") +
   theme(legend.position = "none")
 ```
 
+The estimate of the narrow-sense heritability $h^2$ is much less variable because it is always informed
+by the same genetic relatedness matrix. In this small data example it overestimates the heritability but it is unbiased in general.

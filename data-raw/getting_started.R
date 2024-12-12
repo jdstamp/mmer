@@ -63,7 +63,7 @@ simulate_traits(
 mask_file <- ""
 gxg_h5_group <- "gxg"
 ld_h5_group <- "ld"
-chun_ksize <- 10
+chunk_size <- 10
 n_randvecs <- 10
 n_blocks <- 10
 rand_seed <- 123
@@ -75,7 +75,7 @@ getting_started <- mme(
   pheno_file,
   mask_file,
   additive_snps, # includes the gxg snps
-  chun_ksize,
+  chunk_size,
   n_randvecs,
   n_blocks,
   n_threads,
