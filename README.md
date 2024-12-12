@@ -70,13 +70,13 @@ For OS X and Linux, the OpenMP library can be installed via one of the
 | **OS X (using Homebrew)** | `brew install libomp` |
 | **Debian-based systems (including Ubuntu)** | `sudo apt-get install libomp-dev` |
 
-To enable openMP, it may be necessary to configure the compiler flag
-`SHLIB_OPENMP_CXXFLAGS` in the `~/.R/Makevars` file.
+To enable openMP, it may be necessary to configure the compiler flags
+`SHLIB_OPENMP_CXXFLAGS` and `LDFLAGS` in the `~/.R/Makevars` file.
 
-| System | Flag                                             |
-|--------|--------------------------------------------------|
-| OS X   | `SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp -lomp` |
-| Linux  | `SHLIB_OPENMP_CXXFLAGS = -fopenmp -lomp`         |
+| System | Required Flags           |
+|--------|--------------------------|
+| OS X   | `-Xclang -fopenmp -lomp` |
+| Linux  | `-fopenmp -lomp`         |
 
 ## Known Issues
 
