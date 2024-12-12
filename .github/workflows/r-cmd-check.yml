@@ -37,27 +37,6 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
-          
-      - name: Install dependencies on macOS and Linux
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          if [ "$(uname)" = "Darwin" ]; then
-            R -e "install.packages('BiocManager')"
-            R -e "BiocManager::install('Rhdf5lib')"
-          elif [ "$(expr substr $(uname -s) 1 5)" = "Linux" ]; then
-            sudo apt-get update
-            sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
-            R -e "install.packages('BiocManager')"
-            R -e "BiocManager::install('Rhdf5lib')"
-          fi
-
-      - name: Install dependencies on Windows
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: |
-          Rscript -e "install.packages('BiocManager')"
-          Rscript -e "BiocManager::install('Rhdf5lib')"
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
