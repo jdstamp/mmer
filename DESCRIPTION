@@ -1,6 +1,7 @@
 Package: mmer
 Title: The Multimodal Marginal Epistasis Test
 Version: 0.0.1
+URL: https://github.com/lcrawlab/mmer, https://lcrawlab.github.io/mmer/
 Authors@R: c(
     person("Julian", "Stamp", email = "julian_stamp@brown.edu",
     role = c("cre", "aut"), comment = c(ORCID = "0000-0003-3014-6249")),
@@ -9,7 +10,10 @@ Authors@R: c(
 Description: The Multimodal Marginal Epistasis (MME) Test is a statistical
     method which detects marginal epistatic variants. It focuses the 
     scans for epistasis to regions of the genome that have known functional 
-    enrichment for a trait of interest.
+    enrichment for a trait of interest. The test fits a linear mixed model
+    which corrects for population structure. The software implements a novel 
+    statistical algorithm that allows MME perform genome-wide testing of 
+    marginal epistasis in human biobank-scale data.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -38,7 +42,12 @@ Config/testthat/edition: 3
 SystemRequirements: GNU make
 VignetteBuilder: knitr
 Depends: 
-    R (>= 2.10)
+    R (>= 4.4.0)
 LazyData: true
-biocViews:
+biocViews:     
+    GenomeWideAssociation,
+    Epistasis,
+    Genetics,
+    SNP,
+    LinearMixedModel
 

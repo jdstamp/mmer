@@ -1,4 +1,4 @@
-#' Multimodal Marginal Epistasis (MME) Test
+#' Multimodal Marginal Epistasis Test (MME) 
 #'
 #' MME tests for marginal epistasis by incorporating functional data to inform
 #' the gene-by-gene interaction covariance matrix for computational and statistical
@@ -14,6 +14,8 @@
 #'
 #' @param plink_file Character. File path to the PLINK dataset (without *.bed extension). 
 #'   The function will append `.bim`, `.bed`, and `.fam` extensions automatically.
+#'   The genotype data must not have any missing genotypes. Use PLINK to remove variants
+#'   with missing genotypes or impute them.
 #' @param pheno_file Character. File path to a phenotype file in PLINK format. 
 #'   The file should contain exactly one phenotype column.
 #' @param mask_file Character or NULL. File path to an HDF5 file specifying per-SNP 
@@ -82,6 +84,33 @@
 #'     the gene-by-gene interaction covariance matrix for focal SNP `<j>`.
 #'
 #' **Important**: All indices in the mask file data are **zero-based**, matching the zero-based indices of the PLINK `.bim` file. 
+#'
+#' @examples
+#' plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+#' pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
+#' mask_file <- ""
+#'
+#' # Parameter inputs
+#' chunk_size <- 10
+#' n_randvecs <- 10
+#' n_blocks <- 10
+#' n_threads <- 1
+#'
+#' # 1-based Indices of SNPs to be analyzed
+#' n_snps <- 100
+#' snp_indices <- 1:n_snps
+#'
+#' mme_result <- mme(
+#'   plink_file,
+#'   pheno_file,
+#'   mask_file,
+#'   snp_indices,
+#'   chunk_size,
+#'   n_randvecs,
+#'   n_blocks,
+#'   n_threads
+#' )
+#' head(mme_result$summary)
 #'
 #' @useDynLib mmer
 #' @import Rcpp

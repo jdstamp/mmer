@@ -31,7 +31,7 @@ The Multimodal Marginal Epistasis test (MME) requires a HDF5 file containing bin
 
 ## Mask File Format
 
-The mme() function expects the mask data to be in an HDF5 file. The HDF5 format includes two primary object types:
+The `mme()` function expects the mask data to be in an HDF5 file. The HDF5 format includes two primary object types:
 
 - Datasets - typed multidimensional arrays
 - Groups - container structures that can hold datasets and other groups

@@ -45,7 +45,7 @@ devtools::install_github("lcrawlab/mmer")
 System requirements of the package:
 
 - GNU make
-- R (>= 2.10)
+- R (>= 4.4)
 - Rhdf5lib (from BioConductor)
 - OpenMP (optional)
 

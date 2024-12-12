@@ -1,4 +1,4 @@
 # mmer 0.0.1
 
-* Initial CRAN submission.
+* Version that was used in the publication of MME.
 

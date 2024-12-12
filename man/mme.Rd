@@ -2,7 +2,7 @@
 % Please edit documentation in R/mme.R
 \name{mme}
 \alias{mme}
-\title{Multimodal Marginal Epistasis (MME) Test}
+\title{Multimodal Marginal Epistasis Test (MME)}
 \usage{
 mme(
   plink_file,
@@ -21,7 +21,9 @@ mme(
 }
 \arguments{
 \item{plink_file}{Character. File path to the PLINK dataset (without *.bed extension).
-The function will append \code{.bim}, \code{.bed}, and \code{.fam} extensions automatically.}
+The function will append \code{.bim}, \code{.bed}, and \code{.fam} extensions automatically.
+The genotype data must not have any missing genotypes. Use PLINK to remove variants
+with missing genotypes or impute them.}
 
 \item{pheno_file}{Character. File path to a phenotype file in PLINK format.
 The file should contain exactly one phenotype column.}
@@ -115,6 +117,34 @@ the gene-by-gene interaction covariance matrix for focal SNP \verb{<j>}.
 }
 
 \strong{Important}: All indices in the mask file data are \strong{zero-based}, matching the zero-based indices of the PLINK \code{.bim} file.
+}
+\examples{
+plink_file <- gsub("\\\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
+mask_file <- ""
+
+# Parameter inputs
+chunk_size <- 10
+n_randvecs <- 10
+n_blocks <- 10
+n_threads <- 1
+
+# 1-based Indices of SNPs to be analyzed
+n_snps <- 100
+snp_indices <- 1:n_snps
+
+mme_result <- mme(
+  plink_file,
+  pheno_file,
+  mask_file,
+  snp_indices,
+  chunk_size,
+  n_randvecs,
+  n_blocks,
+  n_threads
+)
+head(mme_result$summary)
+
 }
 \references{
 Stamp, J., DenAdel, A., Weinreich, D., & Crawford, L. (2023).
