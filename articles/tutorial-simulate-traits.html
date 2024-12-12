@@ -52,11 +52,13 @@
     <li><a class="dropdown-item" href="../articles/study-erythroid-differentiation-data.html">Conditioning Epistasis Search on Open Chromatin</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/lcrawlab/mmer/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -80,14 +82,14 @@
       <img src="../logo.png" class="logo" alt=""><h1>How To Simulate Traits</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/lcrawlab/mmer/blob/main/vignettes/tutorial-simulate-traits.Rmd" class="external-link"><code>vignettes/tutorial-simulate-traits.Rmd</code></a></small>
       <div class="d-none name"><code>tutorial-simulate-traits.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">mmer</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lcrawlab/mmer" class="external-link">mmer</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/OchoaLab/genio" class="external-link">genio</a></span><span class="op">)</span></span></code></pre></div>
 <p>For a simple illustration, we generate a synthetic allele count
 matrix with minor allele frequency <code>maf</code> greater than 5%. The
@@ -166,7 +168,8 @@ format.</p>
 <span>  <span class="va">gxg_group_1</span>,</span>
 <span>  <span class="va">gxg_group_2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>See Crawford et al. (2017) and <a href="https://lcrawlab.github.io/mvMAPIT/articles/tutorial-simulations.html" class="external-link">mvMAPIT
+<p>The variance components of the traits are constructed to match the
+input. See Crawford et al. (2017) and <a href="https://lcrawlab.github.io/mvMAPIT/articles/tutorial-simulations.html" class="external-link">mvMAPIT
 Documentation: Simulate Traits</a> for a full description of the
 simulation scheme.</p>
   </main>

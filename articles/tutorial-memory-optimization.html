@@ -52,11 +52,13 @@
     <li><a class="dropdown-item" href="../articles/study-erythroid-differentiation-data.html">Conditioning Epistasis Search on Open Chromatin</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/lcrawlab/mmer/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -80,14 +82,14 @@
       <img src="../logo.png" class="logo" alt=""><h1>How To Optimize the Memory Requirements of MME</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/lcrawlab/mmer/blob/main/vignettes/tutorial-memory-optimization.Rmd" class="external-link"><code>vignettes/tutorial-memory-optimization.Rmd</code></a></small>
       <div class="d-none name"><code>tutorial-memory-optimization.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">mmer</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/lcrawlab/mmer" class="external-link">mmer</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/" class="external-link">knitr</a></span><span class="op">)</span></span></code></pre></div>
@@ -141,13 +143,13 @@ results must be stored. Consequently, the memory requirement grows with
 the chunk size, calculated as:
 <code>chunk_size x (sample_size x n_randvecs)</code>.</p>
 <hr>
-<p><img src="../reference/figures/mme-shared-rvs.png" width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic pseudo-random vectors"><strong>Schematic overview illustrating the compuational speedup
-resulting from sharing random vectors. (a)</strong> In the randomized
-trace estimates we can identify reusable matrix by vector products.
-Computing the exact trace of a product of two covariance matrices is
-prohibitively computationally expensive. Instead, the multimodal
-marginal epistasis (MME) test approximates the traces using random
-vectors
+<p><img src="../reference/figures/mme-shared-rvs.png" width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic pseudo-random vectors"><strong>Figure 1. Schematic overview illustrating the compuational
+speedup resulting from sharing random vectors. (a)</strong> In the
+randomized trace estimates we can identify reusable matrix by vector
+products. Computing the exact trace of a product of two covariance
+matrices is prohibitively computationally expensive. Instead, the
+multimodal marginal epistasis (MME) test approximates the traces using
+random vectors
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>.
 For the full MQS computation of the point estimates of the variance
 components, we see that the matrix-by-vector products of the form
@@ -190,7 +192,9 @@ helps you determine if your planned settings will fit within available
 memory and identify which parameters can be adjusted to meet your
 resource constraints. The parameters <code>n_blocks</code>,
 <code>n_randvecs</code>, and <code>chunk_size</code> are particularly
-flexible and have a significant impact on memory usage.</p>
+flexible and have a significant impact on memory usage. Note however,
+that it does not account for masking and therefore likely overestimates
+the required memory.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">350000</span><span class="op">)</span></span>
 <span><span class="va">n_snps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500000</span><span class="op">)</span></span>
@@ -326,6 +330,25 @@ flexible and have a significant impact on memory usage.</p>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section level2">
+<h2 id="a-note-on-the-runtime-of-mme">A Note on the Runtime of MME<a class="anchor" aria-label="anchor" href="#a-note-on-the-runtime-of-mme"></a>
+</h2>
+<p>Despite the computational efficiency of MME, genome-wide testing
+requires considerable resources. We recommend to analyze data in
+batches, and to launch multiple processes simultaneously on a
+high-performance cluster (HPC). In <a href="articles/study-erythroid-differentiation-data.html">this
+study</a>, we analyzed 544k SNPs genotype in 350k individuals. We
+launched 544 slurm jobs requesting 43GB memory and 6 CPUs each to
+analyze batches of 1000 SNPs with chunk sizes of 250 SNPs. Genome-wide
+testing of a single trait on an HPC with 960 CPUs and 6840GB of memory
+available took about 3.5 days.</p>
+<hr>
+<p><img src="../reference/figures/mme-runtime.png" width="100%" alt="Multimodal Marginal Epistasis test (MME) runtime"></p>
+<p><strong>Figure 2. </strong> MME has improved power to detect marginal
+epistasis and runs 10x to 90x faster than state-of-the-art methods. The
+CPU time was measured on 350,000 individuals.</p>
+<hr>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

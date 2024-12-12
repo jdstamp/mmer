@@ -33,8 +33,10 @@ is saved to a specified output file in a phenotype format compatible with PLINK.
     <li><h6 class="dropdown-header" data-toc-skip>Studies</h6></li>
     <li><a class="dropdown-item" href="../articles/study-erythroid-differentiation-data.html">Conditioning Epistasis Search on Open Chromatin</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/lcrawlab/mmer/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -49,7 +51,7 @@ is saved to a specified output file in a phenotype format compatible with PLINK.
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Simulate Quantitative Traits from PLINK Genotypes</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/lcrawlab/mmer/blob/main/R/simulate_traits.R" class="external-link"><code>R/simulate_traits.R</code></a></small>
       <div class="d-none name"><code>simulate_traits.Rd</code></div>
     </div>
 
@@ -128,6 +130,37 @@ to random environmental noise.</p></li>
 Family ID (<code>FID</code>), Individual ID (<code>IID</code>), and the simulated trait (<code>TRAIT</code>).</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">plink_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"\\.bed"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"testdata"</span>, <span class="st">"test.bed"</span>, package <span class="op">=</span> <span class="st">"mmer"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">out_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">additive_heritability</span> <span class="op">&lt;-</span> <span class="fl">0.3</span></span></span>
+<span class="r-in"><span><span class="va">gxg_heritability</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span></span>
+<span class="r-in"><span><span class="va">additive_snps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="fl">50</span>, replace <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gxg_group_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">additive_snps</span>, <span class="fl">10</span>, replace <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gxg_group_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">additive_snps</span>, <span class="va">gxg_group_1</span><span class="op">)</span>, <span class="fl">10</span>, replace <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n_samples</span> <span class="op">&lt;-</span> <span class="fl">200</span></span></span>
+<span class="r-in"><span><span class="fu">simulate_traits</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">plink_file</span>,</span></span>
+<span class="r-in"><span>  <span class="va">out_file</span>,</span></span>
+<span class="r-in"><span>  <span class="va">additive_heritability</span>,</span></span>
+<span class="r-in"><span>  <span class="va">gxg_heritability</span>,</span></span>
+<span class="r-in"><span>  <span class="va">additive_snps</span>,</span></span>
+<span class="r-in"><span>  <span class="va">gxg_group_1</span>,</span></span>
+<span class="r-in"><span>  <span class="va">gxg_group_2</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">from_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="va">out_file</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">from_file</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   FID IID      TRAIT</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   1   1 -2.2624819</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   2   1  0.8647420</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   3   1  1.1590971</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   4   1 -2.2020698</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   5   1  0.7539203</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   6   1 -0.4960835</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
