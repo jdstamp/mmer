@@ -21,13 +21,9 @@ library(mmer)
 
 The Multimodal Marginal Epistasis test (MME) requires a HDF5 file containing binary masking data. The effectiveness of the test relies on how informative the mask is for a specific trait. For instance, to test for marginal epistasis related to transcriptional activity, DNase I hypersensitivity sites data can be used to condition the detection on accessible chromatin regions.
 
----
-
 <img src="../reference/figures/mme-schematic-dhs.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic DHS data" />
-
 **Figure 1.** The illustration shows open chromatin data. DNase I hypersensitive sites indicate transcriptional activity. The DNase-seq signal is converted to a binary mask, where genetic variants in inaccessible chromatin regions are excluded from the covariance matrix for marginal epistasis.
 
----
 
 ## Mask File Format
 

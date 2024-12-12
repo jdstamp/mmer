@@ -43,12 +43,9 @@ The `chunk_size` parameter controls how many SNPs share the same set of random v
 
 For each set of SNPs analyzed together (in a "chunk"), intermediate results must be stored. Consequently, the memory requirement grows with the chunk size, calculated as: `chunk_size x (sample_size x n_randvecs)`.
 
----
-
 <img src="../reference/figures/mme-shared-rvs.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic pseudo-random vectors" />
 **Figure 1. Schematic overview illustrating the compuational speedup resulting from sharing random vectors. (a)** In the randomized trace estimates we can identify reusable matrix by vector products. Computing the exact trace of a product of two covariance matrices is prohibitively computationally expensive. Instead, the multimodal marginal epistasis (MME) test approximates the traces using random vectors $z$. For the full MQS computation of the point estimates of the variance components, we see that the matrix-by-vector products of the form $Az$ with $A \in \{K, G\}$ appear repeatedly. **(b)** The genetic relatedness matrix $K$ is the same for all focal SNPs. Using unique random vectors in this computation for every focal SNP, we compute the same quantity repeatedly. Computing the matrix-by-vector products $Kz$ constitutes almost half of the computation time of the point estimates. **(c)** By sharing random vectors $z$ between focal SNPs, computing $Kz$ can be done once for all focal SNPs that share random vectors. With this, the computation time of $Kz$ becomes negligible.
 
----
 
 ## Genotype Masking for the Gene-by-Gene Interaction Covariance
 
@@ -99,11 +96,6 @@ we analyzed 544k SNPs genotype in 350k individuals. We launched 544 slurm jobs r
 Genome-wide testing of a single trait on an HPC with 960
 CPUs and 6840GB of memory available took about 3.5 days.
 
----
-
 <img src="../reference/figures/mme-runtime.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) runtime" />
-
 **Figure 2. ** MME has improved power to detect marginal epistasis and runs 10x to 90x faster than state-of-the-art methods.
 The CPU time was measured on 350,000 individuals.
-
----

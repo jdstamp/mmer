@@ -2,6 +2,7 @@ Package: mmer
 Title: The Multimodal Marginal Epistasis Test
 Version: 0.0.1
 URL: https://github.com/lcrawlab/mmer, https://lcrawlab.github.io/mmer/
+BugReports: https://github.com/lcrawlab/mmer/issues
 Authors@R: c(
     person("Julian", "Stamp", email = "julian_stamp@brown.edu",
     role = c("cre", "aut"), comment = c(ORCID = "0000-0003-3014-6249")),

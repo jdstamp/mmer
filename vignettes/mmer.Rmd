@@ -26,13 +26,8 @@ Masking interactions that do not contribute to trait variance both maximizes the
 
 This pages presents a toy example to show case what insights the implementation of the test provides.
 
----
-
 <img src="../reference/figures/mme-schematic-manhattan.png"  width="100%" alt="Multimodal Marginal Epistasis test (MME) schematic manhattan plot" />
-
 **Figure 1. ** MME performs a genome-wide search for SNPs involved in genetic interactions while conditioning on information derived from functional genomic data. MME has improved power to detect marginal epistasis and runs 10x to 90x faster than state-of-the-art methods.
-
----
 
 ## Run MME with PLINK data
 
