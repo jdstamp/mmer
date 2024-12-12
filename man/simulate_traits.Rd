@@ -75,7 +75,7 @@ simulate_traits(
   gxg_group_1,
   gxg_group_2
 )
-from_file <- read.table(out_file, header = T)
+from_file <- read.table(out_file, header = TRUE)
 head(from_file)
 
 }
