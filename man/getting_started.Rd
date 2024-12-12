@@ -7,11 +7,12 @@
 \format{
 A list with results from \code{mme()}, including the following components:
 \describe{
-\item{\code{summary}}{A data frame summarizing the analysis results, including p-values
-for SNP associations (\code{p}).}
-\item{\code{pve}}{A data frame containing the per SNP variance component estimates
-normalized to phenotypic variance explained (PVE).}
-\item{\code{vc}}{A data frame containing the per SNP variance component estimates.}
+\item{\code{summary}}{A data frame summarizing the analysis results, including
+p-values for SNP associations (\code{p}).}
+\item{\code{pve}}{A data frame containing the per SNP variance component
+estimates normalized to phenotypic variance explained (PVE).}
+\item{\code{vc}}{A data frame containing the per SNP variance component
+estimates.}
 \item{\code{gxg_snps}}{A vector containing the indices of the SNPs assigned to
 have epistatic interactions in the trait simulations.}
 }
@@ -23,27 +24,30 @@ data-raw/getting_started.R
 data("getting_started")
 }
 \description{
-\code{getting_started} is a simulated dataset created to demonstrate the use of the \code{mme()} function
-for genome-wide interaction analyses. It contains results from a simulated analysis involving
-additive genetic effects and gene-by-gene (GxG) interactions.
+\code{getting_started} is a simulated dataset created to demonstrate the use of
+the \code{mme()} function for genome-wide interaction analyses. It contains
+results from a simulated analysis involving additive genetic effects and
+gene-by-gene (GxG) interactions.
 }
 \details{
 The dataset was generated as follows:
 \itemize{
 \item \strong{Genotype Simulation}:
-Genotype data for 5000 individuals and 6,000 SNPs was simulated with synthetic
-allele counts.
+Genotype data for 5000 individuals and 6,000 SNPs was simulated with
+synthetic allele counts.
 \item \strong{Phenotype Simulation}:
-Phenotypic values were simulated with an additive heritability of 0.3 and a GxG
-interaction heritability of 0.25. A set of 100 SNPs were selected for additive effects,
-and two groups of 5 SNPs each were used for GxG interactions.
+Phenotypic values were simulated with an additive heritability of 0.3 and a
+GxG interaction heritability of 0.25. A set of 100 SNPs were selected for
+additive effects, and two groups of 5 SNPs each were used for GxG
+interactions.
 \item \strong{PLINK-Compatible Files}:
-The simulated data was saved in PLINK-compatible \code{.bed}, \code{.fam}, and \code{.bim} files.
+The simulated data was saved in PLINK-compatible \code{.bed}, \code{.fam},
+and \code{.bim} files.
 \item \strong{Interaction Analysis}:
-The \code{mme()} function was used to perform genome-wide interaction analyses on a subset
-of SNP indices, including the GxG SNP groups and 100 additional additive SNPs.
-Memory-efficient computation parameters (e.g., \code{chun_ksize}, \code{n_randvecs}, and \code{n_blocks})
-were applied.
+The \code{mme()} function was used to perform genome-wide interaction analyses
+on a subset of SNP indices, including the GxG SNP groups and 100 additional
+additive SNPs. Memory-efficient computation parameters
+(e.g., \code{chun_ksize}, \code{n_randvecs}, and \code{n_blocks}) were applied.
 }
 }
 \section{Key Parameters}{
