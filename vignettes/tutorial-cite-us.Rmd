@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-If you use this software in your research, please cite these references accordingly.
+If you use this software in your research, please cite the references listed below.
 
 ## The Multimodal Marginal Epistasis Test (MME)
 
