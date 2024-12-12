@@ -75,8 +75,8 @@ To enable openMP, it may be necessary to configure the compiler flag
 
 | System | Flag                                             |
 |--------|--------------------------------------------------|
-| Linux  | `SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp -lomp` |
-| OS X   | `SHLIB_OPENMP_CXXFLAGS = -fopenmp -lomp`         |
+| OS X   | `SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp -lomp` |
+| Linux  | `SHLIB_OPENMP_CXXFLAGS = -fopenmp -lomp`         |
 
 ## Known Issues
 
