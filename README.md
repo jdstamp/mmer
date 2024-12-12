@@ -2,7 +2,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
 
-# mmer - The Multimodal Marginal Epistasis test R implementation <img src="man/figures/logo.png" align="right" height="200" alt="" />
+# The Multimodal Marginal Epistasis test <img src="man/figures/logo.png" align="right" height="200" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -13,22 +13,14 @@ association studies (GWAS). Find the full package documentation
 including examples and articles here: [Multimodal Marginal Epistasis
 test Documentation](https://lcrawlab.github.io/mmer/).
 
-The method builds on
-
-- the Marginal Epistasis Test (MAPIT)
-- the multivariate Marginal Epistasis Test (mvMAPIT)
-- the Fast Marginal Epistasis Test (FAME)
-
-The R package documentation for mvMAPIT including examples and articles
-can be found here: [Multivariate MAPIT
-Documentation](https://lcrawlab.github.io/mvMAPIT/).
-
 ## Key Features
 
-- Stochastic Trace Estimation: Enables computational speedup to scale to
-  Biobank scale data.
-- Multimodal Input: Incorporates prior data from HDF5 files to improve
-  power in detecting gene-by-gene interactions.
+- Hutchinson’s stochastic trace estimator: efficient and scalable
+  computation
+- Mailman algorithm: fast vector-by-matrix operation
+- Linear mixed model: controls for population structure
+- Multimodal Input: incorporates additional data from HDF5 files to
+  improve power in detecting gene-by-gene interactions.
 - Optimize for Memory Constraints: Highly configurable block wise
   processing of the data allows to make the most of available resources.
   See also [How To Optimize the Memory Requirements of
@@ -47,20 +39,52 @@ devtools::install_github("lcrawlab/mmer")
 
 ## Dependencies
 
+System requirements of the package:
+
+- GNU make
+- R (\>= 2.10)
+- OpenMP (optional)
+
+The package depends on one package from BioConductor: `Rhdf5lib`. This
+dependency can be installed by first installing the tool `BiocManager`
+from CRAN, and subsequently installing the library with this tool.
+
+    if (!require("BiocManager", quietly = TRUE))
+        install.packages("BiocManager")
+    BiocManager::install("Rhdf5lib")
+
 The full list of R dependencies can be found in the [DESCRIPTION
 file](https://github.com/lcrawlab/mmer/blob/main/DESCRIPTION).
 
-This package depends on several C++ libraries to provide efficient
-functionality and performance. Make sure the following software are
-installed and available on your system:
+### OpenMP
 
-1.  HDF5
-2.  Boost
-3.  OpenMP
+For OS X and Linux, the OpenMP library can be installed via one of the
+(shell) commands specified below:
 
-The package ships with the header-only HDF55 C++ library
-[HighFive](https://github.com/BlueBrain/HighFive). It utilizes the
-library for efficient and index based access to masking data.
+| System | Command |
+|:---|:---|
+| **OS X (using Homebrew)** | `brew install libomp` |
+| **Debian-based systems (including Ubuntu)** | `sudo apt-get install libomp-dev` |
+
+To enable openMP, it may be necessary to configure the compiler flag
+`SHLIB_OPENMP_CXXFLAGS` in the `~/.R/Makevars` file.
+
+| System | Flag                                             |
+|--------|--------------------------------------------------|
+| Linux  | `SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp -lomp` |
+| OS X   | `SHLIB_OPENMP_CXXFLAGS = -fopenmp -lomp`         |
+
+## Known Issues
+
+Compiling the package requires the compiler to find the libraries for
+the dependencies. For unix systems, the libraries are typically
+installed at `/usr/local/lib` and `/usr/local/include`. For users using
+OS X and homebrew, the libraries are typically installed at
+`/opt/homebrew/lib` and `/opt/homebrew/include`.
+
+Non-standard library paths need to be configured. The `src/Makevars`
+file configures the compiler flags and considers the `LDFLAGS` and
+`CPPFLAGS` from the `~/.R/Makevars` file.
 
 ## References
 

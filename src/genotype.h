@@ -2,7 +2,11 @@
 #ifndef GENOTYPE_H
 #define GENOTYPE_H
 #include "mme.h"
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <set>
 #include <istream>
 
 class genotype {

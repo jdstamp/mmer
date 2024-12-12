@@ -16,9 +16,10 @@ knitr::opts_chunk$set(
 
 ## The Multimodal Marginal Epistasis Test (MME)
 
-Stamp J, Pattilo-Smith S, Weinreich D & Crawford L (2024). The Multimodal Marginal Epistasis test paper
+Stamp J, Pattilo-Smith S, Weinreich D & Crawford L (2024). Integration of functional genomic maps enables genome-wide detection of
+epistasis in human complex traits. bioRXiv.
 
-Stamp J & Crawford L (2024). The Multimodal Marginal Epistasis test software
+Stamp J & Crawford L (2024). mmer: Multimodal Marginal Epistasis Test. <https://github.com/lcrawlab/mmer>, <https://lcrawlab.github.io/mmer/>
 
 ---
 

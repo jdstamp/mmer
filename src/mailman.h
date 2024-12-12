@@ -26,7 +26,11 @@
 
 #include <RcppEigen.h>
 #include <assert.h>
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <set>
 
 namespace mailman {
 
