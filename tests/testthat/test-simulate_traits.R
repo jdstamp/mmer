@@ -9,7 +9,8 @@ test_that("simulate_traits works", {
   gxg_heritability <- 0.1
   additive_snps <- sort(sample(1:100, 50, replace = F))
   gxg_group_1 <- sort(sample(additive_snps, 10, replace = F))
-  gxg_group_2 <- sort(sample(setdiff(additive_snps, gxg_group_1), 10, replace = F))
+  gxg_group_2 <- sort(sample(setdiff(additive_snps, gxg_group_1), 10, 
+                             replace = F))
   target_mean <- 0
   target_var <- 1
   column_names <- c("FID", "IID", "TRAIT")
@@ -41,7 +42,8 @@ test_that("simulate_traits works for zero gxg heritability", {
   gxg_heritability <- 0.0
   additive_snps <- sort(sample(1:100, 50, replace = F))
   gxg_group_1 <- sort(sample(additive_snps, 10, replace = F))
-  gxg_group_2 <- sort(sample(setdiff(additive_snps, gxg_group_1), 10, replace = F))
+  gxg_group_2 <- sort(sample(setdiff(additive_snps, gxg_group_1), 10,
+                             replace = F))
   target_mean <- 0
   target_var <- 1
   column_names <- c("FID", "IID", "TRAIT")

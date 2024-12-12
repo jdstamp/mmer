@@ -1,43 +1,58 @@
 #' Multimodal Marginal Epistasis Test (MME) 
 #'
 #' MME tests for marginal epistasis by incorporating functional data to inform
-#' the gene-by-gene interaction covariance matrix for computational and statistical
-#' efficiency.
+#' the gene-by-gene interaction covariance matrix for computational and
+#' statistical efficiency.
 #' 
 #' @references Stamp, J., DenAdel, A., Weinreich, D., & Crawford, L. (2023). 
 #' Leveraging the genetic correlation between traits improves the detection of 
-#' epistasis in genome-wide association studies. G3: Genes, Genomes, Genetics, 13(8), jkad118.
+#' epistasis in genome-wide association studies. 
+#' G3: Genes, Genomes, Genetics, 13(8), jkad118.
 #' @references Crawford, L., Zeng, P., Mukherjee, S., & Zhou, X. (2017). 
 #' Detecting epistasis with the marginal epistasis test in genetic mapping 
 #' studies of quantitative traits. PLoS genetics, 13(7), e1006869.
 #' 
 #'
-#' @param plink_file Character. File path to the PLINK dataset (without *.bed extension). 
-#'   The function will append `.bim`, `.bed`, and `.fam` extensions automatically.
-#'   The genotype data must not have any missing genotypes. Use PLINK to remove variants
-#'   with missing genotypes or impute them.
+#' @param plink_file Character. File path to the PLINK dataset 
+#'   (without *.bed extension). 
+#'   The function will append `.bim`, `.bed`, and `.fam` extensions
+#'   automatically.
+#'   The genotype data must not have any missing genotypes. Use PLINK to remove
+#'   variants with missing genotypes or impute them.
 #' @param pheno_file Character. File path to a phenotype file in PLINK format. 
 #'   The file should contain exactly one phenotype column.
-#' @param mask_file Character or NULL. File path to an HDF5 file specifying per-SNP 
-#'   masks for gene-by-gene interaction tests. This file informs which SNPs are tested 
-#'   for marginal epistasis. Defaults to `NULL`, indicating no masking.
-#'   Masking impacts the scaling of memory and time.
-#' @param gxg_indices Integer vector or NULL. List of indices corresponding to SNPs to test for marginal epistasis.
-#'   If `NULL`, all SNPs in the dataset will be tested. These indices are **1-based**.
-#' @param chunk_size Integer or NULL. Number of SNPs processed per chunk. This influences memory 
-#'   usage and can be left `NULL` to automatically determine the chunk size based on `gxg_indices` and number of threads.
-#' @param n_randvecs Integer. Number of random vectors used for stochastic trace estimation. 
-#'   Higher values yield more accurate estimates but increase computational cost. Default is 10.
-#' @param n_blocks Integer. Number of blocks into which SNPs are divided for processing. 
+#' @param mask_file Character or NULL. File path to an HDF5 file specifying
+#'   per-SNP masks for gene-by-gene interaction tests. This file informs which
+#'   SNPs are tested for marginal epistasis. Defaults to `NULL`, indicating no
+#'   masking. Masking impacts the scaling of memory and time.
+#' @param gxg_indices Integer vector or NULL. List of indices corresponding to
+#'   SNPs to test for marginal epistasis.
+#'   If `NULL`, all SNPs in the dataset will be tested.
+#'   These indices are **1-based**.
+#' @param chunk_size Integer or NULL. Number of SNPs processed per chunk.
+#'   This influences memory 
+#'   usage and can be left `NULL` to automatically determine the chunk size
+#'   based on `gxg_indices` and number of threads.
+#' @param n_randvecs Integer. Number of random vectors used for stochastic trace
+#'   estimation. 
+#'   Higher values yield more accurate estimates but increase computational
+#'   cost. Default is 10.
+#' @param n_blocks Integer. Number of blocks into which SNPs are divided for
+#'   processing. 
 #'   This parameter affects memory requirements. Default is 100.
-#' @param n_threads Integer. Number of threads for OpenMP parallel processing. Default is 1.
-#' @param gxg_h5_group Character. Name of the HDF5 group within the mask file containing gene-by-gene 
-#'   interaction masks. SNPs in this group will be included in the gene-by-gene interactions. Defaults to "gxg".
-#' @param ld_h5_group Character. Name of the HDF5 group within the mask file containing linkage disequilibrium 
+#' @param n_threads Integer. Number of threads for OpenMP parallel processing.
+#'   Default is 1.
+#' @param gxg_h5_group Character. Name of the HDF5 group within the mask file
+#'   containing gene-by-gene 
+#'   interaction masks. SNPs in this group will be included in the gene-by-gene
+#'   interactions. Defaults to "gxg".
+#' @param ld_h5_group Character. Name of the HDF5 group within the mask file
+#'   containing linkage disequilibrium 
 #'   masks. SNPs in this group are excluded from analysis. Defaults to "ld".
-#' @param rand_seed Integer. Seed for random vector generation. If `-1`, no seed is set. Default is -1.
-#' @param log_level Character. Logging level for messages. Must be in uppercase (e.g., "DEBUG", "INFO", 
-#'   "WARNING", "ERROR"). Default is "WARNING".
+#' @param rand_seed Integer. Seed for random vector generation. If `-1`, no seed
+#'   is set. Default is -1.
+#' @param log_level Character. Logging level for messages. Must be in uppercase
+#'   (e.g., "DEBUG", "INFO", "WARNING", "ERROR"). Default is "WARNING".
 #'
 #' @return A list containing:
 #'   - `summary`: A tibble summarizing results for each tested SNP, including:
@@ -55,11 +70,11 @@
 #'   - `average_duration`: Average computation time per SNP.
 #'
 #' @details
-#' This function integrates PLINK-formatted genotype and phenotype data to perform 
-#' marginal epistasis tests on a set of SNPs. Using stochastic trace estimation, 
-#' the method computes variance components for gene-by-gene interaction and genetic
-#' relatedness using the MQS estimator. The process is parallelized using OpenMP 
-#' when `n_threads > 1`.
+#' This function integrates PLINK-formatted genotype and phenotype data to 
+#' perform marginal epistasis tests on a set of SNPs. Using stochastic trace
+#' estimation, the method computes variance components for gene-by-gene
+#' interaction and genetic relatedness using the MQS estimator. The process is
+#' parallelized using OpenMP when `n_threads > 1`.
 #'
 #' The memory requirements and computation time scaling can be optimized through 
 #' the parameters `chunk_size`, `n_randvecs`, and `n_blocks`.

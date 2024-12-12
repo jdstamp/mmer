@@ -7,18 +7,20 @@
 create_hdf5_file(hdf5_file)
 }
 \arguments{
-\item{hdf5_file}{A character string specifying the path and name of the HDF5 file to be created.}
+\item{hdf5_file}{A character string specifying the path and name of the HDF5
+file to be created.}
 }
 \value{
-No return value; the function creates the HDF5 file at the specified location.
+No return value; the function creates the HDF5 file at the specified
+location.
 }
 \description{
 This function creates a new, empty HDF5 file at the specified location.
 }
 \examples{
-\dontrun{
 # Create an empty HDF5 file
-create_hdf5_file("example.h5")
-}
+hdf5_file <- tempfile()
+create_hdf5_file(hdf5_file)
+
 
 }
