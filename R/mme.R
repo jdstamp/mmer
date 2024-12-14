@@ -1,9 +1,13 @@
 #' Multimodal Marginal Epistasis Test (MME) 
 #'
-#' MME tests for marginal epistasis by incorporating functional data to inform
-#' the gene-by-gene interaction covariance matrix for computational and
-#' statistical efficiency.
+#' MME fits a linear mixed model in order to test for marginal epistasis. It 
+#' concentrates the scans for epistasis to regions of the genome that have known
+#' functional enrichment for a trait of interest.
 #' 
+#' @references Stamp, J., Pattillo Smith, S., Weinreich, D., & Crawford, L. (2024). 
+#' Integration of functional genomic maps enables genome-wide detection of 
+#' epistasis in human complex traits. 
+#' bioRxiv.
 #' @references Stamp, J., DenAdel, A., Weinreich, D., & Crawford, L. (2023). 
 #' Leveraging the genetic correlation between traits improves the detection of 
 #' epistasis in genome-wide association studies. 
