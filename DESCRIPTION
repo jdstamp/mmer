@@ -34,6 +34,7 @@ Imports:
     RcppEigen,
     tidyr
 Suggests: 
+    GenomicRanges,
     ggplot2,
     knitr,
     rmarkdown,
