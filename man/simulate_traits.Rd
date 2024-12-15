@@ -16,25 +16,31 @@ simulate_traits(
 )
 }
 \arguments{
-\item{plink_file}{Character. Path to the PLINK dataset (without file extension).
-The function will append \code{.bed}, \code{.bim}, and \code{.fam} extensions as needed.}
+\item{plink_file}{Character. Path to the PLINK dataset (without file
+extension). The function will append \code{.bed}, \code{.bim}, and \code{.fam} extensions
+as needed.}
 
-\item{output_file}{Character. Path to the output file where the simulated trait will be saved.}
+\item{output_file}{Character. Path to the output file where the simulated
+trait will be saved.}
 
-\item{additive_heritability}{Numeric. A value between 0 and 1 specifying the proportion
-of trait variance due to additive genetic effects.}
+\item{additive_heritability}{Numeric. A value between 0 and 1 specifying the
+proportion of trait variance due to additive genetic effects.}
 
-\item{gxg_heritability}{Numeric. A value between 0 and 1 specifying the proportion
-of trait variance due to gene-by-gene (epistatic) interactions. The sum of
-\code{additive_heritability} and \code{gxg_heritability} must not exceed 1.}
+\item{gxg_heritability}{Numeric. A value between 0 and 1 specifying the
+proportion of trait variance due to gene-by-gene (epistatic) interactions.
+The sum of \code{additive_heritability} and \code{gxg_heritability} must not exceed 1.}
 
-\item{additive_indices}{Integer vector. Indices of SNPs contributing to additive genetic effects.}
+\item{additive_indices}{Integer vector. Indices of SNPs contributing to
+additive genetic effects.}
 
-\item{gxg_indices_1}{Integer vector. Indices of SNPs in the first group for epistatic interactions.}
+\item{gxg_indices_1}{Integer vector. Indices of SNPs in the first group for
+epistatic interactions.}
 
-\item{gxg_indices_2}{Integer vector. Indices of SNPs in the second group for epistatic interactions.}
+\item{gxg_indices_2}{Integer vector. Indices of SNPs in the second group for
+epistatic interactions.}
 
-\item{log_level}{Character. Logging level for messages (e.g., "DEBUG", "INFO", "WARNING"). Default is "WARNING".}
+\item{log_level}{Character. Logging level for messages
+(e.g., "DEBUG", "INFO", "WARNING"). Default is "WARNING".}
 }
 \value{
 None. The simulated trait is written to the specified \code{output_file}.
@@ -42,16 +48,18 @@ None. The simulated trait is written to the specified \code{output_file}.
 \description{
 This function simulates a quantitative trait based on additive and epistatic
 genetic effects using genotype data from a PLINK dataset. The simulated trait
-is saved to a specified output file in a phenotype format compatible with PLINK.
+is saved to a specified output file in a phenotype format compatible with
+PLINK.
 }
 \details{
 The function uses the following components to simulate the trait:
 \itemize{
-\item Additive genetic effects: Determined by \code{additive_indices} and the specified \code{additive_heritability}.
-\item Epistatic interactions: Simulated using pairs of SNPs from \code{gxg_indices_1} and \code{gxg_indices_2},
-contributing to the \code{gxg_heritability}.
-\item Environmental effects: Any remaining variance not explained by genetic effects is assigned
-to random environmental noise.
+\item Additive genetic effects: Determined by \code{additive_indices} and the
+specified \code{additive_heritability}.
+\item Epistatic interactions: Simulated using pairs of SNPs from \code{gxg_indices_1}
+and \code{gxg_indices_2}, contributing to the \code{gxg_heritability}.
+\item Environmental effects: Any remaining variance not explained by genetic
+effects is assigned to random environmental noise.
 }
 
 The output file is in PLINK-compatible phenotype format with three columns:

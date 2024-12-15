@@ -26,7 +26,8 @@ trace estimation. Affects memory for operations involving random vectors.}
 \item{chunksize}{Integer. The number of focal SNPs processed per chunk.}
 }
 \value{
-Numeric. The approximate memory requirement (in gigabytes) for the MME routine.
+Numeric. The approximate memory requirement (in gigabytes) for the
+MME routine.
 }
 \description{
 This function provides an approximate estimate of the memory requirements
@@ -54,6 +55,10 @@ n_snps <- 1e6
 n_blocks <- 100
 n_randvecs <- 100
 chunksize <- 10
-approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize)
+approximate_memory_requirements(n_samples, 
+                                n_snps, 
+                                n_blocks, 
+                                n_randvecs, 
+                                chunksize)
 
 }

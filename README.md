@@ -1,6 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-<!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
+<!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` 
+up-to-date. 
+`devtools::build_readme()` is handy for this. -->
 
 # The Multimodal Marginal Epistasis test <img src="man/figures/logo.png" align="right" height="200" alt="" />
 
@@ -49,9 +51,11 @@ System requirements of the package:
 To install `Rhdf5lib`, first install the tool `BiocManager` from CRAN,
 then install the library using this tool.
 
-    if (!require("BiocManager", quietly = TRUE))
-        install.packages("BiocManager")
-    BiocManager::install("Rhdf5lib")
+``` r
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("Rhdf5lib")
+```
 
 The full list of R dependencies can be found in the [DESCRIPTION
 file](https://github.com/lcrawlab/mmer/blob/main/DESCRIPTION).
@@ -66,13 +70,13 @@ For OS X and Linux, the OpenMP library can be installed via one of the
 | **OS X (using Homebrew)** | `brew install libomp` |
 | **Debian-based systems (including Ubuntu)** | `sudo apt-get install libomp-dev` |
 
-To enable openMP, it may be necessary to configure the compiler flag
-`SHLIB_OPENMP_CXXFLAGS` in the `~/.R/Makevars` file.
+To enable openMP, it may be necessary to configure the compiler flags
+`SHLIB_OPENMP_CXXFLAGS` and `LDFLAGS` in the `~/.R/Makevars` file.
 
-| System | Flag                                             |
-|--------|--------------------------------------------------|
-| Linux  | `SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp -lomp` |
-| OS X   | `SHLIB_OPENMP_CXXFLAGS = -fopenmp -lomp`         |
+| System | Required Flags           |
+|--------|--------------------------|
+| OS X   | `-Xclang -fopenmp -lomp` |
+| Linux  | `-fopenmp -lomp`         |
 
 ## Known Issues
 

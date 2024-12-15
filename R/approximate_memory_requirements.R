@@ -12,7 +12,8 @@
 #'   trace estimation. Affects memory for operations involving random vectors.
 #' @param chunksize Integer. The number of focal SNPs processed per chunk.
 #'
-#' @return Numeric. The approximate memory requirement (in gigabytes) for the MME routine.
+#' @return Numeric. The approximate memory requirement (in gigabytes) for the
+#' MME routine.
 #'
 #' @details
 #' The function calculates memory usage by summing the contributions from 
@@ -33,7 +34,11 @@
 #' n_blocks <- 100
 #' n_randvecs <- 100
 #' chunksize <- 10
-#' approximate_memory_requirements(n_samples, n_snps, n_blocks, n_randvecs, chunksize)
+#' approximate_memory_requirements(n_samples, 
+#'                                 n_snps, 
+#'                                 n_blocks, 
+#'                                 n_randvecs, 
+#'                                 chunksize)
 #'
 #' @export
 approximate_memory_requirements <- function(n_samples,
@@ -55,7 +60,8 @@ approximate_memory_requirements <- function(n_samples,
   # collect_XXy - Matrix: (n_samples, 1)
   # collect_Gy - Matrix: (n_samples, n_gxg_idx)
   # focal_snps_matrix - Matrix: (n_samples, n_gxg_idx)
-  # collect_XXUy - Matrix: (n_samples, (n_variance_components + 1) * (n_variance_components + 1) * n_gxg_idx)
+  # collect_XXUy - Matrix: (n_samples, 
+  #       (n_variance_components + 1) * (n_variance_components + 1) * n_gxg_idx)
   phenotype_like <- n_samples * (6 + 2 * chunksize + 9 * chunksize)
 
   # random_vectors - Matrix: (n_samples, n_randvecs)
@@ -91,6 +97,11 @@ approximate_memory_requirements <- function(n_samples,
   #
   # these are so small they can be neglected
 
-  total <-  vc_estimates + phenotype_like + randomvec_like + gt_objects + block_stats + mask
+  total <-  vc_estimates + 
+            phenotype_like + 
+            randomvec_like + 
+            gt_objects + 
+            block_stats + 
+            mask
   return(total * 8 / 1024 / 1024 / 1024)
 }

@@ -9,17 +9,28 @@ read_hdf5_dataset(file_name, dataset_name)
 \arguments{
 \item{file_name}{A character string specifying the path to the HDF5 file.}
 
-\item{dataset_name}{A character string specifying the name of the dataset within the HDF5 file to read.}
+\item{dataset_name}{A character string specifying the name of the dataset
+within the HDF5 file to read.}
 }
 \value{
-The content of the dataset from the HDF5 file, typically in the form of an R object.
+The content of the dataset from the HDF5 file, typically in the form
+of an R object.
 }
 \description{
 This function reads a dataset from an existing HDF5 file.
 }
 \examples{
-\dontrun{
-# Read a dataset named 'my_dataset' from an HDF5 file
-data <- read_hdf5_dataset("example.h5", "my_dataset")
-}
+data_to_write <- 1:10
+
+# Create an empty HDF5 file
+hdf5_file <- tempfile()
+create_hdf5_file(hdf5_file)
+
+# Write new data to a dataset in the HDF5 file
+write_hdf5_dataset(hdf5_file, "group/dataset", data_to_write)
+
+# Read a dataset from an HDF5 file
+hdf5_data <- read_hdf5_dataset(hdf5_file, "group/dataset")
+print(hdf5_data)
+
 }

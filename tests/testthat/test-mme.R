@@ -1,6 +1,7 @@
 test_that("mme end-to-end no mask", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed",
+                                               package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- ""
   gxg_h5_group <- "gxg"
@@ -79,7 +80,8 @@ test_that("mme end-to-end no mask", {
 
 test_that("mme end-to-end with mask", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed",
+                                               package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- system.file("testdata", "test.h5", package="mmer")
   gxg_h5_group <- "gxg"
@@ -157,7 +159,8 @@ test_that("mme end-to-end with mask", {
 
 test_that("mme end-to-end no mask only one gxg idx", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed",
+                                               package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   gxg_h5_group <- "gxg"
   ld_h5_group <- "ld"
@@ -218,7 +221,8 @@ test_that("mme end-to-end no mask only one gxg idx", {
 
 test_that("mme end-to-end no mask - chunksize 1", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed",
+                                               package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- ""
   gxg_h5_group <- "gxg"
@@ -297,7 +301,8 @@ test_that("mme end-to-end no mask - chunksize 1", {
 
 test_that("mme end-to-end but with mask - chunksize 1", {
   # given
-  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed", package="mmer"))
+  plink_file <- gsub("\\.bed", "", system.file("testdata", "test.bed",
+                                               package="mmer"))
   pheno_file <- system.file("testdata", "test_h2_0.5.pheno", package="mmer")
   mask_file <- system.file("testdata", "test.h5", package="mmer")
   gxg_h5_group <- "gxg"

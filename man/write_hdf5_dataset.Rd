@@ -9,21 +9,28 @@ write_hdf5_dataset(file_name, dataset_name, new_data)
 \arguments{
 \item{file_name}{A character string specifying the path to the HDF5 file.}
 
-\item{dataset_name}{A character string specifying the name of the dataset to be written in the HDF5 file.}
+\item{dataset_name}{A character string specifying the name of the dataset
+to be written in the HDF5 file.}
 
-\item{new_data}{The new data to write to the dataset. The data must be compatible with the dataset's structure.}
+\item{new_data}{The new data to write to the dataset. The data must be
+compatible with the dataset's structure.}
 }
 \value{
-No return value; the function modifies the specified dataset in the HDF5 file.
+No return value; the function modifies the specified dataset in the
+HDF5 file.
 }
 \description{
-This function writes new data to an existing HDF5 file. If the dataset already exists,
-it will be replaced with the new data.
+This function writes new data to an existing HDF5 file. If the dataset
+already exists, it will be replaced with the new data.
 }
 \examples{
-\dontrun{
-# Write new data to a dataset named 'my_dataset' in the HDF5 file
-write_hdf5_dataset("example.h5", "my_dataset", new_data)
-}
+data_to_write <- 1:10
+
+# Create an empty HDF5 file
+hdf5_file <- tempfile()
+create_hdf5_file(hdf5_file)
+
+# Write new data to a dataset in the HDF5 file
+write_hdf5_dataset(hdf5_file, "group/dataset", data_to_write)
 
 }
