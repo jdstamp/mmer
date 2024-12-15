@@ -8,13 +8,8 @@ Authors@R: c(
     role = c("cre", "aut"), comment = c(ORCID = "0000-0003-3014-6249")),
     person("Lorin", "Crawford", email = "lcrawford@microsoft.com",
     role = "aut", comment = c(ORCID = "0000-0003-0178-8242")))
-Description: The Multimodal Marginal Epistasis (MME) Test is a statistical
-    method which detects marginal epistatic variants. It focuses the 
-    scans for epistasis to regions of the genome that have known functional 
-    enrichment for a trait of interest. The test fits a linear mixed model
-    to estimate variance components. The software implements a novel 
-    statistical algorithm that allows MME to perform genome-wide testing of 
-    marginal epistasis in human biobank-scale data.
+Description: A computationally efficient genetics method which detects 
+    statistical epistasis in complex traits.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
