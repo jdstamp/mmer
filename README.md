@@ -4,7 +4,7 @@
 up-to-date. 
 `devtools::build_readme()` is handy for this. -->
 
-# The Multimodal Marginal Epistasis test <img src="man/figures/logo.png" align="right" height="200" alt="" />
+# The multimodal marginal epistasis test <img src="man/figures/logo.png" align="right" height="200" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -12,8 +12,8 @@ up-to-date.
 The `mmer` package implements a computationally and statistically
 efficient method for detecting marginal epistasis in genome-wide
 association studies (GWAS). Find the full package documentation
-including examples and articles here: [Multimodal Marginal Epistasis
-test Documentation](https://lcrawlab.github.io/mmer/).
+including examples and articles here: [multimodal marginal epistasis
+test documentation](https://lcrawlab.github.io/mmer/).
 
 ## Key Features
 
