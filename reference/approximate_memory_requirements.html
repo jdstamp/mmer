@@ -100,7 +100,8 @@ trace estimation. Affects memory for operations involving random vectors.</p></d
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Numeric. The approximate memory requirement (in gigabytes) for the MME routine.</p>
+    <p>Numeric. The approximate memory requirement (in gigabytes) for the
+MME routine.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -122,7 +123,11 @@ for the analysis.</p>
 <span class="r-in"><span><span class="va">n_blocks</span> <span class="op">&lt;-</span> <span class="fl">100</span></span></span>
 <span class="r-in"><span><span class="va">n_randvecs</span> <span class="op">&lt;-</span> <span class="fl">100</span></span></span>
 <span class="r-in"><span><span class="va">chunksize</span> <span class="op">&lt;-</span> <span class="fl">10</span></span></span>
-<span class="r-in"><span><span class="fu">approximate_memory_requirements</span><span class="op">(</span><span class="va">n_samples</span>, <span class="va">n_snps</span>, <span class="va">n_blocks</span>, <span class="va">n_randvecs</span>, <span class="va">chunksize</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">approximate_memory_requirements</span><span class="op">(</span><span class="va">n_samples</span>, </span></span>
+<span class="r-in"><span>                                <span class="va">n_snps</span>, </span></span>
+<span class="r-in"><span>                                <span class="va">n_blocks</span>, </span></span>
+<span class="r-in"><span>                                <span class="va">n_randvecs</span>, </span></span>
+<span class="r-in"><span>                                <span class="va">chunksize</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 6.447136</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

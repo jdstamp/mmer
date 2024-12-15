@@ -69,20 +69,32 @@
 
 
 <dt id="arg-dataset-name">dataset_name<a class="anchor" aria-label="anchor" href="#arg-dataset-name"></a></dt>
-<dd><p>A character string specifying the name of the dataset within the HDF5 file to read.</p></dd>
+<dd><p>A character string specifying the name of the dataset
+within the HDF5 file to read.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The content of the dataset from the HDF5 file, typically in the form of an R object.</p>
+    <p>The content of the dataset from the HDF5 file, typically in the form
+of an R object.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="co"># Read a dataset named 'my_dataset' from an HDF5 file</span></span></span>
-<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">read_hdf5_dataset</span><span class="op">(</span><span class="st">"example.h5"</span>, <span class="st">"my_dataset"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">data_to_write</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Create an empty HDF5 file</span></span></span>
+<span class="r-in"><span><span class="va">hdf5_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="create_hdf5_file.html">create_hdf5_file</a></span><span class="op">(</span><span class="va">hdf5_file</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Write new data to a dataset in the HDF5 file</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="write_hdf5_dataset.html">write_hdf5_dataset</a></span><span class="op">(</span><span class="va">hdf5_file</span>, <span class="st">"group/dataset"</span>, <span class="va">data_to_write</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Read a dataset from an HDF5 file</span></span></span>
+<span class="r-in"><span><span class="va">hdf5_data</span> <span class="op">&lt;-</span> <span class="fu">read_hdf5_dataset</span><span class="op">(</span><span class="va">hdf5_file</span>, <span class="st">"group/dataset"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">hdf5_data</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1]  1  2  3  4  5  6  7  8  9 10</span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
