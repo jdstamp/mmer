@@ -4,6 +4,11 @@
 up-to-date. 
 `devtools::build_readme()` is handy for this. -->
 
+This repo is the development version of the Sparse Marginal Epistasis test.
+The supported and published version can be found here: https://github.com/lcrawlab/sme
+
+
+
 # The multimodal marginal epistasis test <img src="man/figures/logo.png" align="right" height="200" alt="" />
 
 <!-- badges: start -->
